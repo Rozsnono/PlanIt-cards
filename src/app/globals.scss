@@ -128,21 +128,19 @@ body {
 }
 
 
-.clock-dots {
-  animation: identifier 1s infinite;
+.card-animation {
+  animation: identifier 1s ease-in-out;
 }
 
 @keyframes identifier {
   0% {
     opacity: 0;
-  }
-
-  50% {
-    opacity: 1;
+    transform: translateY(100%) translateX(50%);
   }
 
   100% {
-    opacity: 0;
+    opacity: 1;
+    transform: translateY(0%) translateX(0%);
   }
 
 }

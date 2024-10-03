@@ -8,12 +8,12 @@ export interface User {
 }
 
 export const UserContext = createContext<User>({
-    user: { _id: '', name: '', email: '' },
+    user: { _id: '1', name: '', email: '' },
     setUser: (user: { _id: string, name: string, email: string, projects?: string[] }) => { },
 });
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
-    const [user, setUser] = useState<any>();
+    const [user, setUser] = useState<any>({ _id: '1', name: '', email: '' });
 
     return (
         <UserContext.Provider value={{ user, setUser }}>

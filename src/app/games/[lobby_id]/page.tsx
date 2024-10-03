@@ -1,26 +1,36 @@
 "use client";
-import Icon, { StrokeIcon } from "@/assets/icons"
+import Icon from "@/assets/icons"
+import { Ilobby } from "@/interfaces/interface";
+import { useParams } from "next/navigation";
 
 export default function LobbyId() {
 
-    const lobbySettings = {
-        numberOfPlayers: 8,
-        robberRummy: true,
-        privateLobby: false,
-        lobbyCode: "12345",
-        unranked: false,
-        fillWithRobots: false,
-        numberOfRobots: 1
-    }
+    const lobby_id = useParams().lobby_id;
 
-    const players = [
-        { name: "Norbi", rank: 1 },
-        { name: "Rezső", rank: 2 },
-        { name: "Józsi", rank: 3 },
-        { name: "Pista", rank: 4 },
-        { name: "Géza", rank: 5 },
-        { name: "Béla", rank: 6 },
-    ];
+
+    const lobby: Ilobby = {
+        _id: "1",
+        players: [
+            { _id: "1", name: "Norbi", rank: 1 },
+            { _id: "2", name: "Rezső", rank: 2 },
+            { _id: "3", name: "Józsi", rank: 3 },
+            { _id: "4", name: "Pista", rank: 4 },
+            { _id: "5", name: "Géza", rank: 5 },
+            { _id: "6", name: "Béla", rank: 6 },
+        ],
+        mutedPlayers: [],
+        chat: [],
+        game_id: "1",
+        settings: {
+            numberOfPlayers: 8,
+            robberRummy: true,
+            privateLobby: false,
+            lobbyCode: "12345",
+            unranked: false,
+            fillWithRobots: false,
+            numberOfRobots: 1
+        }
+    }
 
     const positionEnum = [
         "left-[-12%]",
@@ -35,7 +45,7 @@ export default function LobbyId() {
 
 
     function removePlayer(index: number) {
-        players.splice(index, 1);
+        lobby.players.splice(index, 1);
     }
 
     return (
@@ -44,32 +54,32 @@ export default function LobbyId() {
 
                 <div className="w-full h-full flex relative bg-zinc-700 h-1/2 rounded-lg overflow-hidden justify-center items-center text-zinc-400">
 
-                    <div className="w-full h-1/2">
+                    <div className="w-full h-1/2 select-none">
                         <div className="w-2/3 h-full mx-auto bg-green-900 rounded-[50%] relative border-4 border-amber-950 flex items-center justify-center">
                             <div className="m-auto h-1/2 w-2/3 bg-green-800 rounded-[50%]"></div>
 
                             {
-                                new Array(lobbySettings.numberOfPlayers).fill(0).map((_, i) => {
+                                new Array(lobby.settings.numberOfPlayers).fill(0).map((_, i) => {
 
-                                    if (i < players.length) {
+                                    if (i < lobby.players.length) {
                                         return (
                                             <div key={i} className={`absolute group bg-zinc-400 text-zinc-800 flex items-center justify-center border-2 border-zinc-800 cursor-pointer rounded-full ${positionEnum[i]} w-24 h-24 duration-200`}>
                                                 <Icon name="user" size={64}></Icon>
-                                                <div className="absolute bottom-[-2rem] text-zinc-300">{players[i].name}</div>
+                                                <div className="absolute bottom-[-2rem] text-zinc-300">{lobby.players[i].name}</div>
 
                                                 <div onClick={() => { removePlayer(i) }} className="absolute group-hover:opacity-100 opacity-0 duration-200 group-hover:left-[-1.5rem] left-0 p-2 rounded-full bg-red-500 hover:bg-red-400">
                                                     <Icon name="close"></Icon>
                                                 </div>
 
                                                 <div onClick={() => { removePlayer(i) }} className="absolute group-hover:opacity-100 opacity-0 duration-200 group-hover:top-[-1.5rem] top-0 p-2 rounded-full bg-gray-500 hover:bg-gray-400">
-                                                    <StrokeIcon name="mute"></StrokeIcon>
+                                                    <Icon name="unmute"></Icon>
                                                 </div>
 
                                                 <div className="absolute group-hover:opacity-100 opacity-0 duration-200 group-hover:right-[-1.5rem] right-0 p-2 rounded-full bg-blue-500 hover:bg-blue-400">
                                                     <Icon name="add-friend"></Icon>
                                                 </div>
                                                 <div className="absolute group-hover:opacity-100 opacity-0 duration-200 group-hover:right-[-3.8rem] right-0 p-2 rounded-full bg-sky-500 hover:bg-sky-400">
-                                                    <Icon name="user"></Icon>
+                                                    <Icon name="info"></Icon>
                                                 </div>
                                             </div>
                                         )
@@ -88,7 +98,7 @@ export default function LobbyId() {
                     </div>
 
                     <div className="absolute top-3 right-3 text-lg">
-                        {players.length} / {lobbySettings.numberOfPlayers}
+                        {lobby.players.length} / {lobby.settings.numberOfPlayers}
                     </div>
                 </div>
 
@@ -150,7 +160,7 @@ export default function LobbyId() {
 
                             <div className="relative w-full">
                                 <label htmlFor="labels-range-input" className="sr-only">Labels range</label>
-                                <input readOnly id="labels-range-input" type="range" min="2" max="8" value={lobbySettings.numberOfPlayers} className="w-full h-2 bg-zinc-600 rounded-lg appearance-none cursor-pointer" />
+                                <input readOnly id="labels-range-input" type="range" min="2" max="8" value={lobby.settings.numberOfPlayers} className="w-full h-2 bg-zinc-600 rounded-lg appearance-none cursor-pointer" />
                                 <div className="flex justify-between">
                                     <span className="text-sm text-gray-500 dark:text-gray-400">Min 2</span>
                                     <span className="text-sm text-gray-500 dark:text-gray-400">4</span>
@@ -166,7 +176,7 @@ export default function LobbyId() {
                             <div className="w-full flex items-center">
 
                                 <label className="inline-flex items-center cursor-pointer">
-                                    <input readOnly type="checkbox" value="" className="sr-only peer" checked={lobbySettings.robberRummy} />
+                                    <input readOnly type="checkbox" value="" className="sr-only peer" checked={lobby.settings.robberRummy} />
                                     <div className="relative w-11 h-6 bg-zinc-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-gray-600 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gray-400"></div>
                                 </label>
 
@@ -174,7 +184,7 @@ export default function LobbyId() {
                         </div>
 
                         {
-                            lobbySettings.robberRummy &&
+                            lobby.settings.robberRummy &&
                             <div className="flex gap-2 text-zinc-200 items-center italic">
                                 <Icon name="info" size={100}></Icon> <span className="text-[.8rem]">Robber Rummy enhances traditional Rummy with several key changes. Players can draw any card from the discard pile but must take all cards above it, adding strategic depth. The game continues until a player reaches 500 points, making it more competitive over multiple rounds, unlike classic Rummy, which often ends when a player goes out. Additionally, players can add cards to opponents’ melds, promoting more interaction between players. These elements make Robber Rummy faster-paced and more engaging than its traditional counterpart.</span>
                             </div>
@@ -186,7 +196,7 @@ export default function LobbyId() {
                             <div className="w-full flex items-center">
 
                                 <label className="inline-flex items-center cursor-pointer">
-                                    <input readOnly type="checkbox" value="" className="sr-only peer" checked={lobbySettings.privateLobby} />
+                                    <input readOnly type="checkbox" value="" className="sr-only peer" checked={lobby.settings.privateLobby} />
                                     <div className="relative w-11 h-6 bg-zinc-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-gray-600 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gray-400"></div>
                                 </label>
 
@@ -194,13 +204,13 @@ export default function LobbyId() {
                         </div>
 
                         {
-                            lobbySettings.privateLobby &&
+                            lobby.settings.privateLobby && lobby.settings.lobbyCode &&
                             <div className="flex gap-2 text-zinc-200 items-center">
                                 <div className="text-md w-1/3">Lobby code</div>
 
                                 <div className="w-full flex items-center">
 
-                                    <input readOnly type="text" id="first_name" value={lobbySettings.lobbyCode} className="bg-zinc-700 border border-zinc-900 text-gray-200 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" placeholder="12345" />
+                                    <input readOnly type="text" id="first_name" value={lobby.settings.lobbyCode} className="bg-zinc-700 border border-zinc-900 text-gray-200 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" placeholder="12345" />
 
                                 </div>
                             </div>
@@ -212,7 +222,7 @@ export default function LobbyId() {
                             <div className="w-full flex items-center">
 
                                 <label className="inline-flex items-center cursor-pointer">
-                                    <input readOnly type="checkbox" value="" className="sr-only peer" checked={lobbySettings.unranked} />
+                                    <input readOnly type="checkbox" value="" className="sr-only peer" checked={lobby.settings.unranked} />
                                     <div className="relative w-11 h-6 bg-zinc-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-gray-600 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gray-400"></div>
                                 </label>
 
@@ -225,7 +235,7 @@ export default function LobbyId() {
                             <div className="w-full flex items-center">
 
                                 <label className="inline-flex items-center cursor-pointer">
-                                    <input readOnly type="checkbox" value="" className="sr-only peer" checked={lobbySettings.fillWithRobots} />
+                                    <input readOnly type="checkbox" value="" className="sr-only peer" checked={lobby.settings.fillWithRobots} />
                                     <div className="relative w-11 h-6 bg-zinc-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-gray-600 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gray-400"></div>
                                 </label>
 
@@ -233,17 +243,17 @@ export default function LobbyId() {
                         </div>
 
                         {
-                            lobbySettings.fillWithRobots &&
+                            lobby.settings.fillWithRobots && lobby.settings.numberOfRobots &&
                             <div className="flex gap-2 text-zinc-200 items-center">
                                 <div className="text-md w-1/3">Number of Robots</div>
 
                                 <div className="relative w-full">
                                     <label htmlFor="labels-range-input" className="sr-only">Labels range</label>
-                                    <input readOnly id="labels-range-input" type="range" min={1} max={lobbySettings.numberOfPlayers} className="w-full h-2 bg-zinc-600 rounded-lg appearance-none cursor-pointer" value={lobbySettings.numberOfRobots} />
+                                    <input readOnly id="labels-range-input" type="range" min={1} max={lobby.settings.numberOfPlayers} className="w-full h-2 bg-zinc-600 rounded-lg appearance-none cursor-pointer" value={lobby.settings.numberOfRobots} />
                                     <div className="flex justify-between">
                                         <span className="text-sm text-gray-500 dark:text-gray-400">Min 1</span>
-                                        <span className="text-sm text-gray-500 dark:text-gray-400">{lobbySettings.numberOfRobots}</span>
-                                        <span className="text-sm text-gray-500 dark:text-gray-400">Max {lobbySettings.numberOfPlayers}</span>
+                                        <span className="text-sm text-gray-500 dark:text-gray-400">{lobby.settings.numberOfRobots}</span>
+                                        <span className="text-sm text-gray-500 dark:text-gray-400">Max {lobby.settings.numberOfPlayers}</span>
                                     </div>
                                 </div>
                             </div>
