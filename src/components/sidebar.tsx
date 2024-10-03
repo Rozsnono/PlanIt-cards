@@ -40,13 +40,13 @@ export default function Sidebar() {
 
                 <hr />
                 <div className="flex flex-col gap-2">
-                    <Link href={"/snapszer1"}>
+                    <Link href={"/games"}>
                         <div className="text-zinc-300 text-md hover:text-white hover:font-bold duration-200 flex items-center gap-1 hover:gap-2">
                             <Icon name="user"></Icon>
                             Rummy
                         </div>
                     </Link>
-                    <Link href={"/snapszer2"}>
+                    <Link href={"/games"}>
                         <div className="text-zinc-300 text-md hover:text-white hover:font-bold duration-200 flex items-center gap-1 hover:gap-2">
                             <Icon name="users"></Icon>
                             Robber Rummy

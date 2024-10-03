@@ -1,11 +1,13 @@
 "use client";
 import Icon from "@/assets/icons"
 import { Ilobby } from "@/interfaces/interface";
-import { useParams } from "next/navigation";
+import Link from "next/link";
+import { useParams, usePathname } from "next/navigation";
 
 export default function LobbyId() {
 
     const lobby_id = useParams().lobby_id;
+    const path = usePathname();
 
 
     const lobby: Ilobby = {
@@ -104,7 +106,11 @@ export default function LobbyId() {
 
                 <div className="flex gap-2 h-1/2 w-full">
 
-                    <div className="flex flex-col w-full"></div>
+                    <div className="flex flex-col w-1/2 justify-end">
+                        <Link href={path + "/2345"} className="w-full">
+                            <button className="bg-blue-600 w-full rounded-lg p-2 px-5 text-zinc-200 font-bold hover:bg-blue-500 duration-200 focus:ring-2 ">Start</button>
+                        </Link>
+                    </div>
 
                     <div className="flex relative flex-col w-full bg-zinc-800 rounded-md h-full p-2">
                         <div className="h-full w-full border border-zinc-600 rounded-md flex flex-col gap-1 text-zinc-300 p-2">

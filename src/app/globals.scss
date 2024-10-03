@@ -144,3 +144,38 @@ body {
   }
 
 }
+
+
+.timer {
+  border-radius: 50%;
+  /* Kör alakúvá teszi */
+  background: conic-gradient(black 0deg,
+      /* Kezdeti csík (itt indul) */
+      transparent 0deg);
+  animation: fill 60s linear forwards;
+  /* Animáció a feltöltéshez */
+}
+
+@keyframes fill {
+  0%{background: conic-gradient(#bef264 0deg, transparent 0deg);}
+  5%{background: conic-gradient(#bef264 18deg, transparent 0deg);}
+  10%{background: conic-gradient(#bef264 36deg, transparent 0deg);}
+  15%{background: conic-gradient(#bef264 54deg, transparent 0deg);}
+  20%{background: conic-gradient(#bef264 72deg, transparent 0deg);}
+  25%{background: conic-gradient(#bef264 90deg, transparent 0deg);}
+  30%{background: conic-gradient(#bef264 108deg, transparent 0deg);}
+  35%{background: conic-gradient(#bef264 126deg, transparent 0deg);}
+  40%{background: conic-gradient(#bef264 144deg, transparent 0deg);}
+  45%{background: conic-gradient(#bef264 162deg, transparent 0deg);}
+  50%{background: conic-gradient(#bef264 180deg, transparent 0deg);}
+  55%{background: conic-gradient(#bef264 198deg, transparent 0deg);}
+  60%{background: conic-gradient(#bef264 216deg, transparent 0deg);}
+  65%{background: conic-gradient(#bef264 234deg, transparent 0deg);}
+  70%{background: conic-gradient(#bef264 252deg, transparent 0deg);}
+  75%{background: conic-gradient(#bef264 270deg, transparent 0deg);}
+  80%{background: conic-gradient(#bef264 288deg, transparent 0deg);}
+  85%{background: conic-gradient(#bef264 306deg, transparent 0deg);}
+  90%{background: conic-gradient(#bef264 324deg, transparent 0deg);}
+  95%{background: conic-gradient(#bef264 342deg, transparent 0deg);}
+  100%{background: conic-gradient(#bef264 360deg, transparent 0deg);}
+}

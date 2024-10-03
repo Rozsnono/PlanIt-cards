@@ -5,7 +5,7 @@ import { UserContext } from "@/contexts/user.context";
 import { Icard, Igame } from "@/interfaces/interface";
 import Image from "next/image"
 import { useParams } from "next/navigation";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 
 export default function Game() {
 
@@ -99,6 +99,21 @@ export default function Game() {
         setGame({ ...game, playerCards: { ...game.playerCards, [user._id]: playerCards }, playedCards: playedCards });
         setSelectedCards([]);
     }
+
+    const [timer, setTimer] = useState(180);
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setTimer(timer - 1);
+            if(timer === 0){
+                setTimer(0);
+                clearInterval(interval);
+            }
+        }, 1000);
+        return () => clearInterval(interval);
+    }, [timer]);
+
+
     return (
         <main className="flex bg-[#3f3f46c0] w-full min-h-screen rounded-md p-3 relative">
 
@@ -185,6 +200,15 @@ export default function Game() {
                             )
                         })
                     }
+
+                    <div key={timer} className="absolute right-10 h-32 w-32 justify-center items-center flex rounded-full border border-lime-300 bottom-4"
+                        style={{background: `conic-gradient(#bef264 ${(180-timer)*360/180}deg, transparent 0deg)`}}
+                    >
+                        <div className="w-24 h-24 bg-green-800 rounded-full border flex items-center justify-center text-zinc-200 border-lime-300 text-xl hover:bg-green-600 cursor-pointer group duration-100">
+                            <span className="group-hover:opacity-0 group-hover:hidden flex opacity-100 duration-100">{timer}s</span>
+                            <span className="group-hover:opacity-100 group-hover:flex hidden opacity-0 duration-100">Ready</span>
+                        </div>
+                    </div>
                 </div>
 
                 <div className="w-full h-full flex justify-center items-center">
