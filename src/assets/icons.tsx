@@ -249,6 +249,30 @@ function getIcon(name: string) {
             return (
                 <path d="M11 7h2v2h-2V7Zm0 4h2v6h-2v-6Zm1-9C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2Zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8Z"></path>
             )
+        case "arrow-down-big":
+            return (
+                <path d="m20 12-1.41-1.41L13 16.17V4h-2v12.17l-5.58-5.59L4 12l8 8 8-8Z"></path>
+            )
+
+        case "close":
+            return (
+                <path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"></path>
+            )
+
+        case "add-friend":
+            return (
+                <path d="M13 8c0-2.21-1.79-4-4-4S5 5.79 5 8s1.79 4 4 4 4-1.79 4-4Zm-2 0c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2ZM1 18v2h16v-2c0-2.66-5.33-4-8-4s-8 1.34-8 4Zm2 0c.2-.71 3.3-2 6-2 2.69 0 5.78 1.28 6 2H3Zm17-3v-3h3v-2h-3V7h-2v3h-3v2h3v3h2Z"></path>
+            )
+        case "mute":
+            return (
+                <>
+                    <path d="m3 3 18 18"></path>
+                    <path d="M15 10.5V5a3 3 0 1 0-6 0v.5"></path>
+                    <path d="M9 9a5 5 0 0 0 5 5"></path>
+                    <path d="M5 10v1a7 7 0 1 0 14 0v-1"></path>
+                    <path d="M12 22h3-3Zm0-4v4-4Zm0 4H9h3Z"></path>
+                </>
+            )
     }
 }
 

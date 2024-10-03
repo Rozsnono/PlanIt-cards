@@ -79,8 +79,8 @@ function SideBarContent({ onClose }: Readonly<{ onClose?: () => void }>) {
 
 
                         <div className="relative w-full">
-                            <label htmlFor="labels-range-input" className="sr-only">Labels range</label>
-                            <input id="labels-range-input" type="range" onChange={(e) => setNop(parseInt(e.target.value))} value={nop} min="2" max="8" className="w-full h-2 bg-zinc-700 rounded-lg appearance-none cursor-pointer" />
+                            <label htmlFor="number_of_player" className="sr-only">Labels range</label>
+                            <input id="number_of_player" type="range" onChange={(e) => setNop(parseInt(e.target.value))} value={nop} min="2" max="8" className="w-full h-2 bg-zinc-700 rounded-lg appearance-none cursor-pointer" />
                             <div className="flex justify-between">
                                 <span className="text-sm text-gray-500 dark:text-gray-400">Min 2</span>
                                 <span className="text-sm text-gray-500 dark:text-gray-400">{nop}</span>
@@ -96,7 +96,7 @@ function SideBarContent({ onClose }: Readonly<{ onClose?: () => void }>) {
                         <div className="w-full flex items-center">
 
                             <label className="inline-flex items-center cursor-pointer">
-                                <input type="checkbox" value="" className="sr-only peer" onChange={(e) => { setRr(e.target.checked) }} checked={rr} />
+                                <input type="checkbox" value="" className="sr-only peer" id="robber_rummy" onChange={(e) => { setRr(e.target.checked) }} checked={rr} />
                                 <div className="relative w-11 h-6 bg-zinc-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-gray-600 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gray-400"></div>
                             </label>
 
@@ -116,7 +116,7 @@ function SideBarContent({ onClose }: Readonly<{ onClose?: () => void }>) {
                         <div className="w-full flex items-center">
 
                             <label className="inline-flex items-center cursor-pointer">
-                                <input type="checkbox" value="" className="sr-only peer" onChange={(e) => { setPl(e.target.checked) }} checked={pl} />
+                                <input type="checkbox" value="" id="private_lobby" className="sr-only peer" onChange={(e) => { setPl(e.target.checked) }} checked={pl} />
                                 <div className="relative w-11 h-6 bg-zinc-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-gray-600 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gray-400"></div>
                             </label>
 
@@ -130,7 +130,7 @@ function SideBarContent({ onClose }: Readonly<{ onClose?: () => void }>) {
 
                             <div className="w-full flex items-center">
 
-                                <input onChange={(e) => { setLc(e.target.value) }} value={lc} type="text" id="first_name" className="bg-zinc-700 border border-zinc-900 text-gray-200 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" placeholder="12345" />
+                                <input onChange={(e) => { setLc(e.target.value) }} value={lc} type="text" id="lobby_code" className="bg-zinc-700 border border-zinc-900 text-gray-200 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" placeholder="12345" />
 
                             </div>
                         </div>
@@ -142,7 +142,7 @@ function SideBarContent({ onClose }: Readonly<{ onClose?: () => void }>) {
                         <div className="w-full flex items-center">
 
                             <label className="inline-flex items-center cursor-pointer">
-                                <input type="checkbox" value="" className="sr-only peer" onChange={(e) => { setUr(e.target.checked) }} checked={ur} />
+                                <input type="checkbox" value="" className="sr-only peer" id="unranked" onChange={(e) => { setUr(e.target.checked) }} checked={ur} />
                                 <div className="relative w-11 h-6 bg-zinc-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-gray-600 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gray-400"></div>
                             </label>
 
@@ -155,7 +155,7 @@ function SideBarContent({ onClose }: Readonly<{ onClose?: () => void }>) {
                         <div className="w-full flex items-center">
 
                             <label className="inline-flex items-center cursor-pointer">
-                                <input type="checkbox" value="" className="sr-only peer" onChange={(e) => { setFr(e.target.checked) }} checked={fr} />
+                                <input type="checkbox" value="" className="sr-only peer" id="fill_with_robots" onChange={(e) => { setFr(e.target.checked) }} checked={fr} />
                                 <div className="relative w-11 h-6 bg-zinc-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-gray-600 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gray-400"></div>
                             </label>
 
@@ -168,8 +168,8 @@ function SideBarContent({ onClose }: Readonly<{ onClose?: () => void }>) {
                             <div className="text-md w-1/3">Number of Robots</div>
 
                             <div className="relative w-full">
-                                <label htmlFor="labels-range-input" className="sr-only">Labels range</label>
-                                <input id="labels-range-input" type="range" onChange={(e) => setNor(parseInt(e.target.value))} value={nor} min="1" max={nop - 1} className="w-full h-2 bg-zinc-700 rounded-lg appearance-none cursor-pointer" />
+                                <label htmlFor="number_of_robots" className="sr-only">Labels range</label>
+                                <input id="number_of_robots" type="range" onChange={(e) => setNor(parseInt(e.target.value))} value={nor} min="1" max={nop - 1} className="w-full h-2 bg-zinc-700 rounded-lg appearance-none cursor-pointer" />
                                 <div className="flex justify-between">
                                     <span className="text-sm text-gray-500 dark:text-gray-400">Min 1</span>
                                     <span className="text-sm text-gray-500 dark:text-gray-400">{nor}</span>

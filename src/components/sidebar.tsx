@@ -30,7 +30,7 @@ export default function Sidebar() {
                 </Link>
                 <hr />
                 <div className="flex flex-col gap-2">
-                    <Link href={"games"}>
+                    <Link href={"/games"}>
                         <div className="text-zinc-300 text-md hover:text-white hover:font-bold duration-200 flex items-center gap-1 hover:gap-2">
                             <StrokeIcon name="game"></StrokeIcon>
                             Games

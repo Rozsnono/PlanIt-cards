@@ -1,4 +1,5 @@
 import Icon from "@/assets/icons";
+import Link from "next/link";
 
 export default function Lobby({ robber, started, lobbyNumber, maxNumberOfPlayer = 4, players }: { robber?: boolean, started?: boolean, lobbyNumber?: number, maxNumberOfPlayer?: number, players?: { name: string, rank: number }[] }) {
     return (
@@ -34,15 +35,15 @@ export default function Lobby({ robber, started, lobbyNumber, maxNumberOfPlayer 
                 <div className="flex gap-1 justify-between items-end select-none">
                     {
                         started || (players?.length && players?.length >= maxNumberOfPlayer) ?
-                            <button className="bg-zinc-500 text-white p-2 px-2 rounded-md hover:bg-zinc-400 flex items-center gap-1">
+                            <Link href={"games/123456"} className="bg-zinc-500 text-white p-2 px-2 rounded-md hover:bg-zinc-400 flex items-center gap-1">
                                 <Icon name="watch"></Icon>
                                 Watch
-                            </button>
+                            </Link>
                             :
-                            <button className="bg-green-700 text-white p-2 px-2 rounded-md hover:bg-green-600 flex items-center gap-1">
+                            <Link href={"games/123456"} className="bg-green-700 text-white p-2 px-2 rounded-md hover:bg-green-600 flex items-center gap-1">
                                 <Icon name="join"></Icon>
                                 Join
-                            </button>
+                            </Link>
                     }
 
                     {
