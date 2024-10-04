@@ -15,7 +15,7 @@ interface Iuser {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function isLoggedIn(req: any, res: any, next: any, role?: Array<string>) {
+async function isLoggedIn(req: any, res: any, next: any, auth?: Array<string>, hasAllAuth?: boolean) {
     try {
         // check if auth header exists
         if (req.headers.authorization) {
@@ -27,7 +27,9 @@ async function isLoggedIn(req: any, res: any, next: any, role?: Array<string>) {
                 if (payload) {
                     // store user data in request object
                     req.user = payload;
-                    if (role && role.includes(payload.auth)) {
+                    if (auth && hasAllAuth && auth.every((a) => payload.auth.includes(a))) {
+                        next();
+                    } else if (auth && auth.some((a) => payload.auth.includes(a))) {
                         next();
                     } else {
                         res.status(403).json({ error: "Access denied" });
@@ -46,10 +48,10 @@ async function isLoggedIn(req: any, res: any, next: any, role?: Array<string>) {
     }
 }
 
-function hasAuth(role: Array<string>) {
+function hasAuth(role: Array<string>, hasAllAuth = false) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return function (req: any, res: any, next: any) {
-        isLoggedIn(req, res, next, role);
+        isLoggedIn(req, res, next, role, hasAllAuth);
     }
 }
 

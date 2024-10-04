@@ -1,6 +1,5 @@
 
 import { Schema, model } from "mongoose";
-import { userSchema } from "./user.model";
 import Joi from "joi";
 
 const lobbySchema = new Schema(
@@ -9,12 +8,13 @@ const lobbySchema = new Schema(
             type: Schema.Types.ObjectId,
             readonly: true
         },
-        players: {
-            type: Array<typeof userSchema>,
+        players: [{
+            type: Schema.Types.ObjectId,
+            ref: "Player",
             required: true,
-        },
+        }],
         mutedPlayers: {
-            type: Array<typeof userSchema>,
+            type: Array,
             default: [],
         },
         settings: {
@@ -79,4 +79,4 @@ const validate = (message: object): Joi.ValidationResult => {
 const lobbyModel = model("lobby", lobbySchema, "Lobby");
 
 
-export default {lobbyModel, validate};
+export default { lobbyModel, validate };

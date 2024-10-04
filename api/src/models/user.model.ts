@@ -35,6 +35,7 @@ export const userSchema = new Schema(
                 Auth["RUMMY.PLAY"],
                 Auth["RUMMY.CREATE.LOBBY"],
                 Auth["RUMMY.JOIN.LOBBY"],
+                Auth["RUMMY.DELETE.LOBBY"],
                 Auth["RUMMY.START.GAME"],
                 Auth["RUMMY.END.GAME"],
                 Auth["RUMMY.WATCH.GAME"],
