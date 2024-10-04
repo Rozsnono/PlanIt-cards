@@ -1,0 +1,181 @@
+$primary-color: #055C9D;
+$secondary-color: #0E86D4;
+$dark-color: #003060;
+$light-color: #68BBE3;
+
+.bg-primary {
+  background-color: $primary-color;
+}
+
+.bg-secondary {
+  background-color: $secondary-color;
+}
+
+.bg-dark {
+  background-color: $dark-color;
+}
+
+.bg-light {
+  background-color: $light-color;
+}
+
+.text-primary {
+  color: $primary-color;
+}
+
+.text-secondary {
+  color: $secondary-color;
+}
+
+.text-dark {
+  color: $dark-color;
+}
+
+.text-light {
+  color: $light-color;
+}
+
+body {
+  padding-top: 5rem;
+  padding-right: 1rem;
+
+  &.pl-52 {
+    padding-left: 13rem;
+  }
+
+  &.pl-4 {
+    padding-left: 1rem;
+  }
+
+
+}
+
+.col-span-2 {
+  grid-column: span 2;
+}
+
+.col-span-1 {
+  grid-column: span 1;
+}
+
+.grid-cols-4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.widget {
+
+  ::-webkit-scrollbar {
+    width: 5px;
+  }
+
+  /* Track */
+  ::-webkit-scrollbar-track {
+    background: #f1f1f100;
+  }
+
+  /* Handle */
+  ::-webkit-scrollbar-thumb {
+    background: #1f2937;
+    border-radius: 10px;
+  }
+
+  /* Handle on hover */
+  ::-webkit-scrollbar-thumb:hover {
+    background: #0f172a;
+  }
+}
+
+
+.more-modal {
+  display: none;
+
+  &:hover {
+    display: block;
+  }
+}
+
+.more-modal-button:focus+.more-modal {
+  display: block;
+}
+
+.more-modal:focus-within {
+  display: block;
+}
+
+
+.min-h-screen {
+  min-height: 93vh !important;
+}
+
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: #f1f1f100;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: #1c1917;
+  border-radius: 10px;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #0c0a09;
+}
+
+
+.card-animation {
+  animation: identifier 1s ease-in-out;
+}
+
+@keyframes identifier {
+  0% {
+    opacity: 0;
+    transform: translateY(100%) translateX(50%);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0%) translateX(0%);
+  }
+
+}
+
+
+.timer {
+  border-radius: 50%;
+  /* Kör alakúvá teszi */
+  background: conic-gradient(black 0deg,
+      /* Kezdeti csík (itt indul) */
+      transparent 0deg);
+  animation: fill 60s linear forwards;
+  /* Animáció a feltöltéshez */
+}
+
+@keyframes fill {
+  0%{background: conic-gradient(#bef264 0deg, transparent 0deg);}
+  5%{background: conic-gradient(#bef264 18deg, transparent 0deg);}
+  10%{background: conic-gradient(#bef264 36deg, transparent 0deg);}
+  15%{background: conic-gradient(#bef264 54deg, transparent 0deg);}
+  20%{background: conic-gradient(#bef264 72deg, transparent 0deg);}
+  25%{background: conic-gradient(#bef264 90deg, transparent 0deg);}
+  30%{background: conic-gradient(#bef264 108deg, transparent 0deg);}
+  35%{background: conic-gradient(#bef264 126deg, transparent 0deg);}
+  40%{background: conic-gradient(#bef264 144deg, transparent 0deg);}
+  45%{background: conic-gradient(#bef264 162deg, transparent 0deg);}
+  50%{background: conic-gradient(#bef264 180deg, transparent 0deg);}
+  55%{background: conic-gradient(#bef264 198deg, transparent 0deg);}
+  60%{background: conic-gradient(#bef264 216deg, transparent 0deg);}
+  65%{background: conic-gradient(#bef264 234deg, transparent 0deg);}
+  70%{background: conic-gradient(#bef264 252deg, transparent 0deg);}
+  75%{background: conic-gradient(#bef264 270deg, transparent 0deg);}
+  80%{background: conic-gradient(#bef264 288deg, transparent 0deg);}
+  85%{background: conic-gradient(#bef264 306deg, transparent 0deg);}
+  90%{background: conic-gradient(#bef264 324deg, transparent 0deg);}
+  95%{background: conic-gradient(#bef264 342deg, transparent 0deg);}
+  100%{background: conic-gradient(#bef264 360deg, transparent 0deg);}
+}

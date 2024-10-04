@@ -1,0 +1,760 @@
+.starry-background {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: #000;
+    overflow: hidden;
+}
+
+.star {
+    position: absolute;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+    animation: twinkle 2s infinite alternate;
+}
+
+.death-star {
+    position: absolute;
+    background: #999;
+    border-radius: 50%;
+    box-shadow: 0 0 4px rgba(255, 255, 255, 0.8);
+    opacity: 0.5;
+}
+
+.shooting-star {
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 0 20px rgba(255, 255, 255, 1);
+}
+
+.sh-star-anim1 {
+    animation: shoot 30s linear infinite;
+}
+
+.sh-star-anim2 {
+    animation: shoot2 30s linear infinite;
+}
+
+.sh-star-anim3 {
+    animation: shoot3 30s linear infinite;
+}
+
+.sh-star-anim4 {
+    animation: shoot4 30s linear infinite;
+}
+
+
+@keyframes twinkle {
+    from {
+        opacity: 1;
+    }
+
+    to {
+        opacity: 0.1;
+    }
+}
+
+@keyframes shoot {
+    0% {
+        width: 6px;
+        height: 6px;
+        opacity: 1;
+    }
+
+    10% {
+        top: 50%;
+        left: -10%;
+        width: 0;
+        height: 0;
+        opacity: 0;
+    }
+
+    100% {
+        top: 50%;
+        left: -10%;
+        width: 0;
+        height: 0;
+        opacity: 0;
+    }
+}
+
+@keyframes shoot2 {
+    0% {
+        width: 8px;
+        height: 8px;
+        opacity: 1;
+    }
+
+    10% {
+        bottom: 30%;
+        left: -10%;
+        width: 0;
+        height: 0;
+        opacity: 0;
+    }
+
+    100% {
+        bottom: 30%;
+        left: -10%;
+        width: 0;
+        height: 0;
+        opacity: 0;
+    }
+}
+
+@keyframes shoot3 {
+    0% {
+        width: 8px;
+        height: 8px;
+        opacity: 1;
+    }
+
+    10% {
+        top: 30%;
+        right: -10%;
+        width: 0;
+        height: 0;
+        opacity: 0;
+    }
+
+    100% {
+        top: 30%;
+        right: -10%;
+        width: 0;
+        height: 0;
+        opacity: 0;
+    }
+}
+
+@keyframes shoot4 {
+    0% {
+        width: 8px;
+        height: 8px;
+        opacity: 1;
+    }
+
+    10% {
+        bottom: 30%;
+        right: -10%;
+        width: 0;
+        height: 0;
+        opacity: 0;
+    }
+
+    100% {
+        bottom: 30%;
+        right: -10%;
+        width: 0;
+        height: 0;
+        opacity: 0;
+    }
+}
+
+.saturn {
+    width: 330px;
+    height: 330px;
+    background: radial-gradient(circle at 35% 35%, #939177, #837454, #574e3a, #444d52, #27272a);
+    border-radius: 50%;
+    position: absolute;
+    perspective: 1000px;
+    right: 50%;
+    bottom: 10%;
+    transform-style: preserve-3d;
+    box-shadow: inset #27272a -50px -50px 40px;
+
+    .ring1 {
+        width: 200%;
+        height: 200%;
+        border: solid 100px #6f6654c0;
+        border-radius: 50%;
+        top: -50%;
+        left: -50%;
+        position: absolute;
+        transform: rotate3d(0.8, 0.2, 0, 75deg);
+        box-sizing: border-box;
+    }
+
+    .ring2 {
+        width: 190%;
+        height: 190%;
+        border: solid 40px #625e4dc0;
+        border-radius: 50%;
+        top: -45%;
+        left: -45%;
+        position: absolute;
+        transform: rotate3d(0.8, 0.2, 0, 75deg);
+        box-sizing: border-box;
+    }
+
+    .ring3 {
+        width: 190%;
+        height: 190%;
+        border: solid 5px #2d2013c0;
+        border-radius: 50%;
+        top: -45%;
+        left: -45%;
+        position: absolute;
+        transform: rotate3d(0.8, 0.2, 0, 75deg);
+        box-sizing: border-box;
+    }
+
+    .ring4 {
+        width: 210%;
+        height: 210%;
+        border: solid 100px #7c725ec0;
+        border-radius: 50%;
+        top: -54%;
+        left: -54%;
+        position: absolute;
+        transform: rotate3d(0.8, 0.2, 0, 75deg);
+        box-sizing: border-box;
+    }
+
+    .hover-ring {
+        width: 210%;
+        height: 210%;
+        border: solid 2px greenyellow;
+        border-radius: 50%;
+        top: -54%;
+        left: -54%;
+        position: absolute;
+        transform: rotate3d(0.8, 0.2, 0, 75deg);
+        box-sizing: border-box;
+        display: none;
+    }
+
+}
+
+.uranus {
+    width: 70px;
+    height: 70px;
+    background: radial-gradient(circle at 35% 55%, #00b1d1, #008fad, #444d52, #27272a);
+    border-radius: 50%;
+    position: absolute;
+    perspective: 1000px;
+    left: 30%;
+    top: 15%;
+    transform-style: preserve-3d;
+    box-shadow: inset #27272a -30px -30px 40px;
+
+    .ring1 {
+        width: 170%;
+        height: 170%;
+        border: solid 2px #78747570;
+        border-radius: 50%;
+        top: -35%;
+        left: -35%;
+        position: absolute;
+        transform: rotate3d(-0.03, 0.2, 0, 75deg);
+        box-sizing: border-box;
+    }
+
+    .ring2 {
+        width: 190%;
+        height: 190%;
+        border: solid 5px #78747570;
+        border-radius: 50%;
+        top: -45%;
+        left: -45%;
+        position: absolute;
+        transform: rotate3d(-0.03, 0.2, 0, 75deg);
+        box-sizing: border-box;
+    }
+
+    .hover-ring {
+        width: 190%;
+        height: 190%;
+        border: solid 1px greenyellow;
+        border-radius: 50%;
+        top: -45%;
+        left: -45%;
+        position: absolute;
+        transform: rotate3d(-0.03, 0.2, 0, 75deg);
+        box-sizing: border-box;
+        display: none;
+    }
+
+
+}
+
+.neptun {
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle at 35% 35%, #4772fe, #385bcb, #3446b4, #444d52, #27272a);
+    border-radius: 50%;
+    position: absolute;
+    perspective: 1000px;
+    left: 20%;
+    top: 55%;
+    transform-style: preserve-3d;
+    box-shadow: inset #27272a -30px -30px 40px;
+
+}
+
+.mars {
+    width: 60px;
+    height: 60px;
+    background: radial-gradient(circle at 35% 45%, #ba1010, #830a0a, #7b0808, #1c0202, #27272a);
+    border-radius: 50%;
+    position: absolute;
+    perspective: 1000px;
+    right: 20%;
+    top: 30%;
+    transform-style: preserve-3d;
+    box-shadow: inset #27272a -25px -25px 40px;
+
+    .moon {
+        width: 12px;
+        height: 12px;
+        background: radial-gradient(circle at 35% 45%, #808080, #545454, #27272a);
+        border-radius: 50%;
+        position: absolute;
+        right: -50%;
+        top: 50%;
+        transform-style: preserve-3d;
+        box-shadow: inset #27272a -4px -4px 15px;
+    }
+}
+
+.dipper {
+    position: absolute;
+    width: 700px;
+    height: 500px;
+    top: 45%;
+    left: 60%;
+
+
+    .star1 {
+        position: absolute;
+        width: 8px;
+        height: 8px;
+        background: white;
+        border-radius: 50%;
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+        bottom: 50%;
+        right: 10%;
+        transform: translate(-50%, -50%);
+    }
+
+    .star2 {
+        position: absolute;
+        width: 6px;
+        height: 6px;
+        background: white;
+        border-radius: 50%;
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+        bottom: 30%;
+        right: 20%;
+        transform: translate(-50%, -50%);
+    }
+
+    .star3 {
+        position: absolute;
+        width: 8px;
+        height: 8px;
+        background: white;
+        border-radius: 50%;
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+        bottom: 32%;
+        right: 40%;
+        transform: translate(-50%, -50%);
+    }
+
+    .star4 {
+        position: absolute;
+        width: 7px;
+        height: 7px;
+        background: white;
+        border-radius: 50%;
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+        top: 45%;
+        right: 45%;
+        transform: translate(-50%, -50%);
+    }
+
+    .star5 {
+        position: absolute;
+        width: 5px;
+        height: 5px;
+        background: white;
+        border-radius: 50%;
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+        top: 37%;
+        left: 41%;
+        transform: translate(-50%, -50%);
+    }
+
+    .star6 {
+        position: absolute;
+        width: 5px;
+        height: 5px;
+        background: white;
+        border-radius: 50%;
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+        top: 30%;
+        left: 30%;
+        transform: translate(-50%, -50%);
+    }
+
+    .star7 {
+        position: absolute;
+        width: 6px;
+        height: 6px;
+        background: white;
+        border-radius: 50%;
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+        top: 32%;
+        left: 15%;
+        transform: translate(-50%, -50%);
+    }
+
+
+
+}
+
+.swan {
+    position: absolute;
+    width: 350px;
+    height: 500px;
+    top: 20%;
+    left: 15%;
+
+    .star1 {
+        position: absolute;
+        width: 6px;
+        height: 6px;
+        background: white;
+        border-radius: 50%;
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+        bottom: 65%;
+        right: 10%;
+        transform: translate(-50%, -50%);
+    }
+
+    .star2 {
+        position: absolute;
+        width: 5px;
+        height: 5px;
+        background: white;
+        border-radius: 50%;
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+        bottom: 60%;
+        right: 35%;
+        transform: translate(-50%, -50%);
+    }
+
+    .star3 {
+        position: absolute;
+        width: 6px;
+        height: 6px;
+        background: white;
+        border-radius: 50%;
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+        bottom: 48%;
+        right: 60%;
+        transform: translate(-50%, -50%);
+    }
+
+    .star4 {
+        position: absolute;
+        width: 5px;
+        height: 5px;
+        background: white;
+        border-radius: 50%;
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+        bottom: 43%;
+        right: 85%;
+        transform: translate(-50%, -50%);
+    }
+
+    .star5 {
+        position: absolute;
+        width: 4px;
+        height: 4px;
+        background: white;
+        border-radius: 50%;
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+        bottom: 35%;
+        right: 35%;
+        transform: translate(-50%, -50%);
+    }
+
+    .star6 {
+        position: absolute;
+        width: 4px;
+        height: 4px;
+        background: white;
+        border-radius: 50%;
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+        bottom: 20%;
+        right: 20%;
+        transform: translate(-50%, -50%);
+    }
+
+    .star7 {
+        position: absolute;
+        width: 5px;
+        height: 5px;
+        background: white;
+        border-radius: 50%;
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+        bottom: 5%;
+        right: 15%;
+        transform: translate(-50%, -50%);
+    }
+
+    .star8 {
+        position: absolute;
+        width: 5px;
+        height: 5px;
+        background: white;
+        border-radius: 50%;
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+        top: 10%;
+        left: 5%;
+        transform: translate(-50%, -50%);
+    }
+
+    .star9 {
+        position: absolute;
+        width: 4px;
+        height: 4px;
+        background: white;
+        border-radius: 50%;
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+        top: 15%;
+        left: 10%;
+        transform: translate(-50%, -50%);
+    }
+
+    .star10 {
+        position: absolute;
+        width: 5px;
+        height: 5px;
+        background: white;
+        border-radius: 50%;
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+        top: 23%;
+        left: 27%;
+        transform: translate(-50%, -50%);
+    }
+}
+
+.fish {
+    position: absolute;
+    width: 500px;
+    height: 450px;
+    top: 10%;
+    right: 40%;
+
+
+    .star1 {
+        position: absolute;
+        width: 5px;
+        height: 5px;
+        background: white;
+        border-radius: 50%;
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+        bottom: 10%;
+        left: 10%;
+        transform: translate(-50%, -50%);
+    }
+
+    .star2 {
+        position: absolute;
+        width: 6px;
+        height: 6px;
+        background: white;
+        border-radius: 50%;
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+        bottom: 16%;
+        left: 25%;
+        transform: translate(-50%, -50%);
+    }
+
+    .star3 {
+        position: absolute;
+        width: 4px;
+        height: 4px;
+        background: white;
+        border-radius: 50%;
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+        bottom: 20%;
+        left: 40%;
+        transform: translate(-50%, -50%);
+    }
+
+    .star4 {
+        position: absolute;
+        width: 5px;
+        height: 5px;
+        background: white;
+        border-radius: 50%;
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+        bottom: 20%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+
+    .star5 {
+        position: absolute;
+        width: 4px;
+        height: 4px;
+        background: white;
+        border-radius: 50%;
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+        bottom: 18%;
+        left: 70%;
+        transform: translate(-50%, -50%);
+    }
+
+    .star6 {
+        position: absolute;
+        width: 5px;
+        height: 5px;
+        background: white;
+        border-radius: 50%;
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+        bottom: 15%;
+        left: 80%;
+        transform: translate(-50%, -50%);
+    }
+
+    .star7 {
+        position: absolute;
+        width: 6px;
+        height: 6px;
+        background: white;
+        border-radius: 50%;
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+        bottom: 17%;
+        left: 85%;
+        transform: translate(-50%, -50%);
+    }
+
+    .star8 {
+        position: absolute;
+        width: 5px;
+        height: 5px;
+        background: white;
+        border-radius: 50%;
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+        bottom: 16%;
+        left: 90%;
+        transform: translate(-50%, -50%);
+    }
+
+    .star9 {
+        position: absolute;
+        width: 4px;
+        height: 4px;
+        background: white;
+        border-radius: 50%;
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+        bottom: 12%;
+        left: 91%;
+        transform: translate(-50%, -50%);
+    }
+
+    .star10 {
+        position: absolute;
+        width: 5px;
+        height: 5px;
+        background: white;
+        border-radius: 50%;
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+        bottom: 7%;
+        left: 88%;
+        transform: translate(-50%, -50%);
+    }
+
+    .star11 {
+        position: absolute;
+        width: 4px;
+        height: 4px;
+        background: white;
+        border-radius: 50%;
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+        bottom: 8%;
+        left: 82%;
+        transform: translate(-50%, -50%);
+    }
+
+    .star12 {
+        position: absolute;
+        width: 5px;
+        height: 5px;
+        background: white;
+        border-radius: 50%;
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+        bottom: 10%;
+        left: 79%;
+        transform: translate(-50%, -50%);
+    }
+
+    .star13 {
+        position: absolute;
+        width: 6px;
+        height: 6px;
+        background: white;
+        border-radius: 50%;
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+        bottom: 25%;
+        left: 20%;
+        transform: translate(-50%, -50%);
+    }
+
+    .star14 {
+        position: absolute;
+        width: 4px;
+        height: 4px;
+        background: white;
+        border-radius: 50%;
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+        bottom: 40%;
+        left: 28%;
+        transform: translate(-50%, -50%);
+    }
+
+    .star15 {
+        position: absolute;
+        width: 5px;
+        height: 5px;
+        background: white;
+        border-radius: 50%;
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+        bottom: 60%;
+        left: 40%;
+        transform: translate(-50%, -50%);
+    }
+
+    .star16 {
+        position: absolute;
+        width: 6px;
+        height: 6px;
+        background: white;
+        border-radius: 50%;
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+        bottom: 70%;
+        left: 35%;
+        transform: translate(-50%, -50%);
+    }
+
+    .star17 {
+        position: absolute;
+        width: 4px;
+        height: 4px;
+        background: white;
+        border-radius: 50%;
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+        bottom: 80%;
+        left: 45%;
+        transform: translate(-50%, -50%);
+    }
+
+
+}
