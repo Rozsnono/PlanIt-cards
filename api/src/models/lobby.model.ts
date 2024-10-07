@@ -43,6 +43,10 @@ const lobbySchema = new Schema(
                     type: Number,
                     default: 0,
                 },
+                type:{
+                    type: String,
+                    required: true,
+                }
             },
             required: true,
         },

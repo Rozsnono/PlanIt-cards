@@ -821,42 +821,50 @@ export const uno = [
     {
         name: "W4",
         rank: 20,
-        suit: "W"
+        suit: "",
+        isJoker: true
     },
     {
         name: "W4",
         rank: 20,
-        suit: "W"
+        suit: "",
+        isJoker: true
     },
     {
         name: "W4",
         rank: 20,
-        suit: "W"
+        suit: "",
+        isJoker: true
     },
     {
         name: "W4",
         rank: 20,
-        suit: "W"
+        suit: "",
+        isJoker: true
     },
     {
         name: "W",
         rank: 24,
-        suit: "W"
+        suit: "",
+        isJoker: true
     },
     {
         name: "W",
         rank: 24,
-        suit: "W"
+        suit: "",
+        isJoker: true
     },
     {
         name: "W",
         rank: 24,
-        suit: "W"
+        suit: "",
+        isJoker: true
     },
     {
         name: "W",
         rank: 24,
-        suit: "W"
+        suit: "",
+        isJoker: true
     }
 ];
 

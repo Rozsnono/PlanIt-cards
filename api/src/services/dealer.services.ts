@@ -1,5 +1,13 @@
 import mongoose from "mongoose";
 
+const UnoRank = {
+    18: "Double",
+    16: "Skip",
+    15: "Reverse",
+    20: "Wild",
+    24: "Wild Draw Four",
+}
+
 export default class CardDealer {
 
     private cards;
@@ -49,6 +57,10 @@ export default class CardDealer {
         return cards;
     }
 
+    public drawCard(numberOfCards: number): Array<{ name: string, rank: number, suit: string, isJoker?: boolean }> {
+        return this.deck.slice(-numberOfCards);
+    }
+
     public validatePlay(deck: Array<{ name: string, rank: number, suit: string, isJoker?: boolean }>): boolean {
         if(deck.length < 3) {
             return false;
@@ -86,5 +98,28 @@ export default class CardDealer {
         return isConsecutive || isSameRank;
 
 
+    }
+
+    public validateDrop(droppedCards: Array<{ name: string, rank: number, suit: string, isJoker?: boolean }>, droppedCard: { name: string, rank: number, suit: string, isJoker?: boolean }): boolean {
+        if(droppedCards.length === 0) {
+            return true;
+        }
+        if(droppedCard.isJoker) {
+            return true;
+        }
+        const isSameRank = droppedCards.every(card => card.rank === droppedCard.rank);
+        const isSameSuit = droppedCards.every(card => card.suit === droppedCard.suit);
+
+
+
+        return isSameRank || isSameSuit;
+    }
+
+    public getUnoStatus(playedCard: { name: string, rank: number, suit: string, isJoker?: boolean }): string {
+        try {
+            return UnoRank[playedCard.rank as 18|16|15|24|20]
+        } catch {
+            return "";
+        }
     }
 }

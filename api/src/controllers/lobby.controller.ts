@@ -15,35 +15,35 @@ export default class LobbyController implements Controller {
 
     constructor() {
 
-        this.router.post("/create", hasAuth([Auth["RUMMY.CREATE.LOBBY"]]), (req, res, next) => {
+        this.router.post("/create", hasAuth([Auth["CREATE.LOBBY"]]), (req, res, next) => {
             this.createLobby(req, res).catch(next);
         });
 
-        this.router.get("/get", hasAuth([Auth["RUMMY.JOIN.LOBBY"], Auth["RUMMY.WATCH.GAME"]]), (req, res, next) => {
+        this.router.get("/get", hasAuth([Auth["JOIN.LOBBY"], Auth["WATCH.GAME"]]), (req, res, next) => {
             this.getLobby(req, res).catch(next);
         });
 
-        this.router.get("/get/:id", hasAuth([Auth["RUMMY.JOIN.LOBBY"], Auth["RUMMY.WATCH.GAME"]]), (req, res, next) => {
+        this.router.get("/get/:id", hasAuth([Auth["JOIN.LOBBY"], Auth["WATCH.GAME"]]), (req, res, next) => {
             this.getLobbyById(req, res).catch(next);
         });
 
-        this.router.put("/join", hasAuth([Auth["RUMMY.JOIN.LOBBY"]]), (req, res, next) => {
+        this.router.put("/join", hasAuth([Auth["JOIN.LOBBY"]]), (req, res, next) => {
             this.joinLobby(req, res).catch(next);
         });
 
-        this.router.put("/leave", hasAuth([Auth["RUMMY.JOIN.LOBBY"]]), (req, res, next) => {
+        this.router.put("/leave", hasAuth([Auth["JOIN.LOBBY"]]), (req, res, next) => {
             this.leaveLobby(req, res).catch(next);
         });
 
-        this.router.put("/delete", hasAuth([Auth["RUMMY.DELETE.LOBBY"]]), (req, res, next) => {
+        this.router.put("/delete", hasAuth([Auth["DELETE.LOBBY"]]), (req, res, next) => {
             this.deleteLobby(req, res).catch(next);
         });
 
-        this.router.put("/update", hasAuth([Auth["RUMMY.CREATE.LOBBY"]]), (req, res, next) => {
+        this.router.put("/update", hasAuth([Auth["CREATE.LOBBY"]]), (req, res, next) => {
             this.updateLobby(req, res).catch(next);
         });
 
-        this.router.put("/watch", hasAuth([Auth["RUMMY.WATCH.GAME"]]), (req, res, next) => {
+        this.router.put("/watch", hasAuth([Auth["WATCH.GAME"]]), (req, res, next) => {
             this.watchLobby(req, res).catch(next);
         });
 
