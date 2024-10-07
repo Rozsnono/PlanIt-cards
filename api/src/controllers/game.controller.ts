@@ -5,6 +5,7 @@ import { Auth } from "../enums/auth.enum";
 import gameModel from "../models/game.model";
 import CardDealer from "../services/dealer.services";
 import lobbyModel from "../models/lobby.model";
+import { rummy } from "../cards/cards";
 
 
 export default class LobbyController implements Controller {
@@ -12,7 +13,7 @@ export default class LobbyController implements Controller {
     public validate = gameModel.validate;
     public game = gameModel.gameModel;
     public lobby = lobbyModel.lobbyModel;
-    public cardDealer = new CardDealer();
+    public cardDealer = new CardDealer(rummy);
 
     constructor() {
 
