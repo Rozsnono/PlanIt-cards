@@ -1,6 +1,6 @@
 "use client";
 import Icon from "@/assets/icons";
-import Lobby from "@/components/lobby";
+import LobbyCard from "@/components/lobby";
 import RightSideBar, { RightSideBarHeader } from "./sidebar";
 import { useState } from "react";
 
@@ -15,14 +15,75 @@ export default function Games() {
             <main className="w-full bg-[#3f3f46c0] rounded-md p-3 min-h-screen text-zinc-200">
                 <div className="text-xl p-2">Tables</div>
                 <hr />
-                <main className="w-full grid grid-cols-4 gap-2 p-3">
-                    <Lobby robber players={defaultPlayers.slice(4)} maxNumberOfPlayer={4} lobbyNumber={1}></Lobby>
-                    <Lobby robber players={defaultPlayers.slice(6)} maxNumberOfPlayer={4} lobbyNumber={1}></Lobby>
-                    <Lobby robber players={defaultPlayers} maxNumberOfPlayer={8} lobbyNumber={1}></Lobby>
-                    <Lobby robber maxNumberOfPlayer={8}></Lobby>
-                    <Lobby></Lobby>
-                    <Lobby></Lobby>
-                    <Lobby></Lobby>
+                <main className="w-full grid xl:grid-cols-4 lg:grid-cols-2 md:grid-cols-2 grid-cols-1 gap-2 p-3">
+                    <LobbyCard
+                        lobbyDatas={
+                            {
+                                players: defaultPlayers as any,
+                                settings: {
+                                    numberOfPlayers: 8,
+                                    robberRummy: true,
+                                    privateLobby: false,
+                                    lobbyCode: "",
+                                    unranked: false,
+                                    fillWithRobots: false,
+                                    numberOfRobots: 0,
+                                    type: "RUMMY"
+                                },
+                                chat: [],
+                                game_id: "123456",
+                                mutedPlayers: [],
+                                _id: "123456"
+                            }
+                        }
+                        lobbyNumber={1}>
+
+                    </LobbyCard>
+
+                    <LobbyCard
+                        lobbyDatas={
+                            {
+                                players: defaultPlayers.slice(3) as any,
+                                settings: {
+                                    numberOfPlayers: 8,
+                                    robberRummy: false,
+                                    privateLobby: false,
+                                    lobbyCode: "",
+                                    unranked: false,
+                                    fillWithRobots: false,
+                                    numberOfRobots: 0,
+                                    type: "UNO"
+                                },
+                                chat: [],
+                                mutedPlayers: [],
+                                _id: "123456"
+                            }
+                        }
+                        lobbyNumber={2}>
+
+                    </LobbyCard>
+
+                    <LobbyCard
+                        lobbyDatas={
+                            {
+                                players: defaultPlayers.slice(5) as any,
+                                settings: {
+                                    numberOfPlayers: 8,
+                                    robberRummy: false,
+                                    privateLobby: false,
+                                    lobbyCode: "",
+                                    unranked: false,
+                                    fillWithRobots: false,
+                                    numberOfRobots: 0,
+                                    type: "RUMMY"
+                                },
+                                chat: [],
+                                mutedPlayers: [],
+                                _id: "123456"
+                            }
+                        }
+                        lobbyNumber={3}>
+                    </LobbyCard>
                 </main>
             </main>
 

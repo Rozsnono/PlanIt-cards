@@ -23,9 +23,10 @@ export interface Ilobby {
         unranked: boolean;
         fillWithRobots: boolean;
         numberOfRobots?: number | null;
+        type: "UNO" | "RUMMY";
     }
     chat: Imessage[];
-    game_id: string;
+    game_id?: string;
 }
 
 export interface Imessage {
