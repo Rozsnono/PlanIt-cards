@@ -48,4 +48,43 @@ export default class CardDealer {
         }
         return cards;
     }
+
+    public validatePlay(deck: Array<{ name: string, rank: number, suit: string, isJoker?: boolean }>): boolean {
+        if(deck.length < 3) {
+            return false;
+        }
+
+        const isSameRank = deck.every((card, index) => {
+            if(index !== 0) {
+                if(card.rank !== deck[index - 1].rank || !deck[index - 1].isJoker) {
+                    return false;
+                }
+            }
+            return true;
+        });
+
+        let isConsecutive = false;
+        const isSameSuit = deck.every((card, index) => {
+            if(index !== 0) {
+                if(card.suit !== deck[index - 1].suit || !deck[index - 1].isJoker) {
+                    return false;
+                }
+            }
+            return true;
+        });
+        if(isSameSuit){
+            isConsecutive = deck.every((card, index) => {
+                if(index !== 0) {
+                    if(card.rank !== deck[index - 1].rank + 1 || !deck[index - 1].isJoker) {
+                        return false;
+                    }
+                }
+                return true;
+            });
+        }
+
+        return isConsecutive || isSameRank;
+
+
+    }
 }

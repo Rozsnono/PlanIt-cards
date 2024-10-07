@@ -5,6 +5,7 @@ import cors from "cors";
 import http from 'http';
 import dotenv from 'dotenv';
 import AuthController from "./controllers/auth.controller";
+import SocketIO from "./controllers/socketIO.controller";
 
 
 
@@ -28,6 +29,7 @@ export default class App {
             server.listen(port, "0.0.0.0", function () {
                 console.log('Server is running on port ' + port);
             });
+            new SocketIO();
         });
 
         controllers.forEach(controller => {
