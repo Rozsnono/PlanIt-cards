@@ -7,6 +7,7 @@ import dotenv from 'dotenv';
 import AuthController from "./controllers/auth.controller";
 import SocketIO from "./controllers/socketIO.controller";
 
+const { MONGO_URL = "mongodb://localhost:27017/planit-cards" } = process.env;
 
 
 
@@ -44,7 +45,7 @@ export default class App {
         mongoose.set("strictQuery", true);
         try {
             console.log("Connecting to the database...")
-            await mongoose.connect("", { connectTimeoutMS: 10000 });
+            await mongoose.connect(MONGO_URL, { connectTimeoutMS: 10000 });
             console.log("Connected to the database");
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (error: unknown | undefined | any) {

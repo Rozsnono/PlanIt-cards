@@ -5,6 +5,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { getIDfromToken, hasAuth } from "../middleware/middleware";
 import { Auth } from "../enums/auth.enum";
+import mongoose from "mongoose";
 
 const { ACCESS_TOKEN_SECRET = "secret" } = process.env;
 
@@ -56,7 +57,7 @@ export default class AuthController implements Controller {
             res.status(400).send({ message: "This user already exists!" });
             return;
         }
-
+        body["_id"] = new mongoose.Types.ObjectId();
         body["password"] = await bcrypt.hash(body["password"], 10);
 
         const newUser = new this.user(body);

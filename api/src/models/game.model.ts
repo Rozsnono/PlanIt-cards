@@ -8,10 +8,6 @@ const gameSchema = new Schema(
             type: Schema.Types.ObjectId,
             readonly: true
         },
-        deck: {
-            type: Array,
-            readonly: true
-        },
         currentPlayer: {
             type: Schema.Types.ObjectId,
             default: null,
@@ -29,6 +25,11 @@ const gameSchema = new Schema(
             type: Array,
             default: [],
             readonly: true
+        },
+        shuffledCards: {
+            type: Array,
+            default: [],
+            readonly: true
         }
     },
     { versionKey: false },
@@ -36,7 +37,7 @@ const gameSchema = new Schema(
 
 const validate = (message: object): Joi.ValidationResult => {
     const schema = Joi.object().keys({
-        deck: Joi.array().required(),
+        shuffledCards: Joi.array().required(),
         currentPlayer: Joi.string(),
         playerCards: Joi.object(),
         playedCards: Joi.array().optional(),

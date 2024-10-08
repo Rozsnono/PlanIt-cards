@@ -5,7 +5,8 @@ import { Auth } from "../enums/auth.enum";
 import gameModel from "../models/game.model";
 import CardDealer from "../services/dealer.services";
 import lobbyModel from "../models/lobby.model";
-import { rummy } from "../cards/cards";
+import { rummy, uno } from "../cards/cards";
+import mongoose from "mongoose";
 
 
 export default class GameController implements Controller {
@@ -13,7 +14,6 @@ export default class GameController implements Controller {
     public validate = gameModel.validate;
     public game = gameModel.gameModel;
     public lobby = lobbyModel.lobbyModel;
-    public cardDealer = new CardDealer(rummy);
 
     constructor() {
         // API route to start a game
@@ -50,22 +50,42 @@ export default class GameController implements Controller {
     private startGame = async (req: Request, res: Response) => {
         const body = req.body;
         const lobbyId = req.params.lobbyId;
-        const { error } = this.validate(body);
-        if (error) {
-            res.status(400).send({ message: error.details[0].message });
-            return;
-        }
+
         const lobby = await this.lobby.findOne({ _id: lobbyId });
         // check if the lobby exists
         if(!lobby) {
             res.status(404).send({ message: "Lobby not found!" });
             return;
         }
+        // check if the lobby has a game
+        if(lobby.game_id) {
+            res.status(400).send({ message: "Game already started!" });
+            return;
+        }
+        // check if user in lobby
+        const playerId = await getIDfromToken(req);
+        if(!lobby.players.find((player) => player.toString() == playerId)) {
+            res.status(403).send({ message: "Not in the lobby!" });
+            return;
+        }
+
+        // check card type of the lobby
+        let cards;
+        if(lobby.settings!.cardType == "RUMMY") {
+            cards = rummy;
+        }else{
+            cards = uno;
+        }
+        // create a new card dealer
+        const cardDealer = new CardDealer(cards);
         // set the game state
-        body["deck"] = this.cardDealer.shuffleDeck();
+        body["shuffledCards"] = cardDealer.shuffleDeck();
         // deal the cards
-        body["playerCards"] = this.cardDealer.dealCards(lobby?.players);
+        console.log("Dealing");
+        body["playerCards"] = cardDealer.dealCards(lobby?.players);
+        console.log("Dealing complete");
         body["currentPlayer"] = lobby?.players[0];
+        body["_id"] = new mongoose.Types.ObjectId();
         const newGame = new this.game(body);
         await newGame.save();
         res.send({ message: "Game started!" });
@@ -91,6 +111,8 @@ export default class GameController implements Controller {
             res.status(403).send({ message: "Not your turn!" });
             return;
         }
+        const cardDealer = new CardDealer(game.shuffledCards);
+
 
         // get the next player
         const currentPlayerIndex = lobby.players.indexOf(game.currentPlayer);
@@ -99,7 +121,7 @@ export default class GameController implements Controller {
         game.currentPlayer = lobby.players[nextPlayerIndex];
 
         //Check if the player has played a valid card
-        if(!this.cardDealer.validatePlay(body.playedCards)) {
+        if(!cardDealer.validatePlay(body.playedCards)) {
             res.status(400).send({ message: "Invalid play!" });
             return;
         }
@@ -140,9 +162,13 @@ export default class GameController implements Controller {
             res.status(403).send({ message: "Not your turn!" });
             return;
         }
-        
-        game.playerCards[playerId] = game.playerCards[playerId].concat(this.cardDealer.drawCard(1));
-        
+        const cardDealer = new CardDealer(game.shuffledCards);
+
+        game.playerCards[playerId] = game.playerCards[playerId].concat(cardDealer.drawCard(1));
+        game.shuffledCards = cardDealer.deck;
+
+        await game.save();
+        res.send({ message: "Card drawn!" });
     };
 
     private unoNextTurn = async (req: Request, res: Response) => {
@@ -163,7 +189,7 @@ export default class GameController implements Controller {
             res.status(404).send({ message: "Game not found!" });
             return;
         }
-        if(lobby.settings.type !== "UNO") {
+        if(lobby.settings!.cardType !== "UNO") {
             res.status(400).send({ message: "Not an UNO game!" });
             return;
         }
@@ -178,8 +204,10 @@ export default class GameController implements Controller {
             return;
         }
 
+        const cardDealer = new CardDealer(game.shuffledCards);
+
         //Check if the player has played a valid card
-        if(!this.cardDealer.validateDrop(game.droppedCards, body.droppedCard)) {
+        if(!cardDealer.validateDrop(game.droppedCards, body.droppedCard)) {
             res.status(400).send({ message: "Invalid play!" });
             return;
         }
@@ -191,13 +219,14 @@ export default class GameController implements Controller {
         game.currentPlayer = lobby.players[nextPlayerIndex];
 
         // check card status
-        switch(this.cardDealer.getUnoStatus(body.droppedCard)) {
+        switch(cardDealer.getUnoStatus(body.droppedCard)) {
             case "Double":
-                game.currentPlayer = lobby.players[lobby.players.indexOf(game.currentPlayer) + 2];
+                game.playerCards[lobby.players[nextPlayerIndex].toString()] = game.playerCards[lobby.players[nextPlayerIndex].toString()].concat(cardDealer.drawCard(2));
+                game.shuffledCards = cardDealer.deck;
                 break;
 
             case "Skip":
-                let newNextPlayerIndex = this.nextPlayer(nextPlayerIndex, lobby.players.length - 1);
+                const newNextPlayerIndex = this.nextPlayer(nextPlayerIndex, lobby.players.length - 1);
                 game.currentPlayer = lobby.players[newNextPlayerIndex];
                 break;
 
@@ -211,9 +240,8 @@ export default class GameController implements Controller {
                 break;
 
             case "Wild Draw Four":
-                game.playerCards[lobby.players[nextPlayerIndex].toString()] = game.playerCards[lobby.players[nextPlayerIndex].toString()].concat(this.cardDealer.drawCard(4));
-                newNextPlayerIndex = this.nextPlayer(nextPlayerIndex, lobby.players.length - 1);
-                game.currentPlayer = lobby.players[newNextPlayerIndex];
+                game.playerCards[lobby.players[nextPlayerIndex].toString()] = game.playerCards[lobby.players[nextPlayerIndex].toString()].concat(cardDealer.drawCard(4));
+                game.shuffledCards = cardDealer.deck;
                 break;
         }
 
@@ -226,7 +254,7 @@ export default class GameController implements Controller {
         game.playerCards[playerId] = game.playerCards[playerId].filter((card: any) => body.droppedCard != card);
 
         await game.save();
-
+        res.send({ message: "Next turn!" });
     };
 
     private endGame = async (req: Request, res: Response) => {

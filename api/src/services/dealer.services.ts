@@ -12,7 +12,7 @@ export default class CardDealer {
 
     private cards;
 
-    private deck: Array<{ name: string, rank: number, suit: string, isJoker?: boolean }>;
+    public deck: Array<{ name: string, rank: number, suit: string, isJoker?: boolean }>;
     
     constructor(
         cards: Array<{ name: string, rank: number, suit: string, isJoker?: boolean }>
@@ -42,15 +42,14 @@ export default class CardDealer {
         while (playerIndex < numberOfPlayers) {
             playerCards[players[playerIndex].toString()] = this.getCards(playerIndex === 0 ? 11 : 10);
             playerIndex++;
-            if (playerIndex === numberOfPlayers) {
-                playerIndex = 0;
-            }
+            console.log(playerCards);
         }
         return playerCards;
     }
 
     private getCards(numberOfCards: number = 10){
         const cards: Array<{ name: string, rank: number, suit: string, isJoker?: boolean }> = [];
+        console.log(this.deck);
         for (let i = 0; i < numberOfCards; i++) {
             cards.push(this.deck.pop()!);
         }

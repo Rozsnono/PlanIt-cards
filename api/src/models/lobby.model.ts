@@ -22,6 +22,7 @@ const lobbySchema = new Schema(
                 numberOfPlayers: {
                     type: Number,
                     required: true,
+
                 },
                 robberRummy: {
                     type: Boolean,
@@ -43,12 +44,11 @@ const lobbySchema = new Schema(
                     type: Number,
                     default: 0,
                 },
-                type:{
+                cardType: {
                     type: String,
                     required: true,
                 }
             },
-            required: true,
         },
         chat: {
             type: Array,
@@ -63,8 +63,8 @@ const lobbySchema = new Schema(
 
 const validate = (message: object): Joi.ValidationResult => {
     const schema = Joi.object().keys({
-        players: Joi.array().required(),
-        mutedPlayers: Joi.array().optional(),
+        players: Joi.array(),
+        mutedPlayers: Joi.array(),
         settings: Joi.object().keys({
             numberOfPlayers: Joi.number().required(),
             robberRummy: Joi.boolean().optional(),
@@ -73,6 +73,7 @@ const validate = (message: object): Joi.ValidationResult => {
             unranked: Joi.boolean().optional(),
             fillWithRobots: Joi.boolean().optional(),
             numberOfRobots: Joi.number().optional(),
+            cardType: Joi.string().required(),
         }),
         chat: Joi.array().optional(),
         game_id: Joi.string().optional(),

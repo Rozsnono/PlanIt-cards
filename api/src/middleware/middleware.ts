@@ -66,7 +66,7 @@ async function getIDfromToken(req: any) {
             const payload: Iuser | string | any = jwt.verify(token, ACCESS_TOKEN_SECRET);
             if (payload) {
                 // store user data in request object
-                return payload.id;
+                return payload._id;
             }
         }
     }

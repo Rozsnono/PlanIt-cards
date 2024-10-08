@@ -47,7 +47,8 @@ export const userSchema = new Schema(
         },
         username: {
             type: String,
-            required: true
+            required: true,
+            unique: true
         },
         rank: {
             type: Number,
@@ -77,8 +78,8 @@ const validate = (message: object): Joi.ValidationResult => {
     const schema = Joi.object().keys({
         firstName: Joi.string().required(),
         lastName: Joi.string().required(),
-        email: Joi.string().required(),
-        password: Joi.string().required(),
+        email: Joi.string().required().email(),
+        password: Joi.string().required().min(6),
         username: Joi.string().required()
     });
     return schema.validate(message);

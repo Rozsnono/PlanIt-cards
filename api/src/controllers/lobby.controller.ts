@@ -52,11 +52,14 @@ export default class LobbyController implements Controller {
 
     private createLobby = async (req: Request, res: Response) => {
         const body = req.body;
+        const userid = await getIDfromToken(req);
         const { error } = this.validate(body);
         if (error) {
             res.status(400).send({ message: error.details[0].message });
             return;
         }
+        body["_id"] = new mongoose.Types.ObjectId();
+        body["players"] = [new mongoose.Types.ObjectId(userid)];
         const newLobby = new this.lobby(body);
         await newLobby.save();
         res.send({ message: "OK" });
