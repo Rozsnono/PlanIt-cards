@@ -42,7 +42,6 @@ export default class CardDealer {
         while (playerIndex < numberOfPlayers) {
             playerCards[players[playerIndex].toString()] = this.getCards(playerIndex === 0 ? 11 : 10);
             playerIndex++;
-            console.log(playerCards);
         }
         return playerCards;
     }
@@ -57,10 +56,17 @@ export default class CardDealer {
     }
 
     public drawCard(numberOfCards: number): Array<{ name: string, rank: number, suit: string, isJoker?: boolean }> {
-        return this.deck.slice(-numberOfCards);
+        const removedCards = this.deck.splice(-numberOfCards, numberOfCards);
+        return removedCards;
     }
 
-    public validatePlay(deck: Array<{ name: string, rank: number, suit: string, isJoker?: boolean }>): boolean {
+    public validatePlay(deck: Array<{ name: string, rank: number, suit: string, isJoker?: boolean }>, playerCards: Array<{ name: string, rank: number, suit: string, isJoker?: boolean }>): boolean {
+        if(typeof deck === "undefined"){
+            return true;
+        }
+        if(!deck.every(card => playerCards.find(playerCards => JSON.stringify(playerCards) === JSON.stringify(card)))){
+            return false;
+        }
         if(deck.length < 3) {
             return false;
         }

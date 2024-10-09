@@ -55,8 +55,13 @@ const lobbySchema = new Schema(
             default: [],
         },
         game_id: {
-            type: Schema.Types.ObjectId,
+            type: Schema.Types.ObjectId || String,
+            nullable: true,
         },
+        createdAt: {
+            type: Date,
+            default: Date.now,
+        }
     },
     { versionKey: false },
 );
@@ -76,7 +81,7 @@ const validate = (message: object): Joi.ValidationResult => {
             cardType: Joi.string().required(),
         }),
         chat: Joi.array().optional(),
-        game_id: Joi.string().optional(),
+        game_id: Joi.string(),
     });
     return schema.validate(message);
 };

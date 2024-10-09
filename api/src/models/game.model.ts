@@ -30,6 +30,10 @@ const gameSchema = new Schema(
             type: Array,
             default: [],
             readonly: true
+        },
+        createdAt: {
+            type: Date,
+            default: Date.now,
         }
     },
     { versionKey: false },
