@@ -1,8 +1,19 @@
+"use client";
 import Icon from "@/assets/icons"
+import { Login } from "@/functions/user.function";
 import Image from "next/image"
 import Link from "next/link"
 
 export default function LogIn() {
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    function handleSubmit(e: any) {
+        e.preventDefault();
+
+        Login(e.target.username.value, e.target.password.value)
+
+    }
+
     return (
         <main className="top-0 left-0 w-screen h-screen fixed flex lg:items-center md:items-center justify-center">
 
@@ -18,16 +29,18 @@ export default function LogIn() {
                         <div className={`pb-4 border-b border-transparent hover:border-zinc-300 hover:text-zinc-100 duration-200 cursor-pointer`}>Register</div>
                     </Link>
                 </div>
+                <form action="submit" onSubmit={handleSubmit} method="POST" className="flex flex-col gap-6">
+                    <div className="flex flex-col gap-4 px-10 py-4">
+                        <input type="text" id="username" placeholder="Username" className="bg-zinc-600 text-zinc-200 rounded-lg p-2" />
+                        <input type="password" id="password" placeholder="Password" className="bg-zinc-600 text-zinc-200 rounded-lg p-2" />
 
-                <div className="flex flex-col gap-4 px-10 py-4">
-                    <input type="email" id="email" placeholder="Email" className="bg-zinc-600 text-zinc-200 rounded-lg p-2" />
-                    <input type="password" id="password" placeholder="Password" className="bg-zinc-600 text-zinc-200 rounded-lg p-2" />
+                    </div>
 
-                </div>
+                    <div className="flex items-center justify-center">
+                        <button type="submit" className="bg-blue-600 text-zinc-200 rounded-lg p-2 w-1/2">Log in</button>
+                    </div>
+                </form>
 
-                <div className="flex items-center justify-center">
-                    <button className="bg-blue-600 text-zinc-200 rounded-lg p-2 w-1/2">Log in</button>
-                </div>
 
 
                 <div className="flex gap-2 items-center justify-center w-full opacity-50">

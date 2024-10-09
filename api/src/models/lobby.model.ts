@@ -8,15 +8,16 @@ const lobbySchema = new Schema(
             type: Schema.Types.ObjectId,
             readonly: true
         },
-        players: [{
+        users: [{
             type: Schema.Types.ObjectId,
-            ref: "Player",
+            ref: "user",
             required: true,
         }],
-        mutedPlayers: {
-            type: Array,
-            default: [],
-        },
+        mutedPlayers: [{
+            type: Schema.Types.ObjectId,
+            ref: "user",
+            default: []
+        }],
         settings: {
             type: {
                 numberOfPlayers: {
@@ -55,7 +56,7 @@ const lobbySchema = new Schema(
             default: [],
         },
         game_id: {
-            type: Schema.Types.ObjectId || String,
+            type: Schema.Types.Mixed,
             nullable: true,
         },
         createdAt: {
@@ -68,13 +69,13 @@ const lobbySchema = new Schema(
 
 const validate = (message: object): Joi.ValidationResult => {
     const schema = Joi.object().keys({
-        players: Joi.array(),
+        users: Joi.array(),
         mutedPlayers: Joi.array(),
         settings: Joi.object().keys({
             numberOfPlayers: Joi.number().required(),
             robberRummy: Joi.boolean().optional(),
             privateLobby: Joi.boolean().optional(),
-            lobbyCode: Joi.string().optional(),
+            lobbyCode: Joi.string().allow(null).optional(),
             unranked: Joi.boolean().optional(),
             fillWithRobots: Joi.boolean().optional(),
             numberOfRobots: Joi.number().optional(),

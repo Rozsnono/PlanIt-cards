@@ -62,7 +62,8 @@ export default class AuthController implements Controller {
 
         const newUser = new this.user(body);
         await newUser.save();
-        res.send({ message: "OK" });
+        const token = jwt.sign({ _id: newUser._id, username: newUser.username, firstName: newUser.firstName, lastName: newUser.lastName, auth: newUser.auth, numberOfGames: newUser.numberOfGames, rank: newUser.rank, email: newUser.email }, ACCESS_TOKEN_SECRET);
+        res.send({ message: "OK", token: token });
     };
 
     private password = async (req: Request, res: Response) => {

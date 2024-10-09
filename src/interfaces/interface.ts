@@ -19,7 +19,7 @@ export interface Iplayer {
 
 export interface Ilobby {
     _id: string;
-    players: Iplayer[];
+    users: Iplayer[];
     mutedPlayers: string[];
     settings: {
         numberOfPlayers: number;
@@ -29,7 +29,7 @@ export interface Ilobby {
         unranked: boolean;
         fillWithRobots: boolean;
         numberOfRobots?: number | null;
-        type: "UNO" | "RUMMY";
+        cardType: "UNO" | "RUMMY";
     }
     chat: Imessage[];
     game_id?: string;
@@ -44,7 +44,7 @@ export interface Imessage {
 
 export interface Igame {
     _id: string;
-    deck: Icard[];
+    shuffledCards: Icard[];
     currentPlayer: string;
     playerCards: {[player_id: string]: Icard[]};
     playedCards: Icard[][];

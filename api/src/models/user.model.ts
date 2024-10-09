@@ -71,7 +71,7 @@ export const userSchema = new Schema(
             readonly: true
         }
     },
-    { versionKey: false },
+    { versionKey: false, id: false, toJSON: { virtuals: true }, toObject: { virtuals: true } },
 );
 
 const validate = (message: object): Joi.ValidationResult => {
@@ -79,7 +79,7 @@ const validate = (message: object): Joi.ValidationResult => {
         firstName: Joi.string().required(),
         lastName: Joi.string().required(),
         email: Joi.string().required().email(),
-        password: Joi.string().required().min(6),
+        password:  Joi.string().min(6).pattern(new RegExp('^[a-zA-Z0-9]{6,30}$')).required(),
         username: Joi.string().required()
     });
     return schema.validate(message);

@@ -1,6 +1,7 @@
 import WebSocket, { WebSocketServer } from 'ws';
 import lobbyModel from '../models/lobby.model';
 import gameModel from '../models/game.model';
+import mongoose from 'mongoose';
 
 export default class SocketIO {
     private wss = new WebSocketServer({ port: 8080 });
@@ -15,8 +16,9 @@ export default class SocketIO {
             // Handle WebSocket message received from client
             ws.on('message', async (id: string) => {
                 const identifier = JSON.parse(id);
-                console.log(`Received message => ${identifier}`);
-                const inLobby = await this.lobby.findOne({ players: identifier._id });
+                console.log(`Received message => ${identifier._id} ${identifier.player_id}`);
+                const inLobby = await this.lobby.findOne({$and: [{_id: new mongoose.Types.ObjectId(identifier._id)}, { users: new mongoose.Types.ObjectId(identifier.player_id) }]}).populate("users", 'firstName lastName email username').exec();
+                console.log(inLobby, "inLobby");
                 if (inLobby) {
                     const inGame = await this.game.findOne({ _id: inLobby.game_id });
                     if (inGame) {
@@ -27,6 +29,8 @@ export default class SocketIO {
                     } else {
                         ws.send(JSON.stringify(inLobby));
                     }
+                }else{
+                    ws.send(JSON.stringify({message: "You are not in a lobby"}));
                 }
             });
 
@@ -36,9 +40,13 @@ export default class SocketIO {
             });
         });
     }
+
+
     public async monitorCollectionChanges() {
 
-        const watching = this.game.watch();
+        const options = { fullDocument: 'updateLookup' }
+
+        const watching = this.game.watch([],options);
 
         watching.on('change', (change) => {
             console.log('Change detected:', change);
@@ -49,6 +57,30 @@ export default class SocketIO {
                 }
             });
         });
+
+        const chatWatching = this.lobby.watch([],options);
+
+        chatWatching.on('change', async (change) => {
+            console.log('Change detected:', change);
+
+            const lobby = await this.lobby.findOne({ _id: change.fullDocument._id }).populate("users", 'firstName lastName email username').exec();
+
+            this.wss.clients.forEach((client) => {
+                if (client.readyState === 1) {
+                    client.send(JSON.stringify(lobby));
+                }
+            });
+        });
+
+        watching.on('error', (error) => {
+            console.error('Error in game Change Stream:', error);
+        });
+        
+        chatWatching.on('error', (error) => {
+            console.error('Error in lobby Change Stream:', error);
+        });
+
+        
     }
 
 }

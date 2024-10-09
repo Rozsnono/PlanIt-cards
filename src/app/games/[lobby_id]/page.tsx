@@ -1,38 +1,46 @@
 "use client";
 import Icon from "@/assets/icons"
+import { UserContext } from "@/contexts/user.context";
+import { getCookie, getUser } from "@/functions/user.function";
 import { Ilobby } from "@/interfaces/interface";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
+import { useContext, useEffect, useState } from "react";
+import { useQuery } from "react-query";
 
 export default function LobbyId() {
 
     const lobby_id = useParams().lobby_id;
     const path = usePathname();
+    const { user } = useContext(UserContext);
 
 
-    const lobby: Ilobby = {
-        _id: "1",
-        players: [
-            { _id: "1", name: "Norbi", rank: 1 },
-            { _id: "2", name: "Rezső", rank: 2 },
-            { _id: "3", name: "Józsi", rank: 3 },
-            { _id: "4", name: "Pista", rank: 4 },
-            { _id: "5", name: "Géza", rank: 5 },
-            { _id: "6", name: "Béla", rank: 6 },
-        ],
-        mutedPlayers: [],
-        chat: [],
-        game_id: "1",
-        settings: {
-            numberOfPlayers: 8,
-            robberRummy: true,
-            privateLobby: false,
-            lobbyCode: "12345",
-            unranked: false,
-            fillWithRobots: false,
-            numberOfRobots: 1
-        }
-    }
+    useEffect(() => {
+        const socket = new WebSocket("ws://localhost:8080");
+
+        socket.addEventListener('open', () => {
+            console.log('WebSocket is connected');
+            socket.send(JSON.stringify({ _id: lobby_id, player_id: user!._id }));
+        });
+
+        socket.addEventListener('message', (event) => {
+            console.log('Message from server', event.data);
+            const data = JSON.parse(event.data);
+            if(data.message){
+                setLobby(data.message.fullDocument as Ilobby);
+            } // handle message
+            else{
+                setLobby(data as Ilobby);
+            }
+        });
+
+        return () => {
+            socket.close();
+        };
+    }, [])
+
+
+    const [lobby, setLobby] = useState<Ilobby | null>(null);
 
     const positionEnum = [
         "left-[-12%]",
@@ -45,9 +53,21 @@ export default function LobbyId() {
         "bottom-[-30%] right-[10%]",
     ]
 
+    if (!lobby) {
+        return <div>Loading...</div>
+    }
+
 
     function removePlayer(index: number) {
-        lobby.players.splice(index, 1);
+        lobby!.users.splice(index, 1);
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    function sendChat(e: any) {
+        e.preventDefault();
+        const chat = e.target.chat.value;
+        e.target.chat.value = "";
+        fetch(`/api/chat/${lobby_id}`, {method: "PUT", body: JSON.stringify({ sender: user!.username, message: chat, time: new Date().toISOString(), type: "text" }), headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getCookie("token")}` }})
     }
 
     return (
@@ -63,11 +83,11 @@ export default function LobbyId() {
                             {
                                 new Array(lobby.settings.numberOfPlayers).fill(0).map((_, i) => {
 
-                                    if (i < lobby.players.length) {
+                                    if (i < lobby.users.length) {
                                         return (
                                             <div key={i} className={`absolute group bg-zinc-400 text-zinc-800 flex items-center justify-center border-2 border-zinc-800 cursor-pointer rounded-full ${positionEnum[i]} w-24 h-24 duration-200`}>
                                                 <Icon name="user" size={64}></Icon>
-                                                <div className="absolute bottom-[-2rem] text-zinc-300">{lobby.players[i].name}</div>
+                                                <div className="absolute bottom-[-2rem] text-zinc-300">{lobby.users[i].username}</div>
 
                                                 <div onClick={() => { removePlayer(i) }} className="absolute group-hover:opacity-100 opacity-0 duration-200 group-hover:left-[-1.5rem] left-0 p-2 rounded-full bg-red-500 hover:bg-red-400">
                                                     <Icon name="close"></Icon>
@@ -100,7 +120,7 @@ export default function LobbyId() {
                     </div>
 
                     <div className="absolute top-3 right-3 text-lg">
-                        {lobby.players.length} / {lobby.settings.numberOfPlayers}
+                        {lobby.users.length} / {lobby.settings.numberOfPlayers}
                     </div>
                 </div>
 
@@ -113,30 +133,23 @@ export default function LobbyId() {
                     </div>
 
                     <div className="flex relative flex-col w-full bg-zinc-800 rounded-md h-full p-2">
-                        <div className="h-full w-full border border-zinc-600 rounded-md flex flex-col gap-1 text-zinc-300 p-2">
-                            <div className="flex gap-1">
-                                <span className="text-zinc-500 w-[4rem]">Pista:</span>
-                                <span className="w-full"> Hello</span>
-                            </div>
-                            <div className="flex gap-1">
-                                <span className="text-zinc-500 w-[4rem]">Rezső:</span>
-                                <span className="w-full"> Hello</span>
-                            </div>
-                            <div className="flex gap-1">
-                                <span className="text-zinc-500 w-[4rem]">Pista:</span>
-                                <span className="w-full"> Hello</span>
-                            </div>
-                            <div className="flex gap-1">
-                                <span className="text-zinc-500 w-[4rem]">You:</span>
-                                <span className="w-full"> Hello</span>
-                            </div>
+                        <div className="h-full w-full border border-zinc-600 rounded-md flex flex-col gap-1 text-zinc-300 p-2 overflow-auto">
+
+                            {
+                                lobby.chat.map((message, i) => (
+                                    <div key={i} className="flex gap-1">
+                                        <span className="text-zinc-500 w-[4rem]">{message.sender}:</span>
+                                        <span className="w-full">{message.message}</span>
+                                    </div>
+                                ))
+                            }
                         </div>
-                        <div className="w-full pt-3 flex gap-2">
+                        <form onSubmit={sendChat} className="w-full pt-3 flex gap-2">
                             <input type="text" id="chat" className="bg-zinc-700 border border-zinc-900 text-gray-200 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" placeholder="Aa" />
-                            <button className="bg-zinc-500 text-white p-1 px-2 rounded-md hover:bg-zinc-400 flex items-center ">
+                            <button type="submit" className="bg-zinc-500 text-white p-1 px-2 rounded-md hover:bg-zinc-400 flex items-center ">
                                 <Icon name="send"></Icon>
                             </button>
-                        </div>
+                        </form>
                     </div>
                 </div>
 
@@ -161,7 +174,7 @@ export default function LobbyId() {
 
 
                         <div className="flex gap-2 text-zinc-200 items-center">
-                            <div className="text-md w-1/3">Number of players</div>
+                            <div className="text-md w-1/3">Number of users</div>
 
 
                             <div className="relative w-full">
@@ -174,6 +187,19 @@ export default function LobbyId() {
                                 </div>
                             </div>
 
+                        </div>
+
+                        <div className="flex gap-2 text-zinc-200 items-center">
+                            <div className="text-md w-1/3">Type</div>
+
+                            <div className="w-full flex items-center">
+                                <button disabled type="button" className={`w-full px-4 py-2 text-sm font-medium text-zinc-400 border border-zinc-600 rounded-s-lg hover:bg-zinc-700 hover:text-gray-200 focus:z-10 focus:ring-2 focus:ring-gray-500 focus:text-gray-100 ${lobby.settings.cardType === 'RUMMY' ? "text-gray-100 bg-zinc-600 ring-gray-500 ring-1" : "bg-zinc-800"}`}>
+                                    RUMMY
+                                </button>
+                                <button disabled type="button" className={`w-full px-4 py-2 text-sm font-medium text-zinc-400 border border-zinc-600 rounded-e-lg hover:bg-zinc-700 hover:text-gray-200 focus:z-10 focus:ring-2 focus:ring-gray-500 focus:text-gray-100 ${lobby.settings.cardType === 'UNO' ? "text-gray-100 bg-zinc-600 ring-gray-500 ring-1" : "bg-zinc-800"}`}>
+                                    UNO
+                                </button>
+                            </div>
                         </div>
 
                         <div className="flex gap-2 text-zinc-200 items-center">
@@ -192,7 +218,7 @@ export default function LobbyId() {
                         {
                             lobby.settings.robberRummy &&
                             <div className="flex gap-2 text-zinc-200 items-center italic">
-                                <Icon name="info" size={100}></Icon> <span className="text-[.8rem]">Robber Rummy enhances traditional Rummy with several key changes. Players can draw any card from the discard pile but must take all cards above it, adding strategic depth. The game continues until a player reaches 500 points, making it more competitive over multiple rounds, unlike classic Rummy, which often ends when a player goes out. Additionally, players can add cards to opponents’ melds, promoting more interaction between players. These elements make Robber Rummy faster-paced and more engaging than its traditional counterpart.</span>
+                                <Icon name="info" size={100}></Icon> <span className="text-[.8rem]">Robber Rummy enhances traditional Rummy with several key changes. users can draw any card from the discard pile but must take all cards above it, adding strategic depth. The game continues until a player reaches 500 points, making it more competitive over multiple rounds, unlike classic Rummy, which often ends when a player goes out. Additionally, users can add cards to opponents’ melds, promoting more interaction between users. These elements make Robber Rummy faster-paced and more engaging than its traditional counterpart.</span>
                             </div>
                         }
 

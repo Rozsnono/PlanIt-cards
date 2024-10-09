@@ -47,6 +47,9 @@ export default class LobbyController implements Controller {
             this.watchLobby(req, res).catch(next);
         });
 
+        this.router.put("/chat/:id", hasAuth([Auth["CHAT"]]), (req, res, next) => {
+            this.chatLobby(req, res).catch(next);
+        });
 
     }
 
@@ -59,7 +62,7 @@ export default class LobbyController implements Controller {
             return;
         }
         body["_id"] = new mongoose.Types.ObjectId();
-        body["players"] = [new mongoose.Types.ObjectId(userid)];
+        body["users"] = [new mongoose.Types.ObjectId(userid)];
         const newLobby = new this.lobby(body);
         await newLobby.save();
         res.send({ message: "OK" });
@@ -70,9 +73,22 @@ export default class LobbyController implements Controller {
         res.send(lobbies);
     };
 
+    private chatLobby = async (req: Request, res: Response) => {
+        const body = req.body;
+        const id = req.params.id;
+        const lobby = await this.lobby.findOne({ _id: id });
+        if (lobby) {
+            lobby.chat.push(body);
+            await this.lobby.replaceOne({ _id: id }, lobby, { runValidators: true });
+            res.send({ message: "OK" });
+        } else {
+            res.status(404).send({ message: "Try again!" });
+        }
+    };
+
     private getLobbyById = async (req: Request, res: Response) => {
         const id = req.params.id;
-        const lobby = await this.lobby.findOne({ _id: id }).populate("players");
+        const lobby = await this.lobby.findOne({ _id: id }).populate("users");
         if (lobby) {
             res.send(lobby);
         } else {
@@ -86,7 +102,7 @@ export default class LobbyController implements Controller {
         const lobby = await this.lobby.findOne({ _id: id });
         if (lobby) {
             const userid = await getIDfromToken(req);
-            lobby.players.push(new mongoose.Types.ObjectId(userid));
+            lobby.users.push(new mongoose.Types.ObjectId(userid));
             await this.lobby.replaceOne({ _id: id }, lobby, { runValidators: true });
             res.send({ message: "OK" });
         } else {
@@ -100,7 +116,7 @@ export default class LobbyController implements Controller {
         const lobby = await this.lobby.findOne({ _id: id });
         if (lobby) {
             const userid = await getIDfromToken(req);
-            lobby.players = lobby.players.filter((p) => p !== userid);
+            lobby.users = lobby.users.filter((p) => p !== userid);
             await this.lobby.replaceOne({ _id: id }, lobby, { runValidators: true });
             res.send({ message: "OK" });
         } else {
@@ -138,7 +154,8 @@ export default class LobbyController implements Controller {
         const id = body._id;
         const lobby = await this.lobby.findOne({ _id: id });
         if (lobby) {
-            lobby.mutedPlayers.push(getIDfromToken(req));
+            const pid = await getIDfromToken(req);
+            lobby.mutedPlayers.push(new mongoose.Types.ObjectId(pid));
             await this.lobby.replaceOne({ _id: id }, lobby, { runValidators: true });
             res.send({ message: "OK" });
         } else {

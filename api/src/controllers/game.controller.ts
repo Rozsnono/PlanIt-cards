@@ -64,7 +64,7 @@ export default class GameController implements Controller {
         }
         // check if user in lobby
         const playerId = await getIDfromToken(req);
-        if (!lobby.players.find((player) => player.toString() == playerId)) {
+        if (!lobby.users.find((player) => player.toString() == playerId)) {
             res.status(403).send({ message: "Not in the lobby!" });
             return;
         }
@@ -81,8 +81,8 @@ export default class GameController implements Controller {
         // set the game state
         body["shuffledCards"] = cardDealer.shuffleDeck();
         // deal the cards
-        body["playerCards"] = cardDealer.dealCards(lobby?.players);
-        body["currentPlayer"] = lobby?.players[0];
+        body["playerCards"] = cardDealer.dealCards(lobby?.users);
+        body["currentPlayer"] = lobby?.users[0];
         body["_id"] = new mongoose.Types.ObjectId();
         const newGame = new this.game(body);
         await newGame.save();
@@ -127,10 +127,10 @@ export default class GameController implements Controller {
 
 
         // get the next player
-        const currentPlayerIndex = lobby.players.indexOf(game.currentPlayer);
-        const nextPlayerIndex = currentPlayerIndex === lobby.players.length - 1 ? 0 : currentPlayerIndex + 1;
+        const currentPlayerIndex = lobby.users.indexOf(game.currentPlayer);
+        const nextPlayerIndex = currentPlayerIndex === lobby.users.length - 1 ? 0 : currentPlayerIndex + 1;
 
-        game.currentPlayer = lobby.players[nextPlayerIndex];
+        game.currentPlayer = lobby.users[nextPlayerIndex];
 
         if (body.playedCards) {
 
@@ -163,7 +163,7 @@ export default class GameController implements Controller {
             res.status(404).send({ message: "Lobby not found!" });
             return;
         }
-        if (!lobby.players.find((player) => player.toString() == playerId)) {
+        if (!lobby.users.find((player) => player.toString() == playerId)) {
             res.status(403).send({ message: "Not in the lobby!" });
             return;
         }
@@ -196,7 +196,7 @@ export default class GameController implements Controller {
             res.status(404).send({ message: "Lobby not found!" });
             return;
         }
-        if (!lobby.players.find((player) => player.toString() == playerId)) {
+        if (!lobby.users.find((player) => player.toString() == playerId)) {
             res.status(403).send({ message: "Not in the lobby!" });
             return;
         }
@@ -229,33 +229,33 @@ export default class GameController implements Controller {
 
 
         // get the next player
-        const nextPlayerIndex = this.nextPlayer(lobby.players.indexOf(game.currentPlayer), lobby.players.length - 1);
+        const nextPlayerIndex = this.nextPlayer(lobby.users.indexOf(game.currentPlayer), lobby.users.length - 1);
 
-        game.currentPlayer = lobby.players[nextPlayerIndex];
+        game.currentPlayer = lobby.users[nextPlayerIndex];
 
         // check card status
         switch (cardDealer.getUnoStatus(body.droppedCard)) {
             case "Double":
-                game.playerCards[lobby.players[nextPlayerIndex].toString()] = game.playerCards[lobby.players[nextPlayerIndex].toString()].concat(cardDealer.drawCard(2));
+                game.playerCards[lobby.users[nextPlayerIndex].toString()] = game.playerCards[lobby.users[nextPlayerIndex].toString()].concat(cardDealer.drawCard(2));
                 game.shuffledCards = cardDealer.deck;
                 break;
 
             case "Skip":
-                const newNextPlayerIndex = this.nextPlayer(nextPlayerIndex, lobby.players.length - 1);
-                game.currentPlayer = lobby.players[newNextPlayerIndex];
+                const newNextPlayerIndex = this.nextPlayer(nextPlayerIndex, lobby.users.length - 1);
+                game.currentPlayer = lobby.users[newNextPlayerIndex];
                 break;
 
             case "Reverse":
-                lobby.players.reverse();
-                const newReversePlayerIndex = this.nextPlayer(this.nextPlayer(nextPlayerIndex, lobby.players.length - 1), lobby.players.length - 1);
-                game.currentPlayer = lobby.players[newReversePlayerIndex];
+                lobby.users.reverse();
+                const newReversePlayerIndex = this.nextPlayer(this.nextPlayer(nextPlayerIndex, lobby.users.length - 1), lobby.users.length - 1);
+                game.currentPlayer = lobby.users[newReversePlayerIndex];
                 break;
 
             case "Wild":
                 break;
 
             case "Wild Draw Four":
-                game.playerCards[lobby.players[nextPlayerIndex].toString()] = game.playerCards[lobby.players[nextPlayerIndex].toString()].concat(cardDealer.drawCard(4));
+                game.playerCards[lobby.users[nextPlayerIndex].toString()] = game.playerCards[lobby.users[nextPlayerIndex].toString()].concat(cardDealer.drawCard(4));
                 game.shuffledCards = cardDealer.deck;
                 break;
         }
@@ -281,7 +281,7 @@ export default class GameController implements Controller {
             res.status(404).send({ message: "Lobby not found!" });
             return;
         }
-        if (!lobby.players.find((player) => player.toString() == playerId)) {
+        if (!lobby.users.find((player) => player.toString() == playerId)) {
             res.status(403).send({ message: "Not in the lobby!" });
             return;
         }

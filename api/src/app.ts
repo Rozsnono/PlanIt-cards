@@ -6,8 +6,10 @@ import http from 'http';
 import dotenv from 'dotenv';
 import AuthController from "./controllers/auth.controller";
 import SocketIO from "./controllers/socketIO.controller";
+import userModel from "./models/user.model";
+import lobbyModel from "./models/lobby.model";
 
-const { MONGO_URL = "mongodb://localhost:27017/planit-cards" } = process.env;
+const { MONGO_URL = "mongodb+srv://admin:admin@planit-card.0lrdm.mongodb.net/?retryWrites=true&w=majority&appName=Planit-card" } = process.env;
 
 
 
@@ -30,7 +32,8 @@ export default class App {
             server.listen(port, "0.0.0.0", function () {
                 console.log('Server is running on port ' + port);
             });
-            new SocketIO();
+            const s = new SocketIO();
+            s.monitorCollectionChanges();
         });
 
         controllers.forEach(controller => {
@@ -45,12 +48,14 @@ export default class App {
         mongoose.set("strictQuery", true);
         try {
             console.log("Connecting to the database...")
-            await mongoose.connect(MONGO_URL, { connectTimeoutMS: 10000 });
+            await mongoose.connect(MONGO_URL, { serverSelectionTimeoutMS: 5000});
             console.log("Connected to the database");
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (error: unknown | undefined | any) {
             console.log({ message: error.message });
         }
 
+        userModel.userModel.init();
+        lobbyModel.lobbyModel.init();
     }
 }

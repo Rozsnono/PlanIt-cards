@@ -32,15 +32,15 @@ export default class CardDealer {
         return deck;
     }
 
-    public dealCards(players: mongoose.Types.ObjectId[]): { [id: string]: Array<{ name: string, rank: number, suit: string, isJoker?: boolean }> } {
+    public dealCards(users: mongoose.Types.ObjectId[]): { [id: string]: Array<{ name: string, rank: number, suit: string, isJoker?: boolean }> } {
         const playerCards: { [id: string]: Array<{ name: string, rank: number, suit: string, isJoker?: boolean }> } = {};
-        const numberOfPlayers = players.length;
+        const numberOfPlayers = users.length;
         for (let i = 0; i < numberOfPlayers; i++) {
-            playerCards[players[i].toString()] = [];
+            playerCards[users[i].toString()] = [];
         }
         let playerIndex = 0;
         while (playerIndex < numberOfPlayers) {
-            playerCards[players[playerIndex].toString()] = this.getCards(playerIndex === 0 ? 11 : 10);
+            playerCards[users[playerIndex].toString()] = this.getCards(playerIndex === 0 ? 11 : 10);
             playerIndex++;
         }
         return playerCards;
