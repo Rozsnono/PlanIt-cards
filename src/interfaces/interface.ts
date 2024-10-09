@@ -7,8 +7,14 @@ export interface Icard{
 
 export interface Iplayer {
     _id: string;
-    name: string;
+    firstName: string;
+    lastName: string;
+    username: string;
+    email: string;
     rank: number;
+    numberOfGames: {
+        [date: string]: {wins: number, losses: number};
+    };
 }
 
 export interface Ilobby {
