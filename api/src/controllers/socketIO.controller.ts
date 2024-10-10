@@ -11,14 +11,11 @@ export default class SocketIO {
     constructor() {
 
         this.wss.on('connection', (ws: WebSocket) => {
-            console.log('Client connected');
 
             // Handle WebSocket message received from client
             ws.on('message', async (id: string) => {
                 const identifier = JSON.parse(id);
-                console.log(`Received message => ${identifier._id} ${identifier.player_id}`);
-                const inLobby = await this.lobby.findOne({$and: [{_id: new mongoose.Types.ObjectId(identifier._id)}, { users: new mongoose.Types.ObjectId(identifier.player_id) }]}).populate("users", 'firstName lastName email username').exec();
-                console.log(inLobby, "inLobby");
+                const inLobby = await this.lobby.findOne({ $and: [{ _id: new mongoose.Types.ObjectId(identifier._id) }, { users: new mongoose.Types.ObjectId(identifier.player_id) }] }).populate("users", 'firstName lastName email username').exec();
                 if (inLobby) {
                     const inGame = await this.game.findOne({ _id: inLobby.game_id });
                     if (inGame) {
@@ -29,8 +26,9 @@ export default class SocketIO {
                     } else {
                         ws.send(JSON.stringify(inLobby));
                     }
-                }else{
-                    ws.send(JSON.stringify({message: "You are not in a lobby"}));
+                } else {
+                    ws.send(JSON.stringify({ message: "You are not in a lobby" }));
+
                 }
             });
 
@@ -46,10 +44,9 @@ export default class SocketIO {
 
         const options = { fullDocument: 'updateLookup' }
 
-        const watching = this.game.watch([],options);
+        const watching = this.game.watch([], options);
 
         watching.on('change', (change) => {
-            console.log('Change detected:', change);
 
             this.wss.clients.forEach((client) => {
                 if (client.readyState === WebSocket.OPEN) {
@@ -58,29 +55,36 @@ export default class SocketIO {
             });
         });
 
-        const chatWatching = this.lobby.watch([],options);
+        const chatWatching = this.lobby.watch([], options);
 
         chatWatching.on('change', async (change) => {
-            console.log('Change detected:', change);
 
-            const lobby = await this.lobby.findOne({ _id: change.fullDocument._id }).populate("users", 'firstName lastName email username').exec();
+            try {
+                const lobby = await this.lobby.findOne({ _id: change.fullDocument._id }).populate("users", 'firstName lastName email username').exec();
 
-            this.wss.clients.forEach((client) => {
-                if (client.readyState === 1) {
-                    client.send(JSON.stringify(lobby));
-                }
-            });
+                this.wss.clients.forEach((client) => {
+                    if (client.readyState === 1) {
+                        client.send(JSON.stringify(lobby));
+                    }
+                });
+            } catch {
+                this.wss.clients.forEach((client) => {
+                    if (client.readyState === 1) {
+                        client.send("DELETED");
+                    }
+                });
+            }
         });
 
         watching.on('error', (error) => {
             console.error('Error in game Change Stream:', error);
         });
-        
+
         chatWatching.on('error', (error) => {
             console.error('Error in lobby Change Stream:', error);
         });
 
-        
+
     }
 
 }

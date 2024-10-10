@@ -1,12 +1,12 @@
 "use client";
 import Icon from "@/assets/icons"
 import { UserContext } from "@/contexts/user.context";
-import { getCookie, getUser } from "@/functions/user.function";
+import { getCookie } from "@/functions/user.function";
 import { Ilobby } from "@/interfaces/interface";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
+import React from "react";
 import { useContext, useEffect, useState } from "react";
-import { useQuery } from "react-query";
 
 export default function LobbyId() {
 
@@ -24,12 +24,18 @@ export default function LobbyId() {
         });
 
         socket.addEventListener('message', (event) => {
-            console.log('Message from server', event.data);
             const data = JSON.parse(event.data);
-            if(data.message){
-                setLobby(data.message.fullDocument as Ilobby);
+            if (data.message) {
+                if (typeof data.message === "string") {
+                    fetch(`/api/join/${lobby_id}`, { method: "PUT", headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getCookie("token")}` } }).then(res => res.json()).then(data => {
+                        setLobby(data.lobby as Ilobby);
+                    }
+                    );
+                } else {
+                    setLobby(data.message.fullDocument as Ilobby);
+                }
             } // handle message
-            else{
+            else {
                 setLobby(data as Ilobby);
             }
         });
@@ -67,7 +73,7 @@ export default function LobbyId() {
         e.preventDefault();
         const chat = e.target.chat.value;
         e.target.chat.value = "";
-        fetch(`/api/chat/${lobby_id}`, {method: "PUT", body: JSON.stringify({ sender: user!.username, message: chat, time: new Date().toISOString(), type: "text" }), headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getCookie("token")}` }})
+        fetch(`/api/chat/${lobby_id}`, { method: "PUT", body: JSON.stringify({ sender: user!.username, message: chat, time: new Date().toISOString(), type: "text" }), headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getCookie("token")}` } })
     }
 
     return (
@@ -85,31 +91,44 @@ export default function LobbyId() {
 
                                     if (i < lobby.users.length) {
                                         return (
-                                            <div key={i} className={`absolute group bg-zinc-400 text-zinc-800 flex items-center justify-center border-2 border-zinc-800 cursor-pointer rounded-full ${positionEnum[i]} w-24 h-24 duration-200`}>
+                                            <div key={i} className={`absolute group ${lobby.users[i]._id !== user!._id ? "bg-zinc-500 text-zinc-800" : "bg-zinc-300 text-zinc-600"}  flex items-center justify-center border-2 border-zinc-800 cursor-pointer rounded-full ${positionEnum[i]} w-24 h-24 duration-200`}>
                                                 <Icon name="user" size={64}></Icon>
                                                 <div className="absolute bottom-[-2rem] text-zinc-300">{lobby.users[i].username}</div>
 
-                                                <div onClick={() => { removePlayer(i) }} className="absolute group-hover:opacity-100 opacity-0 duration-200 group-hover:left-[-1.5rem] left-0 p-2 rounded-full bg-red-500 hover:bg-red-400">
-                                                    <Icon name="close"></Icon>
-                                                </div>
+                                                {
 
-                                                <div onClick={() => { removePlayer(i) }} className="absolute group-hover:opacity-100 opacity-0 duration-200 group-hover:top-[-1.5rem] top-0 p-2 rounded-full bg-gray-500 hover:bg-gray-400">
-                                                    <Icon name="unmute"></Icon>
-                                                </div>
+                                                    lobby.users[i]._id !== user!._id &&
 
-                                                <div className="absolute group-hover:opacity-100 opacity-0 duration-200 group-hover:right-[-1.5rem] right-0 p-2 rounded-full bg-blue-500 hover:bg-blue-400">
-                                                    <Icon name="add-friend"></Icon>
-                                                </div>
-                                                <div className="absolute group-hover:opacity-100 opacity-0 duration-200 group-hover:right-[-3.8rem] right-0 p-2 rounded-full bg-sky-500 hover:bg-sky-400">
-                                                    <Icon name="info"></Icon>
-                                                </div>
+                                                    <React.Fragment>
+                                                        {
+                                                            lobby.createdBy === user!._id &&
+                                                            <div onClick={() => { removePlayer(i) }} className="absolute group-hover:opacity-100 opacity-0 duration-200 group-hover:left-[-1.5rem] left-0 p-2 rounded-full bg-red-500 hover:bg-red-400">
+                                                                <Icon name="close"></Icon>
+                                                            </div>
+                                                        }
+
+                                                        {
+                                                            lobby.createdBy === user!._id &&
+                                                            <div className="absolute group-hover:opacity-100 opacity-0 duration-200 group-hover:top-[-1.5rem] top-0 p-2 rounded-full bg-gray-500 hover:bg-gray-400">
+                                                                <Icon name="unmute"></Icon>
+                                                            </div>
+                                                        }
+
+                                                        <div className="absolute group-hover:opacity-100 opacity-0 duration-200 group-hover:right-[-1.5rem] right-0 p-2 rounded-full bg-blue-500 hover:bg-blue-400">
+                                                            <Icon name="add-friend"></Icon>
+                                                        </div>
+                                                        <div className="absolute group-hover:opacity-100 opacity-0 duration-200 group-hover:right-[-3.8rem] right-0 p-2 rounded-full bg-sky-500 hover:bg-sky-400">
+                                                            <Icon name="info"></Icon>
+                                                        </div>
+                                                    </React.Fragment>
+                                                }
                                             </div>
                                         )
                                     }
 
                                     return (
-                                        <div key={i} className={`absolute bg-zinc-500 text-zinc-800 flex items-center justify-center border-2 border-zinc-800 cursor-pointer rounded-full ${positionEnum[i]} w-24 h-24 animate-bounce  duration-200`}>
-                                            <Icon name="arrow-down-big" size={32}></Icon>
+                                        <div key={i} className={`absolute bg-zinc-500 text-zinc-800 flex items-center justify-center border-2 border-zinc-800 cursor-pointer rounded-full ${positionEnum[i]} w-24 h-24 animate-spin duration-200`}>
+                                            <Icon name="loader" size={32}></Icon>
                                         </div>
                                     )
                                 })

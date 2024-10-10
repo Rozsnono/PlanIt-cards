@@ -1,25 +1,13 @@
 "use client";
-import { getUser } from "@/functions/user.function";
 import { Iplayer } from "@/interfaces/interface";
-import { createContext, useState } from "react";
+import { createContext } from "react";
 
 export interface User {
     user: Iplayer | null;
-    setUser: (user: Iplayer) => void;
+    setUser: (user: Iplayer | null) => void;
 }
 
 export const UserContext = createContext<User>({
-    user: { _id: '1', username: '', email: '', rank: 0, firstName: '', lastName: '', numberOfGames: {} },
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    setUser: (user: Iplayer) => { },
+    user: null,
+    setUser: (user: Iplayer | null) => { },
 });
-
-export function UserProvider({ children }: { children: React.ReactNode }) {
-    const [user, setUser] = useState<Iplayer|null>(getUser());
-
-    return (
-        <UserContext.Provider value={{ user, setUser }}>
-            {children}
-        </UserContext.Provider>
-    );
-}

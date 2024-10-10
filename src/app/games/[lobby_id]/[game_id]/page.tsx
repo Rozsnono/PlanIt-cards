@@ -16,7 +16,7 @@ export default function Game() {
     const { user } = useContext(UserContext);
     const [game, setGame] = useState<Igame>(
         {
-            _id: "1", deck: [], currentPlayer: "1", playerCards: {
+            _id: "1", shuffledCards: [], currentPlayer: "1", playerCards: {
                 "1": [
                     { name: "2c", rank: 2, suit: "c" },
                     { name: "3c", rank: 3, suit: "c" },

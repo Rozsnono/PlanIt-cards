@@ -27,11 +27,11 @@ export default class LobbyController implements Controller {
             this.getLobbyById(req, res).catch(next);
         });
 
-        this.router.put("/join", hasAuth([Auth["JOIN.LOBBY"]]), (req, res, next) => {
+        this.router.put("/join/:id", hasAuth([Auth["JOIN.LOBBY"]]), (req, res, next) => {
             this.joinLobby(req, res).catch(next);
         });
 
-        this.router.put("/leave", hasAuth([Auth["JOIN.LOBBY"]]), (req, res, next) => {
+        this.router.put("/leave/:id", hasAuth([Auth["JOIN.LOBBY"]]), (req, res, next) => {
             this.leaveLobby(req, res).catch(next);
         });
 
@@ -51,34 +51,55 @@ export default class LobbyController implements Controller {
             this.chatLobby(req, res).catch(next);
         });
 
+        this.router.put("/mute/:id", hasAuth([Auth["CREATE.LOBBY"]]), (req, res, next) => {
+            this.muteUser(req, res).catch(next);
+        });
+
     }
 
     private createLobby = async (req: Request, res: Response) => {
         const body = req.body;
         const userid = await getIDfromToken(req);
         const { error } = this.validate(body);
+        await this.leftLobby(req);
         if (error) {
             res.status(400).send({ message: error.details[0].message });
             return;
         }
         body["_id"] = new mongoose.Types.ObjectId();
         body["users"] = [new mongoose.Types.ObjectId(userid)];
+        body["createdBy"] = new mongoose.Types.ObjectId(userid);
         const newLobby = new this.lobby(body);
         await newLobby.save();
         res.send({ message: "OK" });
     };
 
     private getLobby = async (req: Request, res: Response) => {
-        const lobbies = await this.lobby.find();
+        const lobbies = await this.lobby.find().populate("users", "_id username rank");
         res.send(lobbies);
     };
 
     private chatLobby = async (req: Request, res: Response) => {
         const body = req.body;
         const id = req.params.id;
+        const userid = await getIDfromToken(req);
         const lobby = await this.lobby.findOne({ _id: id });
-        if (lobby) {
+        if (lobby && lobby.users.find((p) => p.toString() === userid)) {
             lobby.chat.push(body);
+            await this.lobby.replaceOne({ _id: id }, lobby, { runValidators: true });
+            res.send({ message: "OK" });
+        } else {
+            res.status(404).send({ message: "Try again!" });
+        }
+    };
+
+    private muteUser = async (req: Request, res: Response) => {
+        const body = req.body;
+        const id = req.params.id;
+        const userid = await getIDfromToken(req);
+        const lobby = await this.lobby.findOne({ _id: id });
+        if (lobby && lobby.createdBy!.toString() === userid) {
+            lobby.mutedPlayers.push(body.player_id);
             await this.lobby.replaceOne({ _id: id }, lobby, { runValidators: true });
             res.send({ message: "OK" });
         } else {
@@ -97,14 +118,15 @@ export default class LobbyController implements Controller {
     };
 
     private joinLobby = async (req: Request, res: Response) => {
-        const body = req.body;
-        const id = body._id;
+        const id = req.params.id;
         const lobby = await this.lobby.findOne({ _id: id });
         if (lobby) {
+            await this.leftLobby(req);
             const userid = await getIDfromToken(req);
             lobby.users.push(new mongoose.Types.ObjectId(userid));
             await this.lobby.replaceOne({ _id: id }, lobby, { runValidators: true });
-            res.send({ message: "OK" });
+            const newLobby = await this.lobby.findOne({ _id: id }).populate("users", "_id username rank");
+            res.send({ lobby: newLobby });
         } else {
             res.status(404).send({ message: "Try again!" });
         }
@@ -162,4 +184,29 @@ export default class LobbyController implements Controller {
             res.status(404).send({ message: "Try again!" });
         }
     };
+
+
+
+    private leftLobby = async (req: Request) => {
+        const userid = await getIDfromToken(req);
+        const lobby = await this.lobby.find({ users: userid });
+        if (lobby) {
+
+            lobby.forEach(async (l) => {
+                const tmpLobby = l;
+                tmpLobby.users = tmpLobby.users.filter((p) => p.toString() !== userid.toString());
+                if(tmpLobby.users.length === 0) {
+                    await this.lobby.deleteOne({ _id: l._id });
+                    return;
+                }
+                tmpLobby.createdBy = tmpLobby.createdBy?.toString() === userid ? tmpLobby.users[0] : tmpLobby.createdBy;
+                await this.lobby.updateOne({ _id: l._id }, tmpLobby, { runValidators: true });
+            });
+
+            return true;
+        } else {
+            console.log("No lobby found");
+            return false;
+        }
+    };  
 }

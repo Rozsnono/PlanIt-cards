@@ -2,15 +2,24 @@ import Icon from '@/assets/icons'
 import { MenuContext } from '@/contexts/menu.context';
 import Image from 'next/image'
 import Link from 'next/link';
-import { useContext } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { FilterModal } from './filter.modal';
 import { UserContext } from '@/contexts/user.context';
 import React from 'react';
+import { Logout } from '@/functions/user.function';
+import { Iplayer } from '@/interfaces/interface';
+import { useRouter } from 'next/navigation';
 
 export default function Navbar() {
 
     const { user } = useContext(UserContext);
     const { isOpen, setOpen } = useContext(MenuContext);
+
+    const [ getuser, setuser ] = useState<Iplayer | null>(user);
+    useEffect(() => {
+        setuser(user);
+        
+    }, [user]);
 
     return (
         <main className="fixed top-0 left-0 w-screen bg-zinc-900 border-b border-zinc-400 z-50 select-none z-[100]" >
@@ -22,7 +31,7 @@ export default function Navbar() {
 
                     <Image src={"/assets/logo.png"} alt='Logo' width={120} height={100}></Image>
                 </div>
-                <UserHeader isLogged={!!user}></UserHeader>
+                <UserHeader isLogged={!!getuser}></UserHeader>
             </div>
         </main>
     )
@@ -30,6 +39,18 @@ export default function Navbar() {
 
 
 function UserHeader({ isLogged }: { isLogged: boolean }) {
+    const { user, setUser } = useContext(UserContext);
+    const router = useRouter();
+
+    function LogOut() {
+        
+        router.replace('/');
+        router.refresh();
+        console.log('logout');
+        setUser(null);
+        Logout();
+        window.location.reload();
+    }
 
     if (!isLogged) {
         return (
@@ -43,9 +64,11 @@ function UserHeader({ isLogged }: { isLogged: boolean }) {
     return (
         <React.Fragment>
             <button className='more-modal-button bg-transparent border border-transparent flex items-center gap-2 mr-4 group cursor-pointer '>
-                <div className='min-h-8 min-w-8 rounded-full flex items-center justify-center bg-red-600 opacity-70 group-hover:opacity-100 text-zinc-100 duration-100 '>RN</div>
+                <div className='min-h-8 min-w-8 rounded-full flex items-center justify-center bg-red-600 opacity-70 group-hover:opacity-100 text-zinc-100 duration-100 '>
+                    {user!.firstName[0]}{user!.lastName[0]}
+                </div>
                 <div className="flex items-center gap-2 text-zinc-300 group-hover:text-white duration-100 cursor-pointer">
-                    <div className="text-lg ">Rozs Norbert</div>
+                    <div className="text-lg ">{user!.firstName} {user!.lastName}</div>
                     <Icon name='arrow-down'></Icon>
                 </div>
 
@@ -56,7 +79,7 @@ function UserHeader({ isLogged }: { isLogged: boolean }) {
                     <Link href={"/profile"} className='w-full'><button className="bg-zinc-700 hover:bg-zinc-600 text-zinc-400 w-full rounded-lg p-2 more-modal-input text-left flex gap-1 items-center"> <Icon name="user" size={16}></Icon> Your profile</button></Link>
                     <Link href={"/settings"} className='w-full'><button className="bg-zinc-700 hover:bg-zinc-600 text-zinc-400 w-full rounded-lg p-2 more-modal-input text-left flex gap-1 items-center"> <Icon name="settings" size={16}></Icon> Settings</button></Link>
                 </div>
-                <button className="text-zinc-300 bg-zinc-900 hover:bg-zinc-950 rounded-lg flex items-center gap-1 p-2" ><Icon name="sign-out" size={16}></Icon> Sign out</button>
+                <button onClick={LogOut} className="text-zinc-300 bg-zinc-900 hover:bg-zinc-950 rounded-lg flex items-center gap-1 p-2" ><Icon name="sign-out" size={16}></Icon> Sign out</button>
             </FilterModal>
         </React.Fragment>
     )

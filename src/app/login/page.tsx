@@ -1,16 +1,33 @@
 "use client";
 import Icon from "@/assets/icons"
-import { Login } from "@/functions/user.function";
+import { UserContext } from "@/contexts/user.context";
+import { getUser, Login } from "@/functions/user.function";
 import Image from "next/image"
 import Link from "next/link"
+import { useRouter } from "next/navigation";
+import { useContext, useState } from "react";
 
 export default function LogIn() {
+
+    const router = useRouter();
+    const { setUser } = useContext(UserContext);
+
+    const [error, setError] = useState<string | null>(null);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     function handleSubmit(e: any) {
         e.preventDefault();
 
-        Login(e.target.username.value, e.target.password.value)
+        Login(e.target.username.value, e.target.password.value).then((data) => {
+            if(data.message){
+                
+                setError(data.message);
+                return;
+            }
+            setUser(getUser());
+            router.replace('/');
+            router.refresh();
+        })
 
     }
 
@@ -35,6 +52,8 @@ export default function LogIn() {
                         <input type="password" id="password" placeholder="Password" className="bg-zinc-600 text-zinc-200 rounded-lg p-2" />
 
                     </div>
+
+                    {error && <div className="text-red-500 text-center">{error}</div>}
 
                     <div className="flex items-center justify-center">
                         <button type="submit" className="bg-blue-600 text-zinc-200 rounded-lg p-2 w-1/2">Log in</button>

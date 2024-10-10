@@ -1,19 +1,3 @@
-const CardNames: any = {
-    c: 'clubs',
-    d: 'diamonds',
-    h: 'hearts',
-    s: 'spades',
-
-    a: 'ace',
-    k: 'king',
-    q: 'queen',
-    j: 'jack',
-    t: '10',
-
-    rj: 'red_joker',
-    bj: 'black_joker',
-}
-
 export default function getCardUrl(card: string) {
     // if(card === "rj" || card === "bj"){
     //     return `${CardNames[card]}.png`;

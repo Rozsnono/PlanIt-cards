@@ -9,19 +9,18 @@ import { getCookie } from "@/functions/user.function";
 
 export default function Games() {
 
-    const defaultPlayers = [{ name: "Norbi", rank: 1 }, { name: "Robi", rank: 2 }, { name: "Rezső", rank: 3 }, { name: "Ferenc", rank: 4 }, { name: "Jani", rank: 5 }, { name: "Józsi", rank: 6 }, { name: "Béla", rank: 7 }, { name: "Pista", rank: 8 }];
 
     const [open, setOpen] = useState(false);
 
 
     function getLobbyData() {
         const token = getCookie("token");
+        console.log(token);
         return fetch(`/api/get`, { headers: { Authorization: `Bearer ${token}` } }).then(res => res.json());
     }
 
 
     const data = useQuery("lobbies", getLobbyData, { refetchOnWindowFocus: false });
-    console.log(data);
 
     return (
         <main className="flex gap-2">
@@ -59,7 +58,7 @@ function SideBarContent({ onClose }: Readonly<{ onClose?: () => void }>) {
     const [ct, setCt] = useState("RUMMY"); // Number of users
     const [rr, setRr] = useState(false); // Robber Rummy
     const [pl, setPl] = useState(false); // Private lobby
-    const [lc, setLc] = useState(null); // Lobby code
+    const [lc, setLc] = useState<string | null>(null); // Lobby code
 
     const [fr, setFr] = useState(false); // Fill with robots
     const [nor, setNor] = useState(0); // Number of robots
@@ -138,7 +137,7 @@ function SideBarContent({ onClose }: Readonly<{ onClose?: () => void }>) {
                             <button onClick={() => { setCt('RUMMY') }} type="button" className={`w-full px-4 py-2 text-sm font-medium text-zinc-400 border border-zinc-600 rounded-s-lg hover:bg-zinc-700 hover:text-gray-200 focus:z-10 focus:ring-2 focus:ring-gray-500 focus:text-gray-100 ${ct === 'RUMMY' ? "text-gray-100 bg-zinc-600 ring-gray-500 ring-1" : "bg-zinc-800"}`}>
                                 RUMMY
                             </button>
-                            <button onClick={() => { setCt('UNO') }} type="button" className={`w-full px-4 py-2 text-sm font-medium text-zinc-400 border border-zinc-600 rounded-e-lg hover:bg-zinc-700 hover:text-gray-200 focus:z-10 focus:ring-2 focus:ring-gray-500 focus:text-gray-100 ${ct === 'UNO' ? "text-gray-100 bg-zinc-600 ring-gray-500 ring-1" : "bg-zinc-800"}`}>
+                            <button disabled onClick={() => { setCt('UNO') }} type="button" className={`w-full px-4 py-2 text-sm font-medium text-zinc-400 border border-zinc-600 rounded-e-lg hover:bg-zinc-700 hover:text-gray-200 focus:z-10 focus:ring-2 focus:ring-gray-500 focus:text-gray-100 ${ct === 'UNO' ? "text-gray-100 bg-zinc-600 ring-gray-500 ring-1" : "bg-zinc-800"}`}>
                                 UNO
                             </button>
                         </div>
@@ -184,7 +183,7 @@ function SideBarContent({ onClose }: Readonly<{ onClose?: () => void }>) {
 
                             <div className="w-full flex items-center">
 
-                                <input onChange={(e) => { setLc(e.target.value) }} value={lc} type="text" id="lobby_code" className="bg-zinc-700 border border-zinc-900 text-gray-200 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" placeholder="12345" />
+                                <input onChange={(e) => { setLc(e.target.value) }} value={lc as string} type="text" id="lobby_code" className="bg-zinc-700 border border-zinc-900 text-gray-200 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" placeholder="12345" />
 
                             </div>
                         </div>

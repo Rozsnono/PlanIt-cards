@@ -62,6 +62,11 @@ const lobbySchema = new Schema(
         createdAt: {
             type: Date,
             default: Date.now,
+        },
+        createdBy: {
+            type: Schema.Types.ObjectId,
+            ref: "user",
+            readonly: true,
         }
     },
     { versionKey: false },

@@ -2,9 +2,12 @@ import Icon from "@/assets/icons";
 import Link from "next/link";
 import Image from "next/image";
 import { Ilobby } from "@/interfaces/interface";
+import { useContext } from "react";
+import { UserContext } from "@/contexts/user.context";
 
 export default function LobbyCard({ lobbyDatas, lobbyNumber }: { lobbyDatas: Ilobby, lobbyNumber: number }) {
 
+    const {user} = useContext(UserContext);
 
     function getGameTypeImage() {
         switch (lobbyDatas.settings.cardType) {
@@ -43,8 +46,8 @@ export default function LobbyCard({ lobbyDatas, lobbyNumber }: { lobbyDatas: Ilo
                 <div className="grid grid-cols-4 gap-4 w-full justify-center h-full">
                     {
                         lobbyDatas.users?.map(player => (
-                            <div key={player.username} className="flex flex-col gap-1 items-center h-14 w-14 mx-auto">
-                                <div className="text-xl">{player.username}</div>
+                            <div key={player.username} className={`flex flex-col gap-1 items-center h-14 w-full mx-auto border ${ player._id === user?._id ? "border-green-500 " : "border-zinc-500 " } rounded-md`}>
+                                <div className="">{player.username}</div>
                                 <div className="text-md">{player.rank}</div>
                             </div>
                         ))
@@ -53,7 +56,7 @@ export default function LobbyCard({ lobbyDatas, lobbyNumber }: { lobbyDatas: Ilo
                     {
                         !lobbyDatas.users?.length || lobbyDatas.users?.length < lobbyDatas.settings.numberOfPlayers ?
                             new Array(lobbyDatas.settings.numberOfPlayers - (lobbyDatas.users?.length || 0)).fill(0).map((_, i) => (
-                                <div key={i} className="flex flex-col gap-1 h-14 w-14 justify-center items-center bg-zinc-700 p-2 rounded-lg animate-pulse mx-auto">
+                                <div key={i} className="flex flex-col gap-1 h-14 w-full justify-center items-center bg-zinc-700 p-2 rounded-lg animate-pulse mx-auto">
                                 </div>
                             )) : null
                     }

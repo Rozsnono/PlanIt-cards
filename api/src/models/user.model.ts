@@ -65,6 +65,10 @@ export const userSchema = new Schema(
             default: Date.now,
             readonly: true
         },
+        friends: {
+            type: Array<Schema.Types.ObjectId>(),
+            default: [],
+        },
         isDeleted: {
             type: Boolean,
             default: false,

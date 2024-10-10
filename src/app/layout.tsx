@@ -4,8 +4,9 @@ import { Inter } from "next/font/google";
 import "./globals.scss";
 import "./tailwind.css";
 import "./stars.scss";
-import { MenuProvider } from "@/contexts/menu.context";
-import { UserProvider } from "@/contexts/user.context";
+
+import { Providers } from "@/contexts/providers";
+import Transition from "@/transitions/Transition";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -22,11 +23,12 @@ export default function RootLayout({
 
   return (
     <html lang="en">
-      <MenuProvider>
-        <UserProvider>
-          {children}
-        </UserProvider>
-      </MenuProvider>
+      <Providers>
+        <Transition>
+          <div className="fixed top-0 left-0 w-screen h-screen bg-zinc-800 z-[1000]"></div>
+        </Transition>
+        {children}
+      </Providers>
     </html>
   );
 }

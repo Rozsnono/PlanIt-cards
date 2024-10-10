@@ -15,6 +15,7 @@ export interface Iplayer {
     numberOfGames: {
         [date: string]: {wins: number, losses: number};
     };
+    friends: string[];
 }
 
 export interface Ilobby {
@@ -33,6 +34,7 @@ export interface Ilobby {
     }
     chat: Imessage[];
     game_id?: string;
+    createdBy: string;
 }
 
 export interface Imessage {
