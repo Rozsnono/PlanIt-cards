@@ -16,6 +16,14 @@ export interface Iplayer {
         [date: string]: {wins: number, losses: number};
     };
     friends: string[];
+    customId: string;
+    gameHistory: {
+        [date: string]: {
+            playerCards: Icard[],
+            playedCards: Icard[][],
+            droppedCards: Icard[]
+        }
+    };
 }
 
 export interface Ilobby {

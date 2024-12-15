@@ -37,7 +37,8 @@ export function Logout() {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function Register(register: any) {
-    fetch('/auth/register', {
+
+    return fetch('/auth/register', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -60,4 +61,10 @@ export function getUser() {
     if (typeof window === "undefined") return null;
     if (token === "undefined") return null;
     return jwtDecode(token) as Iplayer;
+}
+
+export function getUserInitials(){
+    const user = getUser();
+    if(!user) return null;
+    return user.firstName[0] + user.lastName[0];
 }

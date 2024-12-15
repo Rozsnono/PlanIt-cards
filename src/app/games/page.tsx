@@ -6,11 +6,13 @@ import { useState } from "react";
 import { useQuery } from "react-query";
 import { Ilobby } from "@/interfaces/interface";
 import { getCookie } from "@/functions/user.function";
+import Loading from "../loading";
 
 export default function Games() {
 
 
     const [open, setOpen] = useState(false);
+    const [openPrivate, setOpenPrivate] = useState(false);
 
 
     function getLobbyData() {
@@ -29,7 +31,7 @@ export default function Games() {
                 <hr />
                 <main className="w-full grid xl:grid-cols-4 lg:grid-cols-2 md:grid-cols-2 grid-cols-1 gap-2 p-3">
                     {
-                        data.isLoading && <div>Loading...</div>
+                        data.isLoading && <Loading></Loading>
                     }
                     {
                         !data.isLoading && !data.isError && !data.data.error && data.data.map((lobby: Ilobby, index: number) => {
@@ -45,8 +47,18 @@ export default function Games() {
                 </button>
             </div>
 
+            <div className="fixed right-8 bottom-28">
+                <button onClick={() => { setOpenPrivate(true) }} className="bg-green-600 text-white p-2 px-2 rounded-full justify-center hover:bg-green-500 flex items-center gap-1 w-16 h-16 duration-200">
+                    <Icon name="join"></Icon>
+                </button>
+            </div>
+
             <RightSideBar open={open} onClose={() => { setOpen(!open) }}>
                 <SideBarContent onClose={() => { setOpen(!open) }}></SideBarContent>
+            </RightSideBar>
+
+            <RightSideBar open={openPrivate} onClose={() => { setOpenPrivate(!openPrivate) }}>
+                <PrivateSideBarContent onClose={() => { setOpenPrivate(!openPrivate) }}></PrivateSideBarContent>
             </RightSideBar>
         </main>
     )
@@ -62,6 +74,7 @@ function SideBarContent({ onClose }: Readonly<{ onClose?: () => void }>) {
 
     const [fr, setFr] = useState(false); // Fill with robots
     const [nor, setNor] = useState(0); // Number of robots
+    const [rd, setRd] = useState(0); // Number of robots
 
     const [ur, setUr] = useState(false); // Unranked
 
@@ -75,6 +88,7 @@ function SideBarContent({ onClose }: Readonly<{ onClose?: () => void }>) {
             lobbyCode: lc,
             fillWithRobots: fr,
             numberOfRobots: nor,
+            robotsDifficulty: 0,
             unranked: ur
         };
 
@@ -232,6 +246,23 @@ function SideBarContent({ onClose }: Readonly<{ onClose?: () => void }>) {
                         </div>
                     }
 
+{
+                        fr &&
+                        <div className="flex gap-2 text-zinc-200 items-center">
+                            <div className="text-md w-1/3">Difficulty</div>
+
+                            <div className="relative w-full">
+                                <label htmlFor="robotsDifficulty" className="sr-only">Labels range</label>
+                                <input id="robotsDifficulty" type="range" onChange={(e) => setRd(parseInt(e.target.value))} value={rd} min={0} max={2} className="w-full h-2 bg-zinc-700 rounded-lg appearance-none cursor-pointer" />
+                                <div className="flex justify-between">
+                                    <span onClick={() => setRd(0)} className="text-sm text-gray-500 dark:text-gray-400 cursor-pointer">Easy</span>
+                                    <span onClick={() => setRd(1)} className="text-sm text-gray-500 dark:text-gray-400 cursor-pointer">Medium</span>
+                                    <span onClick={() => setRd(2)} className="text-sm text-gray-500 dark:text-gray-400 cursor-pointer">Hard</span>
+                                </div>
+                            </div>
+                        </div>
+                    }
+
 
                 </div>
 
@@ -247,6 +278,62 @@ function SideBarContent({ onClose }: Readonly<{ onClose?: () => void }>) {
                 <button onClick={createLobby} className="bg-green-700 text-white p-2 px-5 rounded-md hover:bg-green-600 flex items-center gap-1">
                     <Icon name="join"></Icon>
                     Create
+                </button>
+            </div>
+
+        </main>
+    )
+}
+
+function PrivateSideBarContent({ onClose }: Readonly<{ onClose?: () => void }>) {
+    const [lc, setLc] = useState<string | null>(null); // Lobby code
+
+    return (
+        <main className="flex flex-col w-full h-full text-zinc-200 select-none">
+            <div className="flex items-center justify-between relative">
+                <div className="pt-2">
+                    <div className="text-2xl">Join a private lobby</div>
+                </div>
+
+                <div className="flex items-center gap-2">
+
+                    <RightSideBarHeader onClose={() => { onClose!() }}></RightSideBarHeader>
+                </div>
+
+
+            </div>
+
+            <hr className="border-zinc-600 my-5" />
+
+            <div className="relative text-zinc-200 px-4 py-4 flex flex-col gap-14 h-full">
+
+
+                <div className="flex flex-col gap-6 ">
+
+                    <div className="flex gap-2 text-zinc-200 items-center">
+                        <div className="text-md w-1/3">Lobby code</div>
+
+                        <div className="w-full flex items-center">
+
+                            <input onChange={(e) => { setLc(e.target.value) }} value={lc as string} type="text" id="lobby_code" className="bg-zinc-700 border border-zinc-900 text-gray-200 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" placeholder="12345" />
+
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <hr className="border-zinc-600" />
+
+
+            <hr className="border-zinc-600 mb-6" />
+
+            <div className="flex gap-2 px-4 mb-3 justify-center" >
+                <button className="bg-green-700 text-white p-2 px-5 rounded-md hover:bg-green-600 flex items-center gap-1">
+                    <Icon name="join"></Icon>
+                    Join
                 </button>
             </div>
 

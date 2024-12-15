@@ -6,12 +6,12 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "start:api": "node ./api/dist/server.js",
     "lint": "next lint",
     "build:start": "next build && next start",
-    "api-start": "node ./api/dist/server.js",
-    "api-build": "tsc -p ./api",
+    "build:api": "tsc -p ./api",
     "build:watch": "tsc --watch",
-    "api-dev": "nodemon ./api/src/server.ts",
+    "dev:api": "nodemon ./api/src/server.ts",
     "api-build:start": "tsc -p ./api && node ./api/dist/server.js"
   },
   "dependencies": {

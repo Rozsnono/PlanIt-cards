@@ -3,14 +3,18 @@ import Icon from "@/assets/icons"
 import { Register } from "@/functions/user.function";
 import Image from "next/image"
 import Link from "next/link"
+import { useState } from "react";
 
 
 export default function RegisterPage() {
 
+    const [error, setError] = useState<string | null>(null);
+    const [loading, setLoading] = useState<boolean>(false);
+    
     async function formAction(e: any) {
 
         e.preventDefault();
-
+        setLoading(true);
         const username = e.target.username.value;
         const firstName = e.target.firstName.value;
         const lastName = e.target.lastName.value;
@@ -20,6 +24,7 @@ export default function RegisterPage() {
 
         if (password !== confirmPassword) {
             alert('Passwords do not match');
+            setError("Passwords do not match");
             return;
         }
 
@@ -31,8 +36,14 @@ export default function RegisterPage() {
             password: password
         }
         
-        Register(body);
-
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        Register(body).then((data) => {
+            if (data.message) {
+                setError(data.message);
+                setLoading(false);
+                return;
+            }
+        })
     }
 
     return (
@@ -65,9 +76,14 @@ export default function RegisterPage() {
                     </div> */}
                 </div>
 
+                {error && <div className="text-red-500 text-center">{error}</div>}
+
                 <div className="flex items-center justify-center">
-                    <button type="submit" className="bg-green-600 text-zinc-200 rounded-lg p-2 w-1/2">Register</button>
-                </div>
+                        <button type="submit" disabled={loading} className="flex justify-center items-center gap-2 bg-green-700 hover:bg-green-800 text-zinc-200 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 w-1/2 disabled:bg-green-900 disabled:text-zinc-400">
+                            { loading && <span className="animate-spin"><Icon name="loader" size={18}></Icon></span> }
+                            Register
+                        </button>
+                    </div>
 
                 <div className="flex gap-2 items-center justify-center w-full opacity-50">
                     <button type="button" className="text-zinc-300 hover:bg-zinc-600 rounded-full p-1" ><Icon name="google" size={18}></Icon></button>

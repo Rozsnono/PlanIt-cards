@@ -15,7 +15,7 @@ export default class SocketIO {
             // Handle WebSocket message received from client
             ws.on('message', async (id: string) => {
                 const identifier = JSON.parse(id);
-                const inLobby = await this.lobby.findOne({ $and: [{ _id: new mongoose.Types.ObjectId(identifier._id) }, { users: new mongoose.Types.ObjectId(identifier.player_id) }] }).populate("users", 'firstName lastName email username').exec();
+                const inLobby = await this.lobby.findOne({ $and: [{ _id: new mongoose.Types.ObjectId(identifier._id) }, { users: new mongoose.Types.ObjectId(identifier.player_id) }] }).populate("users", 'firstName lastName email username customId').exec();
                 if (inLobby) {
                     const inGame = await this.game.findOne({ _id: inLobby.game_id });
                     if (inGame) {
@@ -60,7 +60,7 @@ export default class SocketIO {
         chatWatching.on('change', async (change) => {
 
             try {
-                const lobby = await this.lobby.findOne({ _id: change.fullDocument._id }).populate("users", 'firstName lastName email username').exec();
+                const lobby = await this.lobby.findOne({ _id: change.fullDocument._id }).populate("users", 'firstName lastName email username customId').exec();
 
                 this.wss.clients.forEach((client) => {
                     if (client.readyState === 1) {

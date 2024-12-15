@@ -13,15 +13,18 @@ export default function LogIn() {
     const { setUser } = useContext(UserContext);
 
     const [error, setError] = useState<string | null>(null);
+    const [loading, setLoading] = useState<boolean>(false);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     function handleSubmit(e: any) {
         e.preventDefault();
+        setLoading(true);
 
         Login(e.target.username.value, e.target.password.value).then((data) => {
-            if(data.message){
-                
+            if (data.message) {
+
                 setError(data.message);
+                setLoading(false);
                 return;
             }
             setUser(getUser());
@@ -56,7 +59,10 @@ export default function LogIn() {
                     {error && <div className="text-red-500 text-center">{error}</div>}
 
                     <div className="flex items-center justify-center">
-                        <button type="submit" className="bg-blue-600 text-zinc-200 rounded-lg p-2 w-1/2">Log in</button>
+                        <button type="submit" disabled={loading} className="flex justify-center items-center gap-2 bg-blue-700 hover:bg-blue-800 text-zinc-200 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 w-1/2 disabled:bg-blue-900 disabled:text-zinc-400">
+                            { loading && <span className="animate-spin"><Icon name="loader" size={18}></Icon></span> }
+                            Log in
+                        </button>
                     </div>
                 </form>
 

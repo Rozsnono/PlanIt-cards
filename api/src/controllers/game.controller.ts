@@ -309,4 +309,3 @@ export default class GameController implements Controller {
     }
 
 }
-

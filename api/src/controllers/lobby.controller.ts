@@ -75,7 +75,7 @@ export default class LobbyController implements Controller {
     };
 
     private getLobby = async (req: Request, res: Response) => {
-        const lobbies = await this.lobby.find().populate("users", "_id username rank");
+        const lobbies = await this.lobby.find().populate("users", "customId username rank");
         res.send(lobbies);
     };
 
@@ -125,7 +125,7 @@ export default class LobbyController implements Controller {
             const userid = await getIDfromToken(req);
             lobby.users.push(new mongoose.Types.ObjectId(userid));
             await this.lobby.replaceOne({ _id: id }, lobby, { runValidators: true });
-            const newLobby = await this.lobby.findOne({ _id: id }).populate("users", "_id username rank");
+            const newLobby = await this.lobby.findOne({ _id: id }).populate("users", "customId username rank");
             res.send({ lobby: newLobby });
         } else {
             res.status(404).send({ message: "Try again!" });

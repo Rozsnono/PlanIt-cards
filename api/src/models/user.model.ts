@@ -9,6 +9,11 @@ export const userSchema = new Schema(
             type: Schema.Types.ObjectId,
             readonly: true
         },
+        customId: {
+            type: String, 
+            readonly: true,
+            unique: true
+        },
         firstName: {
             type: String,
             required: true
@@ -66,6 +71,10 @@ export const userSchema = new Schema(
             readonly: true
         },
         friends: {
+            type: Array<Schema.Types.ObjectId>(),
+            default: [],
+        },
+        gameHistory:{
             type: Array<Schema.Types.ObjectId>(),
             default: [],
         },

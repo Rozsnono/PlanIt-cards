@@ -35,7 +35,7 @@ export default class AuthController implements Controller {
         if (user) {
             const result = await bcrypt.compare(body.password, user.password);
             if (result && !user.isDeleted) {
-                const token = jwt.sign({ _id: user._id, username: user.username, firstName: user.firstName, lastName: user.lastName, auth: user.auth, numberOfGames: user.numberOfGames, rank: user.rank, email: user.email }, ACCESS_TOKEN_SECRET);
+                const token = jwt.sign({ _id: user._id, username: user.username, firstName: user.firstName, lastName: user.lastName, auth: user.auth, numberOfGames: user.numberOfGames, rank: user.rank, email: user.email, customId: user.customId }, ACCESS_TOKEN_SECRET);
                 res.send({ token: token });
             } else {
                 res.status(401).send({ message: "Wrong username or password!" });
@@ -59,10 +59,12 @@ export default class AuthController implements Controller {
         }
         body["_id"] = new mongoose.Types.ObjectId();
         body["password"] = await bcrypt.hash(body["password"], 10);
+        const hex = Array.from((body.firstName + body.lastName)).map((char: any) => char.charCodeAt(0).toString(16)).join('');
+        body["customId"] = hex + new mongoose.Types.ObjectId().toString().slice(0,6);
 
         const newUser = new this.user(body);
         await newUser.save();
-        const token = jwt.sign({ _id: newUser._id, username: newUser.username, firstName: newUser.firstName, lastName: newUser.lastName, auth: newUser.auth, numberOfGames: newUser.numberOfGames, rank: newUser.rank, email: newUser.email }, ACCESS_TOKEN_SECRET);
+        const token = jwt.sign({ _id: newUser._id, username: newUser.username, firstName: newUser.firstName, lastName: newUser.lastName, auth: newUser.auth, numberOfGames: newUser.numberOfGames, rank: newUser.rank, email: newUser.email, customId: newUser.customId }, ACCESS_TOKEN_SECRET);
         res.send({ message: "OK", token: token });
     };
 
