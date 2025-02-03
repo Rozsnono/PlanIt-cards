@@ -1,4 +1,5 @@
 "use client";
+import Help from "@/app/help/page";
 import Icon, { StrokeIcon } from "@/assets/icons";
 import { MenuContext } from "@/contexts/menu.context";
 import { UserContext } from "@/contexts/user.context";
@@ -12,6 +13,9 @@ export default function Sidebar() {
     const { isOpen } = useContext(MenuContext);
 
     const { user } = useContext(UserContext);
+
+    const [isHelpOpen, setIsHelpOpen] = React.useState(false);
+
 
     return (
         <main className={`fixed top-0 h-screen w-48 bg-zinc-900 pt-16 z-40 duration-500 ${isOpen ? 'left-0' : 'left-[-300px]'} z-[99]`}>
@@ -63,12 +67,17 @@ export default function Sidebar() {
                 }
 
 
-                <Link href={"/help"}>
-                    <div className="text-zinc-300 text-md hover:text-white hover:font-bold duration-200 flex items-center gap-1 hover:gap-2 absolute bottom-4">
+                <div onClick={() => { setIsHelpOpen(!isHelpOpen) }}>
+                    <div className="text-zinc-300 cursor-pointer text-md hover:text-white hover:font-bold duration-200 flex items-center gap-1 hover:gap-2 absolute bottom-4">
                         <Icon name="info"></Icon>
                         Need help?
                     </div>
-                </Link>
+                </div>
+
+                {
+                    isHelpOpen &&
+                    <Help onClose={()=>{setIsHelpOpen(false)}}></Help>
+                }
 
             </div>
         </main>

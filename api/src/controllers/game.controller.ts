@@ -128,7 +128,7 @@ export default class GameController implements Controller {
 
         // get the next player
         const currentPlayerIndex = lobby.users.indexOf(game.currentPlayer);
-        const nextPlayerIndex = currentPlayerIndex === lobby.users.length - 1 ? 0 : currentPlayerIndex + 1;
+        const nextPlayerIndex = this.nextPlayer(currentPlayerIndex, lobby.users.length - 1);
 
         game.currentPlayer = lobby.users[nextPlayerIndex];
 
