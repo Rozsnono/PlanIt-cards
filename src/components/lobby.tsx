@@ -7,7 +7,7 @@ import { UserContext } from "@/contexts/user.context";
 
 export default function LobbyCard({ lobbyDatas, lobbyNumber }: { lobbyDatas: Ilobby, lobbyNumber: number }) {
 
-    const {user} = useContext(UserContext);
+    const { user } = useContext(UserContext);
 
     function getGameTypeImage() {
         switch (lobbyDatas.settings.cardType) {
@@ -30,6 +30,34 @@ export default function LobbyCard({ lobbyDatas, lobbyNumber }: { lobbyDatas: Ilo
         }
     }
 
+    function Button({ lobbyDatas }: { lobbyDatas: any }) {
+        if (lobbyDatas.users.includes(user?._id)) {
+            return (
+
+                <Link href={"games/" + lobbyDatas._id} className="bg-green-700 text-white p-2 px-2 rounded-md hover:bg-green-600 flex items-center gap-1">
+                    <Icon name="join"></Icon>
+                    Join
+                </Link>
+            )
+        }
+        else if (lobbyDatas.game_id || (lobbyDatas.users?.length && lobbyDatas.users?.length >= lobbyDatas.settings.numberOfPlayers)) {
+            return (
+                <Link href={"games/" + lobbyDatas._id} className="bg-zinc-500 text-white p-2 px-2 rounded-md hover:bg-zinc-400 flex items-center gap-1">
+                    <Icon name="watch"></Icon>
+                    Watch
+                </Link>
+            )
+        } else {
+            return (
+
+                <Link href={"games/" + lobbyDatas._id} className="bg-green-700 text-white p-2 px-2 rounded-md hover:bg-green-600 flex items-center gap-1">
+                    <Icon name="join"></Icon>
+                    Join
+                </Link>
+            )
+        }
+    }
+
     return (
         <main className="flex gap-2">
             <main className={`w-full rounded-md p-3 text-zinc-200 gap-3 flex flex-col ${getCardStyleByType()}`}>
@@ -46,7 +74,7 @@ export default function LobbyCard({ lobbyDatas, lobbyNumber }: { lobbyDatas: Ilo
                 <div className="grid grid-cols-4 gap-4 w-full justify-center h-full">
                     {
                         lobbyDatas.users?.map(player => (
-                            <div key={player.username} className={`flex flex-col gap-1 items-center h-14 w-full mx-auto border ${ player._id === user?._id ? "border-green-500 " : "border-zinc-500 " } rounded-md`}>
+                            <div key={player.username} className={`flex flex-col gap-1 items-center h-14 w-full mx-auto border ${player._id === user?._id ? "border-green-500 " : "border-zinc-500 "} rounded-md`}>
                                 <div className="">{player.username}</div>
                                 <div className="text-md">{player.rank}</div>
                             </div>
@@ -64,18 +92,7 @@ export default function LobbyCard({ lobbyDatas, lobbyNumber }: { lobbyDatas: Ilo
                 </div>
 
                 <div className="flex gap-1 justify-between items-end select-none">
-                    {
-                        lobbyDatas.game_id || (lobbyDatas.users?.length && lobbyDatas.users?.length >= lobbyDatas.settings.numberOfPlayers) ?
-                            <Link href={"games/"+lobbyDatas._id} className="bg-zinc-500 text-white p-2 px-2 rounded-md hover:bg-zinc-400 flex items-center gap-1">
-                                <Icon name="watch"></Icon>
-                                Watch
-                            </Link>
-                            :
-                            <Link href={"games/"+lobbyDatas._id} className="bg-green-700 text-white p-2 px-2 rounded-md hover:bg-green-600 flex items-center gap-1">
-                                <Icon name="join"></Icon>
-                                Join
-                            </Link>
-                    }
+                    <Button lobbyDatas={lobbyDatas}></Button>
 
 
                     <Image src={getGameTypeImage()} width={100} height={100} alt={lobbyDatas.settings.cardType}></Image>

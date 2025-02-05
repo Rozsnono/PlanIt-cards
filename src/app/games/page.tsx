@@ -29,7 +29,7 @@ export default function Games() {
             <main className="w-full bg-[#3f3f46c0] rounded-md p-3 min-h-screen text-zinc-200">
                 <div className="text-xl p-2">Tables</div>
                 <hr />
-                <main className="w-full grid xl:grid-cols-4 lg:grid-cols-2 md:grid-cols-2 grid-cols-1 gap-2 p-3">
+                <main className="w-full grid 2xl:grid-cols-4 xl:grid-cols-3 lg:grid-cols-2 md:grid-cols-2 grid-cols-1 gap-2 p-3">
                     {
                         data.isLoading && <Loading></Loading>
                     }

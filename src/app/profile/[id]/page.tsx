@@ -5,6 +5,7 @@ import { getCookie, getUserInitials } from "@/functions/user.function";
 import { useParams } from "next/navigation";
 import { useQuery } from "react-query";
 import Image from "next/image";
+import { getRankName } from "@/interfaces/rank.enum";
 
 export default function ProfilePage() {
 
@@ -20,7 +21,7 @@ export default function ProfilePage() {
     return (
         <main className="flex gap-2">
             <main className="w-full flex flex-col gap-3 justify-start items-center h-full">
-                <Chart></Chart>
+                <Chart data={{ wins: 1111, loses: 230 }}></Chart>
                 <div className="w-full gap-2 flex flex-col">
                     <GameReplays pos={1} type="RUMMY" date="2024.12.25-17:00"></GameReplays>
                     <GameReplays pos={3} type="RUMMY" date="2024.12.23-17:00"></GameReplays>
@@ -35,6 +36,35 @@ export default function ProfilePage() {
                         <div className="text-4xl">{player.data.firstName} {player.data.lastName}</div>
                         <button className="text-zinc-300 bg-zinc-900 text-sm w-max hover:bg-zinc-950 rounded-lg flex items-center gap-1 p-2" ><Icon name="pen" size={16}></Icon> Edit profile</button>
 
+                    </div>
+                </div>
+
+                <div className="flex gap-3 p-3 flex-col">
+                    <h1>Rank</h1>
+                    <div className="flex gap-2 flex-wrap font-bold">
+                        {player.data &&
+                            <div style={{ color: getRankName(player.data.rank).color }} className="flex items-center gap-1 text-lg">
+                                <div dangerouslySetInnerHTML={{ __html: getRankName(player.data.rank).icon }}></div>
+                                {getRankName(player.data.rank).title}
+                            </div>}
+                    </div>
+                </div>
+
+                <div className="flex gap-3 p-3 flex-col">
+                    <h1>Achievements</h1>
+                    <div className="flex gap-2 flex-wrap">
+                        <Achievements imageSrc="/assets/cards/BJ.png" name="Without any Joker"></Achievements>
+                        <Achievements imageSrc="/assets/cards/AC.png" name="From hand"></Achievements>
+                    </div>
+                </div>
+
+
+                <div className="flex gap-3 p-3 pt-16 flex-col">
+                    <h1>Friends</h1>
+                    <div className="flex gap-2 flex-wrap">
+                        <Friends name="user" color="#3030cc"></Friends>
+                        <Friends name="spakhe" color="#ac4507"></Friends>
+                        <Friends name="kajdocsi" color="#a57040"></Friends>
                     </div>
                 </div>
             </main>
@@ -73,5 +103,22 @@ function GameReplays({ pos, type, date }: { pos: number, type: string, date: str
                 </div>
             </div>
         </div>
+    )
+}
+
+function Achievements({ imageSrc, name }: { imageSrc: string, name: string }) {
+    return (
+        <main className="flex relative group">
+            <Image className="z-[100]" src={imageSrc} width={64} height={64} alt={name}></Image>
+            <div className="top-0 group-hover:top-[100%] absolute opacity-0 group-hover:opacity-100 duration-200 font-bold">{name}</div>
+        </main>
+    )
+}
+
+function Friends({ name, color }: { name: string, color: string }) {
+    return (
+        <main style={{ backgroundColor: color }} className={"flex justify-center items-center w-16 h-16 rounded-full text-xl"}>
+            {name.toUpperCase()[0]}
+        </main>
     )
 }

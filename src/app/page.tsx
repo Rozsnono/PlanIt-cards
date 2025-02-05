@@ -1,8 +1,16 @@
 "use client";
 import Image from "next/image";
 import PlayCard from "@/components/home/play.cards";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
+
+    const route = useRouter();
+
+    if(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)){
+        route.replace("/mobile");
+    }
+
     return (
         <main className="flex gap-2">
             <main className="w-full bg-[#3f3f46c0] rounded-md p-3 min-h-screen text-zinc-200">
