@@ -38,6 +38,7 @@
     "socket.io": "^4.7.2",
     "socket.io-client": "^4.7.2",
     "swagger-ui-express": "^4.6.2",
+    "ts-node": "^10.9.2",
     "tslib": "^2.5.0"
   },
   "devDependencies": {
