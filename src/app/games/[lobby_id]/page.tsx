@@ -133,9 +133,9 @@ export default function LobbyId() {
                                                         <div className="absolute group-hover:opacity-100 opacity-0 duration-200 group-hover:right-[-1.5rem] right-0 p-2 rounded-full bg-blue-500 hover:bg-blue-400">
                                                             <Icon name="add-friend"></Icon>
                                                         </div>
-                                                        <div className="absolute group-hover:opacity-100 opacity-0 duration-200 group-hover:right-[-3.8rem] right-0 p-2 rounded-full bg-sky-500 hover:bg-sky-400">
+                                                        <Link href={"/profile/" + lobby.users[i]._id} className="absolute group-hover:opacity-100 opacity-0 duration-200 group-hover:right-[-3.8rem] right-0 p-2 rounded-full bg-sky-500 hover:bg-sky-400">
                                                             <Icon name="info"></Icon>
-                                                        </div>
+                                                        </Link>
                                                     </React.Fragment>
                                                 }
                                             </div>

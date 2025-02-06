@@ -22,6 +22,7 @@ export default function ProfilePage() {
 
     const player = useQuery("player", getPlayer, { enabled: !!player_id, refetchOnWindowFocus: false });
 
+
     if (player.isLoading || player!.data.length == 0) return <div>Loading...</div>
     return (
         <main className="flex gap-2">
@@ -66,7 +67,7 @@ export default function ProfilePage() {
 
                 <div className="flex gap-3 p-3 flex-col">
                     <h1>Achievements</h1>
-                    <div className="grid 2xl:grid-cols-7 xl:grid-cols-5 grid-cols-4 gap-2 max-h-[40vh] overflow-y-auto">
+                    <div className="grid 2xl:grid-cols-9 xl:grid-cols-6 grid-cols-4 gap-2 max-h-[40vh] overflow-y-auto">
                         {
                             achievements.map((achievement, i) => {
                                 return (
@@ -128,21 +129,24 @@ function GameReplays({ pos, type, date }: { pos: number, type: string, date: str
 function Achievements({ imageSrc, name, description }: { imageSrc: string, name: string, description?: string }) {
 
     const [show, setShow] = React.useState(false);
-
-    if (show) return (
-        <main className="flex justify-center items-center w-screen h-screen fixed top-0 left-0 bg-[#00000050] z-[10000]">
-            <div className="bg-zinc-700 rounded-lg flex p-4">
-                <Image onClick={() => { setShow(!show) }} className="z-[100] cursor-pointer" src={imageSrc} width={64} height={64} alt={name}></Image>
-                <div className="flex flex-col gap-3 px-4">
-                    <div className="font-bold">{name}</div>
-                    <div>{description}</div>
-                </div>
-            </div>
-        </main>
-    )
-
     return (
-        <main className="flex relative group ">
+        <main className="flex">
+            {show &&
+                <main className="flex justify-center items-center w-screen h-screen fixed top-0 left-0 bg-[#00000050] z-[10000]">
+                    <div className="bg-zinc-700 rounded-lg flex p-4 w-[30rem] h-64 relative">
+                        <Image className="z-[100]" src={imageSrc} width={200} height={200} alt={name}></Image>
+
+                        <div className="flex flex-col gap-3 px-8 justify-center">
+                            <div className="font-bold text-3xl">{name}</div>
+                            <div>{description}</div>
+                        </div>
+
+                        <div className="absolute top-3 right-3 cursor-pointer" onClick={() => { setShow(!show) }}>
+                            <Icon name="close" size={24}></Icon>
+                        </div>
+                    </div>
+                </main>
+            }
             <Image onClick={() => { setShow(!show) }} className="z-[100] cursor-pointer" src={imageSrc} width={64} height={64} alt={name}></Image>
         </main>
     )

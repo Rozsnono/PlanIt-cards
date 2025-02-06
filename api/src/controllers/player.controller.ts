@@ -20,6 +20,8 @@ export default class PlayerController implements Controller {
         const id = req.params.id;
         const player = await this.user.findOne({ customId: id });
 
+        console.log(player, id);
+
         if (!player) {
             res.status(404).send({ message: "Player not found!" });
             return;
