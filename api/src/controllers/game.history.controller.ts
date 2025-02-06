@@ -92,7 +92,7 @@ export default class GameHistoryController implements Controller {
 
         gameHistory.turns = {...gameHistory.turns, 
             [gameHistory.turns.length + 1]: {
-                playerCards: game.playerCards[player_id],
+                playerCards: game.playerCards[player_id].map((card: any) => {return card.name}),
                 playedCards: game.playedCards,
                 droppedCards: game.droppedCards
             }

@@ -1,7 +1,4 @@
 
-// import "./../globals.scss";
-// import "./../tailwind.css";
-
 export default function MobileLayout({
     children,
 }: Readonly<{

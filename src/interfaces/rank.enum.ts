@@ -45,7 +45,7 @@ export const RankEnum: any = {
         "title": "Grand Champion",
         "color": "#ff0000",
         "min": 1501,
-        "max": 2100,
+        "max": null,
         "icon": "<svg width='24' height='24' viewBox='0 0 24 24' fill='#ff0000' xmlns='http://www.w3.org/2000/svg'><path d='M12 2 L18 8 L16 20 L8 20 L6 8 Z'/></svg>"
     }
 }
@@ -54,15 +54,21 @@ export const RankEnum: any = {
 
 export function getRankName(rank: number): { title: string, color: string, min: number, max: number, icon: string } {
     const data: { title: string, color: string, min: number, max: number } | any = Object.keys(RankEnum).map((data: string | any) => {
-        if (RankEnum[data].min <= rank && RankEnum[data].max > rank) {
+        if (RankEnum[data].min <= rank && (!RankEnum[data].max || RankEnum[data].max > rank)) {
             return RankEnum[data]
         }
         return null;
-    }).filter(data => {return data})[0];
-    
-    console.log(data);
+    }).filter(data => { return data })[0];
+
     if (data) {
         return data;
     }
-    return { title: "", color: "", min: 0, max: 0, icon: ""};
+    return { title: "", color: "", min: 0, max: 0, icon: "" };
+}
+
+export function getCurrentRank(rank: number): number {
+    if (!getRankName(rank).max) {
+        return 100;
+    }
+    return ((rank - getRankName(rank).min) / (getRankName(rank).max - getRankName(rank).min)) * 100
 }
