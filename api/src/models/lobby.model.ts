@@ -45,6 +45,10 @@ const lobbySchema = new Schema(
                     type: Number,
                     default: 0,
                 },
+                robotsDifficulty: {
+                    type: Number,
+                    default: 0,
+                },
                 cardType: {
                     type: String,
                     required: true,
@@ -84,6 +88,7 @@ const validate = (message: object): Joi.ValidationResult => {
             unranked: Joi.boolean().optional(),
             fillWithRobots: Joi.boolean().optional(),
             numberOfRobots: Joi.number().optional(),
+            robotsDifficulty: Joi.number().optional(),
             cardType: Joi.string().required(),
         }),
         chat: Joi.array().optional(),

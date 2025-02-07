@@ -88,7 +88,7 @@ export default class GameController implements Controller {
         await newGame.save();
         lobby.game_id = newGame._id;
         await lobby.save();
-        res.send({ message: "Game started!" });
+        res.send({ message: "Game started!", game_id: newGame._id });
     };
 
     private nextTurn = async (req: Request, res: Response) => {

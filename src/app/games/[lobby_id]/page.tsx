@@ -4,7 +4,7 @@ import { UserContext } from "@/contexts/user.context";
 import { getCookie } from "@/functions/user.function";
 import { Ilobby } from "@/interfaces/interface";
 import Link from "next/link";
-import { useParams, usePathname } from "next/navigation";
+import { useParams, usePathname, useRouter } from "next/navigation";
 import React from "react";
 import { useContext, useEffect, useState } from "react";
 
@@ -13,6 +13,7 @@ export default function LobbyId() {
     const lobby_id = useParams().lobby_id;
     const path = usePathname();
     const { user } = useContext(UserContext);
+    const router = useRouter();
 
 
     useEffect(() => {
@@ -56,7 +57,6 @@ export default function LobbyId() {
     const [edit, setEdit] = useState(false);
 
     function setFormData(e: React.ChangeEvent<HTMLInputElement> | any) {
-        console.log(e.target)
         setForm({ ...form, [e.target.id]: e.target.checked ? e.target.checked : e.target.value });
     }
 
@@ -90,6 +90,13 @@ export default function LobbyId() {
         const chat = e.target.chat.value;
         e.target.chat.value = "";
         fetch(`/api/chat/${lobby_id}`, { method: "PUT", body: JSON.stringify({ sender: user!.username, message: chat, time: new Date().toISOString(), type: "text" }), headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getCookie("token")}` } })
+    }
+
+    function startGame(){
+        fetch(`/api/start/${lobby_id}`, { method: "POST", headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getCookie("token")}` } })
+        .then(res => res.json()).then(data => {
+            router.push(`/games/${lobby_id}/${data.game_id}/${lobby?.settings.cardType.toLocaleLowerCase()}`);
+        });
     }
 
     return (
@@ -162,9 +169,7 @@ export default function LobbyId() {
                 <div className="flex gap-2 h-1/2 w-full">
 
                     <div className="flex flex-col w-1/2 justify-end">
-                        <Link href={path + "/2345/rummy"} className="w-full">
-                            <button className="bg-blue-600 w-full rounded-lg p-2 px-5 text-zinc-200 font-bold hover:bg-blue-500 duration-200 focus:ring-2 ">Start</button>
-                        </Link>
+                        <button onClick={startGame} className="bg-blue-600 w-full rounded-lg p-2 px-5 text-zinc-200 font-bold hover:bg-blue-500 duration-200 focus:ring-2 ">Start</button>
                     </div>
 
                     <div className="flex relative flex-col w-full bg-zinc-800 rounded-md h-full p-2">

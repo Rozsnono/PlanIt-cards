@@ -19,9 +19,13 @@ export default class SocketIO {
                 if (inLobby) {
                     const inGame = await this.game.findOne({ _id: inLobby.game_id });
                     if (inGame) {
+                        const obj: any = inGame.toObject();
+                        const playerCard = obj.playerCards[identifier.player_id];
+
                         ws.send(JSON.stringify({
                             lobby: inLobby,
-                            game: inGame,
+                            game: { ...obj, playerCards: Object.keys(obj.playerCards).map((key) => { return { [key]: obj.playerCards[key].length } }) },
+                            playerCard: playerCard
                         }));
                     } else {
                         ws.send(JSON.stringify(inLobby));

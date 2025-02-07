@@ -2,16 +2,45 @@
 import Icon from "@/assets/icons";
 import getCardUrl from "@/contexts/cards.context"
 import { UserContext } from "@/contexts/user.context";
+import { getCookie } from "@/functions/user.function";
 import { Icard, Igame } from "@/interfaces/interface";
 import Image from "next/image"
 import { useParams } from "next/navigation";
 import { useContext, useEffect, useState } from "react";
+import { useQuery } from "react-query";
 
 export default function Game() {
 
     const game_id = useParams().game_id;
+    const lobby_id = useParams().lobby_id;
 
     const numberOfCardsPerPlayer = [10, 10, 11, 10, 10, 7, 10, 10];
+
+    const [playerCards, setPlayerCards] = useState<Icard[]>([]);
+
+    useEffect(() => {
+        const socket = new WebSocket("ws://localhost:8080");
+
+        socket.addEventListener('open', () => {
+            console.log('WebSocket is connected');
+            socket.send(JSON.stringify({ _id: lobby_id, player_id: user!._id }));
+        });
+
+        socket.addEventListener('message', (event) => {
+            const data = JSON.parse(event.data);
+            console.log(data);
+            if (data.playerCard) {
+                setPlayerCards(data.playerCard);
+            }
+            if(data.game){
+                setGame(data.game);
+            }
+        });
+
+        return () => {
+            socket.close();
+        };
+    }, [])
 
     const { user } = useContext(UserContext);
     const [game, setGame] = useState<Igame>(
@@ -70,12 +99,12 @@ export default function Game() {
     function dropDrag(e: Icard) {
         if (!draggedCard) return;
         if (!user) return;
-        const draggedIndex = game.playerCards[user._id].indexOf(draggedCard);
+        const draggedIndex = playerCards.indexOf(draggedCard);
 
-        const tmpCards = game.playerCards[user._id];
+        const tmpCards = playerCards;
         tmpCards.splice(draggedIndex, 1);
-        tmpCards.splice(game.playerCards[user._id].indexOf(e), 0, draggedCard);
-        setGame({ ...game, playerCards: { ...game.playerCards, [user._id]: tmpCards } });
+        tmpCards.splice(playerCards.indexOf(e), 0, draggedCard);
+        setPlayerCards(tmpCards);
         setDraggedCard(null);
     }
 
@@ -192,7 +221,7 @@ export default function Game() {
 
                 <div className="flex gap-1 w-full absolute bottom-0 p-2 justify-center">
                     {
-                        game.playerCards['1'].map((card, i) => {
+                        playerCards.map((card, i) => {
                             return (
                                 <div onClick={() => { selectCard(card) }} key={i} className={`cursor-pointer border-2 border-transparent hover:border-green-400 rounded-lg duration-200 ${checkIfCardIsSelected(card) ? 'border-green-400 translate-y-[-1rem]' : ''}`}>
                                     <Image loading="eager" onDragStart={() => { startDrag(card) }} onDrop={() => { dropDrag(card) }} onDragOver={overDrag} src={"/assets/cards/" + getCardUrl(card.name)} width={100} height={100} alt={getCardUrl(card.name)}></Image>
