@@ -145,6 +145,33 @@ body {
 
 }
 
+.loader-animation {
+  animation: loader 2s infinite ease-in-out ;
+}
+
+@keyframes loader {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(1440deg);
+  }
+}
+
+.loader-animation-2 {
+  animation: loader-2 2s infinite ease-in-out ;
+}
+
+@keyframes loader-2 {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(-1440deg);
+  }
+}
 
 .timer {
   border-radius: 50%;

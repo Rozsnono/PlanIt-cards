@@ -1,6 +1,6 @@
 "use client";
 import Icon from "@/assets/icons"
-import { Register } from "@/functions/user.function";
+import { Register } from "@/services/auth.service";
 import Image from "next/image"
 import Link from "next/link"
 import { useState } from "react";

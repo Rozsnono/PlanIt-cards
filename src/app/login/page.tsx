@@ -1,7 +1,8 @@
 "use client";
 import Icon from "@/assets/icons"
 import { UserContext } from "@/contexts/user.context";
-import { getUser, Login } from "@/functions/user.function";
+import { getUser } from "@/functions/user.function";
+import { Login } from "@/services/auth.service";
 import Image from "next/image"
 import Link from "next/link"
 import { useRouter } from "next/navigation";

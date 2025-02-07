@@ -1,67 +1,61 @@
 "use client";
-import Icon from "@/assets/icons"
+import Icon from "@/assets/icons";
 import { UserContext } from "@/contexts/user.context";
-import { getCookie } from "@/functions/user.function";
-import { Ilobby } from "@/interfaces/interface";
-import Link from "next/link";
 import { useParams, usePathname, useRouter } from "next/navigation";
-import React from "react";
 import { useContext, useEffect, useState } from "react";
+import { connectWebSocket, joinLobby, sendChatMessage, startGame } from "@/services/lobby.service";
+import { Ilobby } from "@/interfaces/interface";
+import React from "react";
+import Link from "next/link";
+import Loader from "@/components/loader.component";
 
 export default function LobbyId() {
-
     const lobby_id = useParams().lobby_id;
-    const path = usePathname();
     const { user } = useContext(UserContext);
     const router = useRouter();
 
+    const [lobby, setLobby] = useState<Ilobby | null>(null);
+    const [form, setForm] = useState<any>({});
+    const [edit, setEdit] = useState(false);
 
     useEffect(() => {
-        const socket = new WebSocket("ws://localhost:8080");
-
-        socket.addEventListener('open', () => {
-            console.log('WebSocket is connected');
-            socket.send(JSON.stringify({ _id: lobby_id, player_id: user!._id }));
-        });
-
-        socket.addEventListener('message', (event) => {
-            const data = JSON.parse(event.data);
+        const socket = connectWebSocket(lobby_id as string, user!._id, (data: any) => {
             if (data.message) {
                 if (typeof data.message === "string") {
-                    fetch(`/api/join/${lobby_id}`, { method: "PUT", headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getCookie("token")}` } }).then(res => res.json()).then(data => {
-                        setLobby(data.lobby as Ilobby);
-                        setAllFormData(data.lobby.settings);
-                    }
-                    );
+                    joinLobby(lobby_id as string).then(data => {
+                        setLobby(data);
+                        setForm(data.settings);
+                    });
                 } else {
                     setLobby(data.message.fullDocument as Ilobby);
-                    setAllFormData(data.message.fullDocument.settings);
-
+                    setForm(data.message.fullDocument.settings);
                 }
-            } // handle message
-            else {
-                setLobby(data as Ilobby);
-                setAllFormData(data.settings);
+            } else {
+                setLobby(data);
+                setForm(data.settings);
             }
         });
 
         return () => {
             socket.close();
         };
-    }, [])
-
-
-    const [lobby, setLobby] = useState<Ilobby | null>(null);
-    const [form, setForm] = useState<any>({});
-
-    const [edit, setEdit] = useState(false);
+    }, [lobby_id, user]);
 
     function setFormData(e: React.ChangeEvent<HTMLInputElement> | any) {
         setForm({ ...form, [e.target.id]: e.target.checked ? e.target.checked : e.target.value });
     }
 
-    function setAllFormData(data: any) {
-        setForm(data);
+    function sendChat(e: any) {
+        e.preventDefault();
+        const chat = e.target.chat.value;
+        e.target.chat.value = "";
+        sendChatMessage(lobby_id as string, user!.username, chat);
+    }
+
+    function startLobbyGame() {
+        startGame(lobby_id as string).then(data => {
+            router.push(`/games/${lobby_id}/${data.game_id}/${lobby?.settings.cardType.toLocaleLowerCase()}`);
+        });
     }
 
     const positionEnum = [
@@ -75,28 +69,13 @@ export default function LobbyId() {
         "bottom-[-30%] right-[10%]",
     ]
 
-    if (!lobby) {
-        return <div>Loading...</div>
+    if (!lobby || !lobby.settings) {
+        return <Loader></Loader>
     }
 
 
     function removePlayer(index: number) {
         lobby!.users.splice(index, 1);
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    function sendChat(e: any) {
-        e.preventDefault();
-        const chat = e.target.chat.value;
-        e.target.chat.value = "";
-        fetch(`/api/chat/${lobby_id}`, { method: "PUT", body: JSON.stringify({ sender: user!.username, message: chat, time: new Date().toISOString(), type: "text" }), headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getCookie("token")}` } })
-    }
-
-    function startGame(){
-        fetch(`/api/start/${lobby_id}`, { method: "POST", headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getCookie("token")}` } })
-        .then(res => res.json()).then(data => {
-            router.push(`/games/${lobby_id}/${data.game_id}/${lobby?.settings.cardType.toLocaleLowerCase()}`);
-        });
     }
 
     return (
@@ -161,15 +140,18 @@ export default function LobbyId() {
 
                     </div>
 
-                    <div className="absolute top-3 right-3 text-lg">
-                        {lobby.users.length} / {lobby.settings.numberOfPlayers}
-                    </div>
+                    {
+                        lobby.settings &&
+                        <div className="absolute top-3 right-3 text-lg">
+                            {lobby.users.length} / {lobby.settings.numberOfPlayers}
+                        </div>
+                    }
                 </div>
 
                 <div className="flex gap-2 h-1/2 w-full">
 
                     <div className="flex flex-col w-1/2 justify-end">
-                        <button onClick={startGame} className="bg-blue-600 w-full rounded-lg p-2 px-5 text-zinc-200 font-bold hover:bg-blue-500 duration-200 focus:ring-2 ">Start</button>
+                        <button onClick={startLobbyGame} className="bg-blue-600 w-full rounded-lg p-2 px-5 text-zinc-200 font-bold hover:bg-blue-500 duration-200 focus:ring-2 ">Start</button>
                     </div>
 
                     <div className="flex relative flex-col w-full bg-zinc-800 rounded-md h-full p-2">

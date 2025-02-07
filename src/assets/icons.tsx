@@ -275,6 +275,14 @@ function getIcon(name: string) {
             return (
                 <path d="M18.364 5.636 16.95 7.05A7 7 0 1 0 19 12h2a9 9 0 1 1-2.636-6.364Z"></path>
             )
+        case "loader-1":
+            return (
+                <path d="M12 3a9 9 0 0 1 9 9h-2a7 7 0 0 0-7-7V3Z"></path>
+            )
+        case "loader-2":
+            return (
+                <path d="M18.364 5.636 16.95 7.05A7 7 0 1 0 19 12h2a9 9 0 1 1-2.636-6.364Z"></path>
+            )
         case "info":
             return (
                 <path d="M11 7h2v2h-2V7Zm0 4h2v6h-2v-6Zm1-9C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2Zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8Z" />

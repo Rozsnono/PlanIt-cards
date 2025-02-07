@@ -5,22 +5,12 @@ import RightSideBar, { RightSideBarHeader } from "./sidebar";
 import { useState } from "react";
 import { useQuery } from "react-query";
 import { Ilobby } from "@/interfaces/interface";
-import { getCookie } from "@/functions/user.function";
+import { getLobbyData, createLobby } from "@/services/game.service";
 import Loading from "../loading";
 
 export default function Games() {
-
-
     const [open, setOpen] = useState(false);
     const [openPrivate, setOpenPrivate] = useState(false);
-
-
-    function getLobbyData() {
-        const token = getCookie("token");
-        console.log(token);
-        return fetch(`/api/get`, { headers: { Authorization: `Bearer ${token}` } }).then(res => res.json());
-    }
-
 
     const data = useQuery("lobbies", getLobbyData, { refetchOnWindowFocus: false });
 
@@ -30,39 +20,37 @@ export default function Games() {
                 <div className="text-xl p-2">Tables</div>
                 <hr />
                 <main className="w-full grid 2xl:grid-cols-4 xl:grid-cols-3 lg:grid-cols-2 md:grid-cols-2 grid-cols-1 gap-2 p-3">
-                    {
-                        data.isLoading && <Loading></Loading>
-                    }
-                    {
-                        !data.isLoading && !data.isError && !data.data.error && data.data.map((lobby: Ilobby, index: number) => {
-                            return <LobbyCard key={index} lobbyDatas={lobby} lobbyNumber={index + 1}></LobbyCard>
-                        })
-                    }
+                    {data.isLoading && <Loading />}
+                    {!data.isLoading && !data.isError && !data.data.error && data.data.map((lobby: Ilobby, index: number) => (
+                        <LobbyCard key={index} lobbyDatas={lobby} lobbyNumber={index + 1} />
+                    ))}
                 </main>
             </main>
 
             <div className="fixed right-8 bottom-8">
-                <button onClick={() => { setOpen(true) }} className="bg-sky-600 text-white p-2 px-2 rounded-full justify-center hover:bg-sky-500 flex items-center gap-1 w-16 h-16 duration-200">
-                    <Icon name="add"></Icon>
+                <button onClick={() => setOpen(true)} className="bg-sky-600 text-white p-2 px-2 rounded-full hover:bg-sky-500 w-16 h-16 duration-200 flex items-center justify-center">
+                    <Icon name="add" />
                 </button>
             </div>
 
             <div className="fixed right-8 bottom-28">
-                <button onClick={() => { setOpenPrivate(true) }} className="bg-green-600 text-white p-2 px-2 rounded-full justify-center hover:bg-green-500 flex items-center gap-1 w-16 h-16 duration-200">
-                    <Icon name="join"></Icon>
+                <button onClick={() => setOpenPrivate(true)} className="bg-green-600 text-white p-2 px-2 rounded-full hover:bg-green-500 w-16 h-16 duration-200 flex items-center justify-center">
+                    <Icon name="join" />
                 </button>
             </div>
 
-            <RightSideBar open={open} onClose={() => { setOpen(!open) }}>
-                <SideBarContent onClose={() => { setOpen(!open) }}></SideBarContent>
+            <RightSideBar open={open} onClose={() => setOpen(!open)}>
+                <SideBarContent onClose={() => setOpen(!open)} />
             </RightSideBar>
 
-            <RightSideBar open={openPrivate} onClose={() => { setOpenPrivate(!openPrivate) }}>
-                <PrivateSideBarContent onClose={() => { setOpenPrivate(!openPrivate) }}></PrivateSideBarContent>
+            <RightSideBar open={openPrivate} onClose={() => setOpenPrivate(!openPrivate)}>
+                <PrivateSideBarContent onClose={() => setOpenPrivate(!openPrivate)} />
             </RightSideBar>
         </main>
-    )
+    );
 }
+
+
 
 function SideBarContent({ onClose }: Readonly<{ onClose?: () => void }>) {
 
@@ -78,7 +66,7 @@ function SideBarContent({ onClose }: Readonly<{ onClose?: () => void }>) {
 
     const [ur, setUr] = useState(false); // Unranked
 
-    function createLobby() {
+    async function creatingLobby() {
 
         const lobbySettings = {
             numberOfPlayers: nop,
@@ -92,16 +80,12 @@ function SideBarContent({ onClose }: Readonly<{ onClose?: () => void }>) {
             unranked: ur
         };
 
-        const lobby = {
-            settings: lobbySettings
-        };
-
-        fetch("/api/create",
-            {
-                method: "POST",
-                headers: { "Content-Type": "application/json", Authorization: `Bearer ${getCookie("token")}` },
-                body: JSON.stringify(lobby),
-            }).then(res => res.json()).then(data => console.log(data));
+        try {
+            const result = await createLobby(lobbySettings);
+            console.log(result);
+        } catch (error) {
+            console.error("Error creating lobby:", error);
+        }
 
     }
 
@@ -246,7 +230,7 @@ function SideBarContent({ onClose }: Readonly<{ onClose?: () => void }>) {
                         </div>
                     }
 
-{
+                    {
                         fr &&
                         <div className="flex gap-2 text-zinc-200 items-center">
                             <div className="text-md w-1/3">Difficulty</div>
@@ -275,7 +259,7 @@ function SideBarContent({ onClose }: Readonly<{ onClose?: () => void }>) {
             <hr className="border-zinc-600 mb-6" />
 
             <div className="flex gap-2 px-4 mb-3 justify-center" >
-                <button onClick={createLobby} className="bg-green-700 text-white p-2 px-5 rounded-md hover:bg-green-600 flex items-center gap-1">
+                <button onClick={creatingLobby} className="bg-green-700 text-white p-2 px-5 rounded-md hover:bg-green-600 flex items-center gap-1">
                     <Icon name="join"></Icon>
                     Create
                 </button>

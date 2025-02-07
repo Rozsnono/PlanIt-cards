@@ -1,14 +1,16 @@
 "use client";
 import Icon from "@/assets/icons";
 import Chart from "@/components/chart";
-import { getCookie, getUserInitials } from "@/functions/user.function";
+import { getUserInitials } from "@/functions/user.function";
 import { useParams } from "next/navigation";
 import { useQuery } from "react-query";
 import Image from "next/image";
 import { getCurrentRank, getRankName } from "@/interfaces/rank.enum";
 import Pagination from "@/components/pagination";
-import React from "react";
+import React, { useContext } from "react";
 import { achievements } from "@/interfaces/achievement.enum";
+import { getProfileData } from "@/services/profile.service";
+import { UserContext } from "@/contexts/user.context";
 
 export default function ProfilePage() {
 
@@ -16,8 +18,10 @@ export default function ProfilePage() {
 
     const [page, setPage] = React.useState(1);
 
+    const { user } = useContext(UserContext);
+
     function getPlayer() {
-        return fetch(`/api/player/${player_id}`, { method: "GET", headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getCookie("token")}` } }).then(res => res.json());
+        return getProfileData(player_id as string).then(res => res.json());
     }
 
     const player = useQuery("player", getPlayer, { enabled: !!player_id, refetchOnWindowFocus: false });
@@ -43,7 +47,10 @@ export default function ProfilePage() {
                     <div className="min-w-32 min-h-32 bg-red-600 rounded-full flex items-center justify-center text-2xl">{getUserInitials()}</div>
                     <div className="flex flex-col justify-center gap-3">
                         <div className="text-4xl">{player.data.firstName} {player.data.lastName}</div>
-                        <button className="text-zinc-300 bg-zinc-900 text-sm w-max hover:bg-zinc-950 rounded-lg flex items-center gap-1 p-2" ><Icon name="pen" size={16}></Icon> Edit profile</button>
+                        {
+                            player.data.customId == user?.customId &&
+                            <button className="text-zinc-300 bg-zinc-900 text-sm w-max hover:bg-zinc-950 rounded-lg flex items-center gap-1 p-2" ><Icon name="pen" size={16}></Icon> Edit profile</button>
+                        }
 
                     </div>
                 </div>
