@@ -17,10 +17,11 @@ export const connectWebSocket = (lobbyId: string, userId: string, onMessage: (da
     return socket;
 };
 
-export const joinLobby = async (lobbyId: string) => {
+export const joinLobby = async (lobbyId: string, lobbyCode?: string) => {
     const response = await fetch(`/api/join/${lobbyId}`, {
         method: "PUT",
         headers: {
+            body: JSON.stringify({ password: lobbyCode }),
             'Content-Type': 'application/json',
             Authorization: `Bearer ${getCookie("token")}`
         }
@@ -52,3 +53,16 @@ export const startGame = async (lobbyId: string) => {
 
     return await response.json();
 };
+
+export async function editLobby(lobbyId: string, lobby: any) {
+    const response = await fetch(`/api/update`, {
+        method: "PUT",
+        body: JSON.stringify({ ...lobby, _id: lobbyId }),
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${getCookie("token")}`
+        }
+    });
+
+    return await response.json();
+}

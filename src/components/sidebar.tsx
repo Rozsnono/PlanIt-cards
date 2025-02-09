@@ -15,7 +15,15 @@ export default function Sidebar() {
     const { user } = useContext(UserContext);
 
     const [isHelpOpen, setIsHelpOpen] = React.useState(false);
+    const [userState, setUserState] = React.useState(false);
 
+    React.useEffect(() => {
+        setUserState(true);
+    }, []);
+
+    
+    
+    if(!userState) return null;
 
     return (
         <main className={`fixed top-0 h-screen w-48 bg-zinc-900 pt-16 z-40 duration-500 ${isOpen ? 'left-0' : 'left-[-300px]'} z-[99]`}>
@@ -76,7 +84,7 @@ export default function Sidebar() {
 
                 {
                     isHelpOpen &&
-                    <Help onClose={()=>{setIsHelpOpen(false)}}></Help>
+                    <Help onClose={() => { setIsHelpOpen(false) }}></Help>
                 }
 
             </div>

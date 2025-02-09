@@ -1,35 +1,36 @@
 "use client";
 import Icon from "@/assets/icons";
 import { UserContext } from "@/contexts/user.context";
-import { useParams, usePathname, useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useContext, useEffect, useState } from "react";
-import { connectWebSocket, joinLobby, sendChatMessage, startGame } from "@/services/lobby.service";
+import { connectWebSocket, editLobby, joinLobby, sendChatMessage, startGame } from "@/services/lobby.service";
 import { Ilobby } from "@/interfaces/interface";
 import React from "react";
 import Link from "next/link";
 import Loader from "@/components/loader.component";
+import { LobbyComponent } from "@/components/lobby.component";
 
 export default function LobbyId() {
     const lobby_id = useParams().lobby_id;
     const { user } = useContext(UserContext);
     const router = useRouter();
+    const [form, setForm] = useState<any>({});
 
     const [lobby, setLobby] = useState<Ilobby | null>(null);
-    const [form, setForm] = useState<any>({});
-    const [edit, setEdit] = useState(false);
+
 
     useEffect(() => {
         const socket = connectWebSocket(lobby_id as string, user!._id, (data: any) => {
-            if (data.message) {
-                if (typeof data.message === "string") {
-                    joinLobby(lobby_id as string).then(data => {
-                        setLobby(data);
-                        setForm(data.settings);
-                    });
-                } else {
-                    setLobby(data.message.fullDocument as Ilobby);
-                    setForm(data.message.fullDocument.settings);
-                }
+            if (data.game) {
+                router.push(`/games/${lobby_id}/${data.game._id}/${data.lobby.settings.cardType.toLocaleLowerCase()}`);
+            } else if (data.message) {
+                joinLobby(lobby_id as string).then(data => {
+                    if(data.message){
+                        router.replace("/gamems");
+                    }
+                    setLobby(data);
+                    setForm(data.settings);
+                });
             } else {
                 setLobby(data);
                 setForm(data.settings);
@@ -39,11 +40,8 @@ export default function LobbyId() {
         return () => {
             socket.close();
         };
-    }, [lobby_id, user]);
+    }, [lobby_id, user, router]);
 
-    function setFormData(e: React.ChangeEvent<HTMLInputElement> | any) {
-        setForm({ ...form, [e.target.id]: e.target.checked ? e.target.checked : e.target.value });
-    }
 
     function sendChat(e: any) {
         e.preventDefault();
@@ -56,6 +54,19 @@ export default function LobbyId() {
         startGame(lobby_id as string).then(data => {
             router.push(`/games/${lobby_id}/${data.game_id}/${lobby?.settings.cardType.toLocaleLowerCase()}`);
         });
+    }
+
+    function setFormData(e: React.ChangeEvent<HTMLInputElement> | any) {
+        setForm({ ...form, [e.target.id]: e.target.checked ? e.target.checked : e.target.value });
+    }
+
+    function saveEdit() {
+        console.log(form);
+        editLobby(lobby_id as string, form);
+    }
+
+    function cancelEdit() {
+        setForm(lobby!.settings);
     }
 
     const positionEnum = [
@@ -119,7 +130,7 @@ export default function LobbyId() {
                                                         <div className="absolute group-hover:opacity-100 opacity-0 duration-200 group-hover:right-[-1.5rem] right-0 p-2 rounded-full bg-blue-500 hover:bg-blue-400">
                                                             <Icon name="add-friend"></Icon>
                                                         </div>
-                                                        <Link href={"/profile/" + lobby.users[i]._id} className="absolute group-hover:opacity-100 opacity-0 duration-200 group-hover:right-[-3.8rem] right-0 p-2 rounded-full bg-sky-500 hover:bg-sky-400">
+                                                        <Link href={"/profile/" + lobby.users[i].customId} className="absolute group-hover:opacity-100 opacity-0 duration-200 group-hover:right-[-3.8rem] right-0 p-2 rounded-full bg-sky-500 hover:bg-sky-400">
                                                             <Icon name="info"></Icon>
                                                         </Link>
                                                     </React.Fragment>
@@ -177,161 +188,7 @@ export default function LobbyId() {
 
 
             </main>
-            <main className="lg:w-1/2 w-full min-h-screen bg-[#3f3f46c0] rounded-md flex flex-col p-3 text-zinc-300">
-
-                <div className="flex w-full justify-between items-center pb-4">
-                    <div></div>
-                    <div className="text-2xl">Lobby settings</div>
-                    <div className="cursor-pointer" onClick={() => { setEdit(!edit) }}>
-                        {
-                            edit ?
-                                <Icon name="close" size={24}></Icon>
-                                :
-                                <Icon name="pen" size={24}></Icon>
-
-                        }
-                    </div>
-                </div>
-
-                <hr />
-
-                <div className="relative text-zinc-200 px-4 py-4 flex flex-col gap-14 h-full select-none">
-
-
-                    <div className="flex flex-col gap-6 ">
-
-
-                        <div className="flex gap-2 text-zinc-200 items-center">
-                            <div className="text-md w-1/3">Number of users</div>
-
-
-                            <div className="relative w-full">
-                                <label htmlFor="numberOfPlayers" className="sr-only">Number of users</label>
-                                <input disabled={!edit} onChange={setFormData} value={form['numberOfPlayers']} id="numberOfPlayers" type="range" min="2" max="8" className="w-full h-2 bg-zinc-600 rounded-lg appearance-none cursor-pointer" />
-                                <div className="flex justify-between">
-                                    <span className="text-sm text-gray-500 dark:text-gray-400">Min 2</span>
-                                    <span className="text-sm text-gray-500 dark:text-gray-400">{form['numberOfPlayers']}</span>
-                                    <span className="text-sm text-gray-500 dark:text-gray-400">Max 8</span>
-                                </div>
-                            </div>
-
-                        </div>
-
-                        <div className="flex gap-2 text-zinc-200 items-center">
-                            <div className="text-md w-1/3">Type</div>
-
-                            <div className="w-full flex items-center">
-                                <button onClick={() => { setFormData({ target: { id: "cardType", value: "RUMMY" } }) }} disabled={!edit} type="button" className={`w-full px-4 py-2 text-sm font-medium text-zinc-400 border border-zinc-600 rounded-s-lg hover:bg-zinc-700 hover:text-gray-200 focus:z-10 focus:ring-2 focus:ring-gray-500 focus:text-gray-100 ${form["cardType"] === 'RUMMY' ? "text-gray-100 bg-zinc-600 ring-gray-500 ring-1" : "bg-zinc-800"}`}>
-                                    RUMMY
-                                </button>
-                                <button onClick={() => { setFormData({ target: { id: "cardType", value: "UNO" } }) }} disabled={true} type="button" className={`w-full px-4 py-2 text-sm font-medium text-zinc-400 border border-zinc-600 rounded-e-lg hover:bg-zinc-700 hover:text-gray-200 focus:z-10 focus:ring-2 focus:ring-gray-500 focus:text-gray-100 ${form["cardType"] === 'UNO' ? "text-gray-100 bg-zinc-600 ring-gray-500 ring-1" : "bg-zinc-800"}`}>
-                                    UNO
-                                </button>
-                            </div>
-                        </div>
-
-                        <div className="flex gap-2 text-zinc-200 items-center">
-                            <div className="text-md w-1/3">Robber Rummy</div>
-
-                            <div className="w-full flex items-center">
-
-                                <label className="inline-flex items-center cursor-pointer">
-                                    <input disabled={!edit} type="checkbox" className="sr-only peer" id="robberRummy" onChange={setFormData} checked={form['robberRummy'] === true} />
-                                    <div className="relative w-11 h-6 bg-zinc-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-gray-600 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gray-400"></div>
-                                </label>
-
-                            </div>
-                        </div>
-
-                        {
-                            form['robberRummy'] === true &&
-                            <div className="flex gap-2 text-zinc-200 items-center italic">
-                                <Icon name="info" size={100}></Icon> <span className="text-[.8rem]">Robber Rummy enhances traditional Rummy with several key changes. users can draw any card from the discard pile but must take all cards above it, adding strategic depth. The game continues until a player reaches 500 points, making it more competitive over multiple rounds, unlike classic Rummy, which often ends when a player goes out. Additionally, users can add cards to opponents’ melds, promoting more interaction between users. These elements make Robber Rummy faster-paced and more engaging than its traditional counterpart.</span>
-                            </div>
-                        }
-
-                        <div className="flex gap-2 text-zinc-200 items-center">
-                            <div className="text-md w-1/3">Private lobby</div>
-
-                            <div className="w-full flex items-center">
-
-                                <label className="inline-flex items-center cursor-pointer">
-                                    <input disabled={!edit} type="checkbox" className="sr-only peer" id="privateLobby" onChange={setFormData} checked={form['privateLobby'] === true} />
-                                    <div className="relative w-11 h-6 bg-zinc-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-gray-600 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gray-400"></div>
-                                </label>
-
-                            </div>
-                        </div>
-
-                        {
-                            form['privateLobby'] === true &&
-                            <div className="flex gap-2 text-zinc-200 items-center">
-                                <div className="text-md w-1/3">Lobby code</div>
-
-                                <div className="w-full flex items-center">
-
-                                    <input disabled={!edit} type="text" id="lobbyCode" onChange={setFormData} value={form['lobbyCode'] === null ? "" : form['lobbyCode']} className="bg-zinc-700 border border-zinc-900 text-gray-200 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" placeholder="12345" />
-
-                                </div>
-                            </div>
-                        }
-
-                        <div className="flex gap-2 text-zinc-200 items-center">
-                            <div className="text-md w-1/3">Unranked</div>
-
-                            <div className="w-full flex items-center">
-
-                                <label className="inline-flex items-center cursor-pointer">
-                                    <input disabled={!edit} type="checkbox" value="" className="sr-only peer" id="unranked" onChange={setFormData} checked={form['unranked'] === true} />
-                                    <div className="relative w-11 h-6 bg-zinc-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-gray-600 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gray-400"></div>
-                                </label>
-
-                            </div>
-                        </div>
-
-                        <div className="flex gap-2 text-zinc-200 items-center">
-                            <div className="text-md w-1/3">Fill with Robots</div>
-
-                            <div className="w-full flex items-center">
-
-                                <label className="inline-flex items-center cursor-pointer">
-                                    <input disabled={!edit} type="checkbox" value="" className="sr-only peer" id="fillWithRobots" onChange={setFormData} checked={form['fillWithRobots'] === true} />
-                                    <div className="relative w-11 h-6 bg-zinc-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-gray-600 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gray-400"></div>
-                                </label>
-
-                            </div>
-                        </div>
-
-                        {
-                            form['fillWithRobots'] === true &&
-                            <div className="flex gap-2 text-zinc-200 items-center">
-                                <div className="text-md w-1/3">Number of Robots</div>
-
-                                <div className="relative w-full">
-                                    <label htmlFor="numberOfRobots" className="sr-only">Labels range</label>
-                                    <input disabled={!edit} id="numberOfRobots" onChange={setFormData} value={form['numberOfRobots']} type="range" min={1} max={form['numberOfPlayers']} className="w-full h-2 bg-zinc-600 rounded-lg appearance-none cursor-pointer" />
-                                    <div className="flex justify-between">
-                                        <span className="text-sm text-gray-500 dark:text-gray-400">Min 1</span>
-                                        <span className="text-sm text-gray-500 dark:text-gray-400">{form['numberOfRobots']}</span>
-                                        <span className="text-sm text-gray-500 dark:text-gray-400">Max {form['numberOfPlayers']}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        }
-
-
-                        {
-                            edit &&
-                            <div className="flex w-full justify-center">
-                                <button onClick={() => { setEdit(false) }} className="bg-emerald-600 w-1/2 rounded-lg p-2 px-5 text-zinc-200 font-bold hover:bg-emerald-500 duration-200 focus:ring-2 ">Save</button>
-                            </div>
-                        }
-
-
-                    </div>
-
-                </div>
-            </main>
+            <LobbyComponent cancel={cancelEdit} form={form} setFormData={setFormData} save={saveEdit} canEdit title="Lobby settings"></LobbyComponent>
         </main>
     )
 }

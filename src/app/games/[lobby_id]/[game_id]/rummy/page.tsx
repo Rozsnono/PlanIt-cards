@@ -230,10 +230,10 @@ export default function Game() {
                         })
                     }
 
-                    <div key={timer} className="absolute right-10 h-32 w-32 justify-center items-center flex rounded-full border border-lime-300 bottom-4"
+                    <div key={timer} className="absolute right-10 h-[5rem] w-[5rem] justify-center items-center flex rounded-2xl border border-lime-300 bottom-4"
                         style={{ background: `conic-gradient(#bef264 ${(180 - timer) * 360 / 180}deg, transparent 0deg)` }}
                     >
-                        <div className="w-24 h-24 bg-green-800 rounded-full border flex items-center justify-center text-zinc-200 border-lime-300 text-xl hover:bg-green-600 cursor-pointer group duration-100">
+                        <div className="w-[4.5rem] h-[4.5rem] bg-green-800 rounded-xl border flex items-center justify-center text-zinc-200 border-lime-300 text-xl hover:bg-green-600 cursor-pointer group duration-100">
                             <span className="group-hover:opacity-0 group-hover:hidden flex opacity-100 duration-100">{timer}s</span>
                             <span className="group-hover:opacity-100 group-hover:flex hidden opacity-0 duration-100">Ready</span>
                         </div>

@@ -7,6 +7,7 @@ import { useQuery } from "react-query";
 import { Ilobby } from "@/interfaces/interface";
 import { getLobbyData, createLobby } from "@/services/game.service";
 import Loading from "../loading";
+import { useRouter } from "next/navigation";
 
 export default function Games() {
     const [open, setOpen] = useState(false);
@@ -66,6 +67,8 @@ function SideBarContent({ onClose }: Readonly<{ onClose?: () => void }>) {
 
     const [ur, setUr] = useState(false); // Unranked
 
+    const router = useRouter();
+
     async function creatingLobby() {
 
         const lobbySettings = {
@@ -82,7 +85,7 @@ function SideBarContent({ onClose }: Readonly<{ onClose?: () => void }>) {
 
         try {
             const result = await createLobby(lobbySettings);
-            console.log(result);
+            router.push(`/games/${result._id}`);
         } catch (error) {
             console.error("Error creating lobby:", error);
         }

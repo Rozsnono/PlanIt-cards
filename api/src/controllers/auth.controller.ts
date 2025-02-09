@@ -35,7 +35,7 @@ export default class AuthController implements Controller {
         if (user) {
             const result = await bcrypt.compare(body.password, user.password);
             if (result && !user.isDeleted) {
-                const token = jwt.sign({ _id: user._id, username: user.username, firstName: user.firstName, lastName: user.lastName, auth: user.auth, numberOfGames: user.numberOfGames, rank: user.rank, email: user.email, customId: user.customId }, ACCESS_TOKEN_SECRET);
+                const token = jwt.sign({ _id: user._id, username: user.username, firstName: user.firstName, lastName: user.lastName, auth: user.auth, numberOfGames: user.numberOfGames, rank: user.rank, email: user.email, customId: user.customId, peddingFriends: user.peddingFriends.length }, ACCESS_TOKEN_SECRET);
                 res.send({ token: token });
             } else {
                 res.status(401).send({ message: "Wrong username or password!" });

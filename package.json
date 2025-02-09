@@ -12,7 +12,8 @@
     "build:api": "tsc -p ./api",
     "build:watch": "tsc --watch",
     "dev:api": "nodemon ./api/src/server.ts",
-    "api-build:start": "tsc -p ./api && node ./api/dist/server.js"
+    "api-build:start": "tsc -p ./api && node ./api/dist/server.js",
+    "dev:all": "concurrently \"npm run dev\" \"npm run dev:api\""
   },
   "dependencies": {
     "@types/bcryptjs": "^2.4.6",
@@ -48,6 +49,7 @@
     "@types/react-beautiful-dnd": "^13.1.8",
     "@types/react-dom": "^18",
     "@types/ws": "^8.5.12",
+    "concurrently": "^9.1.2",
     "eslint": "^8",
     "eslint-config-next": "14.2.14",
     "postcss": "^8",

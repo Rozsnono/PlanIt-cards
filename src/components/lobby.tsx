@@ -4,10 +4,15 @@ import Image from "next/image";
 import { Ilobby } from "@/interfaces/interface";
 import { useContext } from "react";
 import { UserContext } from "@/contexts/user.context";
+import React from "react";
+import { joinLobby } from "@/services/lobby.service";
+import { useRouter } from "next/navigation";
 
 export default function LobbyCard({ lobbyDatas, lobbyNumber }: { lobbyDatas: Ilobby, lobbyNumber: number }) {
 
     const { user } = useContext(UserContext);
+
+    const router = useRouter();
 
     function getGameTypeImage() {
         switch (lobbyDatas.settings.cardType) {
@@ -30,8 +35,27 @@ export default function LobbyCard({ lobbyDatas, lobbyNumber }: { lobbyDatas: Ilo
         }
     }
 
+    function joinLobbyByCode(e: any) {
+        e.preventDefault();
+        if (!e.target.lobbyCode.value) return;
+        joinLobby(lobbyDatas._id, e.target.lobbyCode.value).then(data => {
+            router.push("/games/" + lobbyDatas._id);
+        });
+    }
+
     function Button({ lobbyDatas }: { lobbyDatas: any }) {
-        if (lobbyDatas.users.includes(user?._id)) {
+        if (lobbyDatas.settings.privateLobby && !lobbyDatas.users.find((u: any) => u._id === user?._id)) {
+            return (
+                <form onSubmit={joinLobbyByCode} className="flex items-center gap-1">
+                    <input id="lobbyCode" type="text" className="w-full max-w-64 p-2 rounded-l-md bg-zinc-700" />
+                    <button type="submit" className="bg-blue-500 text-white p-2 px-2 rounded-r-md hover:bg-blue-400 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed">
+                        <Icon name="key"></Icon>
+                        Join
+                    </button>
+                </form>
+            )
+        }
+        if (lobbyDatas.users.find((u: any) => u._id === user?._id)) {
             return (
 
                 <Link href={"games/" + lobbyDatas._id} className="bg-green-700 text-white p-2 px-2 rounded-md hover:bg-green-600 flex items-center gap-1">

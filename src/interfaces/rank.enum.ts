@@ -54,7 +54,7 @@ export const RankEnum: any = {
 
 export function getRankName(rank: number): { title: string, color: string, min: number, max: number, icon: string } {
     const data: { title: string, color: string, min: number, max: number } | any = Object.keys(RankEnum).map((data: string | any) => {
-        if (RankEnum[data].min <= rank && (!RankEnum[data].max || RankEnum[data].max > rank)) {
+        if (RankEnum[data].min <= rank && (!RankEnum[data].max || RankEnum[data].max >= rank)) {
             return RankEnum[data]
         }
         return null;

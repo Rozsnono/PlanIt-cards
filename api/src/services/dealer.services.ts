@@ -48,7 +48,7 @@ export default class CardDealer {
 
     private getCards(numberOfCards: number = 10){
         const cards: Array<{ name: string, rank: number, suit: string, isJoker?: boolean }> = [];
-        console.log(this.deck);
+
         for (let i = 0; i < numberOfCards; i++) {
             cards.push(this.deck.pop()!);
         }

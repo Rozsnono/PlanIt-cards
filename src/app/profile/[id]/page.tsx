@@ -1,7 +1,7 @@
 "use client";
 import Icon from "@/assets/icons";
 import Chart from "@/components/chart";
-import { getUserInitials } from "@/functions/user.function";
+import { getColorByInitials, getUserInitials } from "@/functions/user.function";
 import { useParams } from "next/navigation";
 import { useQuery } from "react-query";
 import Image from "next/image";
@@ -44,7 +44,7 @@ export default function ProfilePage() {
             </main>
             <main className="lg:w-1/2 w-full bg-[#3f3f46c0] rounded-md p-3 min-h-screen text-zinc-200">
                 <div className="flex gap-2 p-6">
-                    <div className="min-w-32 min-h-32 bg-red-600 rounded-full flex items-center justify-center text-2xl">{getUserInitials()}</div>
+                    <div style={{ backgroundColor: getColorByInitials(getUserInitials()).background, color: getColorByInitials(getUserInitials()).text }} className="min-w-32 min-h-32 bg-red-600 rounded-full flex items-center justify-center text-4xl">{getUserInitials()}</div>
                     <div className="flex flex-col justify-center gap-3">
                         <div className="text-4xl">{player.data.firstName} {player.data.lastName}</div>
                         {

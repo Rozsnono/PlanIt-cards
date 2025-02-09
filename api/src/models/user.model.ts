@@ -74,6 +74,10 @@ export const userSchema = new Schema(
             type: Array<Schema.Types.ObjectId>(),
             default: [],
         },
+        peddingFriends: {
+            type: Array<Schema.Types.ObjectId>(),
+            default: [],
+        },
         gameHistory:{
             type: Array<Schema.Types.ObjectId>(),
             default: [],

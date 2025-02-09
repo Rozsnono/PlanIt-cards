@@ -71,7 +71,7 @@ export default class LobbyController implements Controller {
         body["createdBy"] = new mongoose.Types.ObjectId(userid);
         const newLobby = new this.lobby(body);
         await newLobby.save();
-        res.send({ message: "OK" });
+        res.send({ _id: newLobby._id });
     };
 
     private getLobby = async (req: Request, res: Response) => {
@@ -119,8 +119,13 @@ export default class LobbyController implements Controller {
 
     private joinLobby = async (req: Request, res: Response) => {
         const id = req.params.id;
+        const body = req.body;
         const lobby = await this.lobby.findOne({ _id: id });
         if (lobby) {
+            if(body.password && lobby.settings?.lobbyCode !== body.password){
+                res.status(400).send({ message: "Wrong password!" });
+                return;
+            }
             await this.leftLobby(req);
             const userid = await getIDfromToken(req);
             lobby.users.push(new mongoose.Types.ObjectId(userid));
@@ -162,9 +167,9 @@ export default class LobbyController implements Controller {
     private updateLobby = async (req: Request, res: Response) => {
         const body = req.body;
         const id = body._id;
-        const lobby = await this.lobby.findOne({ _id: id });
+        const lobby = await this.lobby.findById(id);
         if (lobby) {
-            await this.lobby.replaceOne({ _id: id }, body, { runValidators: true });
+            await this.lobby.replaceOne({ _id: id }, { ...lobby, settings: body }, { runValidators: true });
             res.send({ message: "OK" });
         } else {
             res.status(404).send({ message: "Try again!" });
@@ -195,7 +200,7 @@ export default class LobbyController implements Controller {
             lobby.forEach(async (l) => {
                 const tmpLobby = l;
                 tmpLobby.users = tmpLobby.users.filter((p) => p.toString() !== userid.toString());
-                if(tmpLobby.users.length === 0) {
+                if (tmpLobby.users.length === 0) {
                     await this.lobby.deleteOne({ _id: l._id });
                     return;
                 }
@@ -208,5 +213,5 @@ export default class LobbyController implements Controller {
             console.log("No lobby found");
             return false;
         }
-    };  
+    };
 }

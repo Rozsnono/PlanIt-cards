@@ -16,6 +16,7 @@ export interface Iplayer {
         [date: string]: {wins: number, losses: number};
     };
     friends: string[];
+    peddingFriends: string[] | number;
     customId: string;
     gameHistory: {
         [date: string]: {
