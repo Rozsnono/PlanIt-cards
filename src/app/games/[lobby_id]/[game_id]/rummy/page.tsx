@@ -1,11 +1,14 @@
 "use client";
 import Icon from "@/assets/icons";
 import getCardUrl from "@/contexts/cards.context"
+import { SettingsContext } from "@/contexts/settings.context";
 import { UserContext } from "@/contexts/user.context";
+import { sortRummyCards } from "@/functions/card.function";
 import { getCookie } from "@/functions/user.function";
 import { Icard, Igame } from "@/interfaces/interface";
 import Image from "next/image"
 import { useParams } from "next/navigation";
+import React from "react";
 import { useContext, useEffect, useState } from "react";
 import { useQuery } from "react-query";
 
@@ -13,8 +16,8 @@ export default function Game() {
 
     const game_id = useParams().game_id;
     const lobby_id = useParams().lobby_id;
-
-    const numberOfCardsPerPlayer = [10, 10, 11, 10, 10, 7, 10, 10];
+    
+    const { settings } = useContext(SettingsContext);
 
     const [playerCards, setPlayerCards] = useState<Icard[]>([]);
 
@@ -32,7 +35,7 @@ export default function Game() {
             if (data.playerCard) {
                 setPlayerCards(data.playerCard);
             }
-            if(data.game){
+            if (data.game) {
                 setGame(data.game);
             }
         });
@@ -63,18 +66,20 @@ export default function Game() {
     );
 
     const positionEnum = [
-        "top-[30%] left-0 rotate-[-90deg]",
+        "top-[30%] left-2 rotate-[-90deg]",
         "top-2 left-[30%]",
-        "top-[20%] right-0 rotate-90",
-        "top-[70%] left-0 rotate-[-90deg]",
+        "top-[20%] right-2 rotate-90",
+        "top-[70%] left-2 rotate-[-90deg]",
         "top-2 left-[10%]",
         "top-2 right-[25%]",
-        "top-[60%] right-0 rotate-90"
+        "top-[60%] right-2 rotate-90"
     ]
 
     const [selectedCards, setSelectedCards] = useState<Icard[]>([]);
     const [draggedCard, setDraggedCard] = useState<Icard | null>(null);
     const [droppedCard, setDroppedCard] = useState<Icard[]>([]);
+
+    const [dragOver, setDragOver] = useState<number | null>(null);
 
     function selectCard(card: Icard) {
         if (selectedCards.find((e: Icard) => { return JSON.stringify(e) === JSON.stringify(card) })) {
@@ -89,21 +94,27 @@ export default function Game() {
     }
 
     function startDrag(e: Icard) {
-        setDraggedCard(e);
+        setTimeout(() => { setDraggedCard(e); }, 0);
     }
 
     function overDrag(e: unknown | any) {
         e.preventDefault();
     }
 
-    function dropDrag(e: Icard) {
+    function onDragEnter(e: unknown | any, i: number) {
+        e.preventDefault();
+        setDragOver(i);
+    }
+
+    function dropDrag(index: number) {
+        setDragOver(null);
         if (!draggedCard) return;
         if (!user) return;
         const draggedIndex = playerCards.indexOf(draggedCard);
 
         const tmpCards = playerCards;
         tmpCards.splice(draggedIndex, 1);
-        tmpCards.splice(playerCards.indexOf(e), 0, draggedCard);
+        tmpCards.splice(index, 0, draggedCard);
         setPlayerCards(tmpCards);
         setDraggedCard(null);
     }
@@ -205,15 +216,6 @@ export default function Game() {
                                     </div>
 
                                 </div>
-                                <div className="relative">
-                                    {new Array(numberOfCardsPerPlayer[j]).fill(0).map((_, i) => {
-                                        return (
-                                            <div key={i} className={`w-full h-full ${i > 0 ? `absolute top-0` : ''}`} style={{ left: i * 1 + "rem" }}>
-                                                <Image draggable={false} src={"/assets/cards/gray_back.png"} width={32} height={32} alt="card"></Image>
-                                            </div>
-                                        )
-                                    })}
-                                </div>
                             </div>
                         )
                     })
@@ -221,11 +223,21 @@ export default function Game() {
 
                 <div className="flex gap-1 w-full absolute bottom-0 p-2 justify-center">
                     {
-                        playerCards.map((card, i) => {
+                        sortRummyCards(playerCards, settings?.autoSort).map((card, i) => {
                             return (
-                                <div onClick={() => { selectCard(card) }} key={i} className={`cursor-pointer border-2 border-transparent hover:border-green-400 rounded-lg duration-200 ${checkIfCardIsSelected(card) ? 'border-green-400 translate-y-[-1rem]' : ''}`}>
-                                    <Image loading="eager" onDragStart={() => { startDrag(card) }} onDrop={() => { dropDrag(card) }} onDragOver={overDrag} src={"/assets/cards/" + getCardUrl(card.name)} width={100} height={100} alt={getCardUrl(card.name)}></Image>
-                                </div>
+                                <React.Fragment key={i}>
+                                    <div draggable onClick={() => { selectCard(card) }} className={`cursor-pointer w-12 overflow-visible hover:cursor-grab group rounded-lg duration-200 ${checkIfCardIsSelected(card) ? 'border-green-400 translate-y-[-1rem]' : ''} ${draggedCard && JSON.stringify(draggedCard) === JSON.stringify(card) ? 'opacity-10' : ''}`}>
+                                        <Image onDragEnter={(e) => { onDragEnter(e, i) }} className="border-2 border-transparent group-hover:border-green-400 rounded-lg" style={{ width: "6rem", maxWidth: "6rem" }} loading="eager" onDragEnd={() => { setDraggedCard(null) }} onDragStart={() => { startDrag(card) }} onDrop={() => { dropDrag(i) }} onDragOver={overDrag} src={"/assets/cards/" + getCardUrl(card.name)} width={100} height={100} alt={getCardUrl(card.name)}></Image>
+                                    </div>
+                                    <div onDragOver={overDrag} onDrop={() => { dropDrag(i) }} className={`${draggedCard && JSON.stringify(draggedCard) !== JSON.stringify(card) && dragOver === i ? "w-[5.8rem]" : "w-0"} bg-[#00000040] rounded-lg duration-100`}>
+                                        {draggedCard &&
+                                            <Image className="opacity-75" loading="eager" onDrop={() => { dropDrag(i) }} onDragOver={overDrag} src={"/assets/cards/" + getCardUrl(draggedCard.name)} width={100} height={100} alt={getCardUrl(draggedCard.name)}></Image>
+                                        }
+                                    </div>
+                                    {
+                                        // <div onDragOver={(e) => { overDragChoose(e, i + 1) }} onDrop={() => { dropDrag(i + 1) }} className={`bg-[#00000040] ${dragOver === i + 1 ? 'w-24' : 'w-8'} rounded-lg flex justify-center items-center text-gray-500 duration-200 ${!draggedCard ? 'w-0' : ''}`}>{draggedCard && "+"}</div>
+                                    }
+                                </React.Fragment>
                             )
                         })
                     }

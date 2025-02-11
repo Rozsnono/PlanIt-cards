@@ -1,6 +1,6 @@
 "use client";
 import Icon from "@/assets/icons";
-import LobbyCard from "@/components/lobby";
+import LobbyCard from "@/components/lobby/lobby";
 import RightSideBar, { RightSideBarHeader } from "./sidebar";
 import { useState } from "react";
 import { useQuery } from "react-query";

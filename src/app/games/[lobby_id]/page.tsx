@@ -8,7 +8,7 @@ import { Ilobby } from "@/interfaces/interface";
 import React from "react";
 import Link from "next/link";
 import Loader from "@/components/loader.component";
-import { LobbyComponent } from "@/components/lobby.component";
+import { LobbyComponent } from "@/components/lobby/lobby.component";
 
 export default function LobbyId() {
     const lobby_id = useParams().lobby_id;

@@ -5,7 +5,7 @@ import { Auth } from "../enums/auth.enum";
 import gameModel from "../models/game.model";
 import CardDealer from "../services/dealer.services";
 import lobbyModel from "../models/lobby.model";
-import { rummy, uno } from "../cards/cards";
+import { Cards, uno } from "../cards/cards";
 import mongoose from "mongoose";
 
 
@@ -70,9 +70,10 @@ export default class GameController implements Controller {
         }
 
         // check card type of the lobby
-        let cards;
+        let cards: any;
         if (lobby.settings!.cardType == "RUMMY") {
-            cards = rummy;
+            const c = new Cards();
+            cards = c.rummy;
         } else {
             cards = uno;
         }
@@ -81,7 +82,7 @@ export default class GameController implements Controller {
         // set the game state
         body["shuffledCards"] = cardDealer.shuffleDeck();
         // deal the cards
-        body["playerCards"] = cardDealer.dealCards(lobby?.users);
+        body["playerCards"] = cardDealer.dealCards(lobby?.users, 14);
         body["currentPlayer"] = lobby?.users[0];
         body["_id"] = new mongoose.Types.ObjectId();
         const newGame = new this.game(body);

@@ -3,17 +3,19 @@ import { MenuContext } from '@/contexts/menu.context';
 import Image from 'next/image'
 import Link from 'next/link';
 import { useContext, useEffect, useMemo, useState } from 'react';
-import { FilterModal } from './filter.modal';
+import { FilterModal, ModalClass } from './filter.modal';
 import { UserContext } from '@/contexts/user.context';
 import React from 'react';
 import { getColorByInitials, getUserInitials, Logout } from '@/functions/user.function';
 import { Iplayer } from '@/interfaces/interface';
 import { useRouter } from 'next/navigation';
+import SettingsModal from './settings/settings.modal';
 
 export default function Navbar() {
 
     const { user } = useContext(UserContext);
     const { isOpen, setOpen } = useContext(MenuContext);
+
 
     const [userState, setUserState] = React.useState(false);
 
@@ -43,6 +45,10 @@ export default function Navbar() {
 
 function UserHeader({ isLogged, user }: { isLogged: boolean, user: Iplayer }) {
     const router = useRouter();
+
+    const [settingsOpen, setSettingsOpen] = useState(false);
+
+    const modal = new ModalClass();
 
     function LogOut() {
 
@@ -74,7 +80,7 @@ function UserHeader({ isLogged, user }: { isLogged: boolean, user: Iplayer }) {
 
             </button>
 
-            <FilterModal className="top-16 right-6 border border-zinc-600 rounded-lg">
+            <modal.FilterModal className="top-16 right-6 border border-zinc-600 rounded-lg">
                 <div className="flex items-center flex-col gap-2 w-48">
                     <Link href={"/profile/" + user?.customId} className='w-full'><button className="bg-zinc-700 hover:bg-zinc-600 text-zinc-400 w-full rounded-lg p-2 more-modal-input text-left flex gap-1 items-center"> <Icon name="user" size={16}></Icon> Your profile</button></Link>
                     <Link href={"/profile/" + user?.customId + "/friends"} className='w-full'>
@@ -86,10 +92,14 @@ function UserHeader({ isLogged, user }: { isLogged: boolean, user: Iplayer }) {
                             }
                         </button>
                     </Link>
-                    <Link href={"/settings"} className='w-full'><button className="bg-zinc-700 hover:bg-zinc-600 text-zinc-400 w-full rounded-lg p-2 more-modal-input text-left flex gap-1 items-center"> <Icon name="settings" size={16}></Icon> Settings</button></Link>
+                    <button onClick={()=>{setSettingsOpen(true)}} className="bg-zinc-700 hover:bg-zinc-600 text-zinc-400 w-full rounded-lg p-2 more-modal-input text-left flex gap-1 items-center"> <Icon name="settings" size={16}></Icon> Settings</button>
                 </div>
                 <button onClick={LogOut} className="text-zinc-300 bg-zinc-900 hover:bg-zinc-950 rounded-lg flex items-center gap-1 p-2" ><Icon name="sign-out" size={16}></Icon> Sign out</button>
-            </FilterModal>
+            </modal.FilterModal>
+
+
+            <SettingsModal isOpen={settingsOpen} onClose={() => { setSettingsOpen(false) }}>
+            </SettingsModal>
         </React.Fragment>
     )
 }
