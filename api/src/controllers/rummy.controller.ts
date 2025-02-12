@@ -79,7 +79,6 @@ export default class RummyController implements Controller {
     };
 
     private nextTurn = async (req: Request, res: Response) => {
-        const body = req.body;
         const lobbyId = req.params.lobbyId;
         const playerId = await getIDfromToken(req);
         const lobby = await this.lobby.findOne({ _id: lobbyId });
@@ -99,43 +98,17 @@ export default class RummyController implements Controller {
             return;
         }
 
-        if (!body.droppedCard) {
-            res.status(400).send({ message: "No card dropped!" });
-            return;
-        }
-
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        if (!game.playerCards[playerId].find((card: any) => JSON.stringify(card) === JSON.stringify(body.droppedCard))) {
-            res.status(400).send({ message: "Card not in hand!" });
-            return;
-        }
-
-        const dealer = new RummyDealer(game.shuffledCards);
-
-
         // get the next player
         const currentPlayerIndex = lobby.users.indexOf(game.currentPlayer);
+
+        if ( game.droppedCards.length === 0 || game.droppedCards.length % lobby.users.length !== currentPlayerIndex) {
+            res.status(403).send({ message: "You need to drop a card!" });
+            return;
+        }
+
         const nextPlayerIndex = this.nextPlayer(currentPlayerIndex, lobby.users.length - 1);
 
         game.currentPlayer = lobby.users[nextPlayerIndex];
-
-        if (body.playedCards) {
-
-            //Check if the player has played a valid card
-            if (!dealer.validatePlay(body.playedCards, game.playerCards[playerId])) {
-                res.status(400).send({ message: "Invalid play!" });
-                return;
-            }
-
-            // update the game state
-            game.playedCards.concat(body.playedCards);
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            game.playerCards[game.currentPlayer.toString()] = game.playerCards[game.currentPlayer.toString()].filter((card: any) => !body.playedCards.includes(card));
-        }
-
-        game.droppedCards.push(body.droppedCard);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        game.playerCards[game.currentPlayer.toString()] = game.playerCards[game.currentPlayer.toString()].filter((card: any) => body.droppedCard != card);
 
         await this.game.replaceOne({ _id: gameId }, game, { runValidators: true });
 
@@ -271,13 +244,14 @@ export default class RummyController implements Controller {
         const dealer = new RummyDealer(game.shuffledCards);
 
         //Check if the player has played a valid card
-        if (!dealer.validatePlay(body.playedCards, game.playerCards[playerId])) {
-            res.status(400).send({ message: "Invalid play!" });
+        const validation = dealer.validatePlay(body.playedCards, game.playerCards[playerId], game.playedCards, playerId);
+        if (validation !== "Valid") {
+            res.status(400).send({ message: validation });
             return;
         }
 
         // update the game state
-        game.playedCards.push(body.playedCards);
+        game.playedCards.push({ playedBy: playerId, cards: body.playedCards });
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         game.playerCards[playerId] = game.playerCards[playerId].filter((card: any) => !body.playedCards.find((c: any) => JSON.stringify(c) === JSON.stringify(card)));
         

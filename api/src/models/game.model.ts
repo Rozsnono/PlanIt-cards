@@ -17,7 +17,12 @@ const gameSchema = new Schema(
             readonly: true
         },
         playedCards: {
-            type: Array,
+            type: [
+                {
+                    playedBy: {type: String, required: true},
+                    cards: { type: Array, required: true },
+                }
+            ],
             default: [],
             readonly: true
         },

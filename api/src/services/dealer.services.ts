@@ -12,16 +12,16 @@ export default class CardDealer {
 
     private cards;
 
-    public deck: Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number }>;
+    public deck: Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number, value: number }>;
 
     constructor(
-        cards: Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number }>
+        cards: Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number, value: number }>
     ) {
         this.cards = cards;
         this.deck = cards;
     }
 
-    public shuffleDeck(deck: Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number }> = this.cards): Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number }> {
+    public shuffleDeck(deck: Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number, value: number }> = this.cards): Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number, value: number }> {
         let currentIndex = deck.length, randomIndex;
         while (currentIndex !== 0) {
             randomIndex = Math.floor(Math.random() * currentIndex);
@@ -32,8 +32,8 @@ export default class CardDealer {
         return deck;
     }
 
-    public dealCards(users: mongoose.Types.ObjectId[] | string[], numberOfCards?: number): { [id: string]: Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number }> } {
-        const playerCards: { [id: string]: Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number }> } = {};
+    public dealCards(users: mongoose.Types.ObjectId[] | string[], numberOfCards?: number): { [id: string]: Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number, value: number }> } {
+        const playerCards: { [id: string]: Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number, value: number }> } = {};
         const NoC = numberOfCards || 10;
         const numberOfPlayers = users.length;
         for (let i = 0; i < numberOfPlayers; i++) {
@@ -48,7 +48,7 @@ export default class CardDealer {
     }
 
     private getCards(numberOfCards: number = 10) {
-        const cards: Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number }> = [];
+        const cards: Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number, value: number }> = [];
 
         for (let i = 0; i < numberOfCards; i++) {
             cards.push(this.deck.pop()!);
@@ -56,12 +56,12 @@ export default class CardDealer {
         return cards;
     }
 
-    public drawCard(numberOfCards: number): Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number }> {
+    public drawCard(numberOfCards: number): Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number, value: number }> {
         const removedCards = this.deck.splice(-numberOfCards, numberOfCards);
         return removedCards;
     }
 
-    public validateDrop(droppedCards: Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number }>, droppedCard: { name: string, rank: number, suit: string, isJoker?: boolean, pack: number }): boolean {
+    public validateDrop(droppedCards: Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number, value: number }>, droppedCard: { name: string, rank: number, suit: string, isJoker?: boolean, pack: number }): boolean {
         if (droppedCards.length === 0) {
             return true;
         }
@@ -77,25 +77,33 @@ export default class CardDealer {
 }
 
 export class UnoDealer extends CardDealer {
-    constructor(cards: Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number }>) {
+    constructor(cards: Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number, value: number }>) {
         super(cards);
     }
 }
 
 export class RummyDealer extends CardDealer {
-    constructor(cards: Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number }>) {
+    constructor(cards: Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number, value: number }>) {
         super(cards);
     }
 
-    public validatePlay(deck: Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number }>, playerCards: Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number }>): boolean {
+    public validatePlay(deck: Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number, value: number }>, playerCards: Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number, value: number }>, playedCards: Array<{ playedBy: string, cards: Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number, value: number }> }>, playerId: string): string {
         if (typeof deck === "undefined") {
-            return true;
+            return "No cards selected";
         }
         if (!deck.every(card => playerCards.find(playerCards => JSON.stringify(playerCards) === JSON.stringify(card)))) {
-            return false;
+            return "Invalid card selected";
         }
         if (deck.length < 3) {
-            return false;
+            return "Minimum 3 cards required";
+        }
+        if (deck.length > 13) {
+            return "Maximum 13 cards allowed";
+        }
+        if (!playedCards.find(card => card.playedBy === playerId)) {
+            if (deck.map(card => card.value).reduce((a, b) => a + b) < 30) {
+                return "Minimum 30 points required";
+            }
         }
 
         const sameRankSuits = [deck[0].suit];
@@ -107,37 +115,45 @@ export class RummyDealer extends CardDealer {
         });
 
         const isValidSequence = this.isValidSequence(deck);
-
-        return isValidSequence || isSameRank;
+        if (isSameRank || isValidSequence) return "Valid";
+        return "Invalid sequence";
     }
 
-    private isValidSequence(deck: Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number }>): boolean {
-        deck.sort((a, b) => (a.isJoker ? -1 : b.isJoker ? 1 : a.rank - b.rank));
+    private isValidSequence(deck: Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number, value: number }>): boolean {
+        const tryWithRanks = (cards: typeof deck, aceHigh: boolean) => {
+            const sortedDeck = [...cards].map(card => ({
+                ...card,
+                rank: card.rank === 14 && aceHigh ? 14 : 1
+            })).sort((a, b) => (a.isJoker ? -1 : b.isJoker ? 1 : a.rank - b.rank));
 
-        const suit = deck.find(card => !card.isJoker)?.suit;
-        const isSameSuit = deck.every(card => card.isJoker || card.suit === suit);
+            const suit = sortedDeck.find(card => !card.isJoker)?.suit;
+            const isSameSuit = sortedDeck.every(card => card.isJoker || card.suit === suit);
 
-        if (!isSameSuit) return false;
+            if (!isSameSuit) return false;
 
-        let jokerCount = deck.filter(card => card.isJoker).length;
-        let lastRank = null;
+            let jokerCount = sortedDeck.filter(card => card.isJoker).length;
+            let lastRank = null;
 
-        for (const card of deck) {
-            if (card.isJoker) continue;
+            for (const card of sortedDeck) {
+                if (card.isJoker) continue;
 
-            if (lastRank !== null) {
-                const gap = card.rank - lastRank - 1;
+                if (lastRank !== null) {
+                    const gap = card.rank - lastRank - 1;
 
-                if (gap > jokerCount) {
-                    return false;
+                    if (gap > jokerCount) {
+                        return false;
+                    }
+
+                    jokerCount -= gap;
                 }
 
-                jokerCount -= gap;
+                lastRank = card.rank;
             }
 
-            lastRank = card.rank;
-        }
+            return true;
+        };
 
-        return true;
+        return tryWithRanks(deck, false) || tryWithRanks(deck, true);
     }
+
 }

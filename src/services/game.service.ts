@@ -57,10 +57,9 @@ export class GameService {
         return await response.json();
     }
 
-    async nextTurn(lobbyId: string, body: { playedCards: Icard[][], droppedCard: Icard }) {
+    async nextTurn(lobbyId: string,) {
         const response = await fetch(`/api/next/${lobbyId}/${this.type}`, {
             method: "PUT",
-            body: JSON.stringify(body),
             headers: {
                 'Content-Type': 'application/json',
                 Authorization: `Bearer ${getCookie("token")}`

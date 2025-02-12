@@ -126,6 +126,11 @@ export default function Game() {
         return () => clearInterval(interval);
     }, [timer]);
 
+    function nextTurn(){
+        if (!user) return;
+        gameService.nextTurn(lobby!._id);
+    }
+
     if (!game) return <Loader></Loader>
 
     return (
@@ -140,7 +145,7 @@ export default function Game() {
                                 return (
                                     <div key={i} className="flex gap-1 h-min">
                                         {
-                                            e.map((card: Icard, j: number) => {
+                                            (Object.values(e)[1] as any).map((card: Icard, j: number) => {
                                                 return (
                                                     <div key={j} className="w-8 h-16 relative group cursor-pointer overflow-visible">
                                                         <Image className="card-animation w-16 max-w-16" key={j} src={"/assets/cards/" + getCardUrl(card.name)} width={70} height={60} alt={getCardUrl(card.name)}></Image>
@@ -259,7 +264,7 @@ export default function Game() {
                         </div>
                     </div>
 
-                    <div key={timer} className={`absolute right-10 h-[5rem] w-[5rem] justify-center items-center flex rounded-full border-2 border-lime-300 bottom-4`}
+                    <div onClick={nextTurn} key={timer} className={`absolute right-10 h-[5rem] w-[5rem] justify-center items-center flex rounded-full border-2 border-lime-300 bottom-4`}
                         style={{ background: `conic-gradient(#bef264 ${360 - ((180 - timer) * 360 / 180)}deg, transparent 0deg)` }}
                     >
                         <div className="w-[4.5rem] h-[4.5rem] bg-green-800 rounded-full border-2 flex items-center justify-center text-zinc-200 border-lime-300 text-xl cursor-pointer group duration-100">

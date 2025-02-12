@@ -323,31 +323,31 @@ export class Cards {
         const rummy = [];
         const suits = ["S", "H", "D", "C"];
         const ranks = [
-            { name: "2", rank: 2 },
-            { name: "3", rank: 3 },
-            { name: "4", rank: 4 },
-            { name: "5", rank: 5 },
-            { name: "6", rank: 6 },
-            { name: "7", rank: 7 },
-            { name: "8", rank: 8 },
-            { name: "9", rank: 9 },
-            { name: "10", rank: 10 },
-            { name: "J", rank: 11 },
-            { name: "Q", rank: 12 },
-            { name: "K", rank: 13 },
-            { name: "A", rank: 14|1 }
+            { name: "2", rank: 2, value: 2 },
+            { name: "3", rank: 3, value: 3 },
+            { name: "4", rank: 4, value: 4 },
+            { name: "5", rank: 5, value: 5 },
+            { name: "6", rank: 6, value: 6 },
+            { name: "7", rank: 7, value: 7 },
+            { name: "8", rank: 8, value: 8 },
+            { name: "9", rank: 9, value: 9 },
+            { name: "10", rank: 10, value: 10 },
+            { name: "J", rank: 11, value: 10 },
+            { name: "Q", rank: 12, value: 10 },
+            { name: "K", rank: 13, value: 10 },
+            { name: "A", rank: 14, value: 10 }
         ];
 
         // Generating both packs
         for (let pack = 1; pack <= 2; pack++) {
             for (const suit of suits) {
-                for (const { name, rank } of ranks) {
-                    rummy.push({ name: `${name}${suit}`, rank, suit, pack: pack });
+                for (const { name, rank, value } of ranks) {
+                    rummy.push({ name: `${name}${suit}`, rank, suit, pack: pack, value });
                 }
             }
             // Adding jokers
-            rummy.push({ name: "BJ", rank: 50, suit: "J", isJoker: true, pack: pack });
-            rummy.push({ name: "RJ", rank: 50, suit: "J", isJoker: true, pack: pack });
+            rummy.push({ name: "BJ", rank: 50, suit: "J", isJoker: true, pack: pack, value: 10 });
+            rummy.push({ name: "RJ", rank: 50, suit: "J", isJoker: true, pack: pack, value: 10 });
         }
 
         return rummy;
