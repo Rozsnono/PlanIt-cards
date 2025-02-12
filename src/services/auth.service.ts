@@ -1,7 +1,7 @@
 export class AuthService {
     constructor() { }
 
-    public async Login(username: string, password: string) {
+    public async Login(username: string, password: string, remember: boolean) {
         return fetch('/auth/login', {
             method: 'POST',
             headers: {
@@ -14,13 +14,13 @@ export class AuthService {
                 if (data.status === 'error') {
                     throw new Error(data.message);
                 }
-                this.saveInCookie(data.token);
+                this.saveInCookie(data.token, remember);
                 return data;
             });
     }
 
-    private saveInCookie(data: string) {
-        document.cookie = `token=${data}; expires=${new Date(new Date().setDate(new Date().getDate() + 7)).toString()} path=/`;
+    private saveInCookie(data: string, remember: boolean = false) {
+        document.cookie = `token=${data}; expires=${new Date(new Date().setDate(new Date().getDate() + (remember ? 7 : 0))).toString()} path=/`;
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

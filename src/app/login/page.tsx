@@ -23,7 +23,11 @@ export default function LogIn() {
         e.preventDefault();
         setLoading(true);
 
-        authService.Login(e.target.username.value, e.target.password.value).then((data) => {
+        const username = e.target.username.value;
+        const password = e.target.password.value;
+        const remember = e.target.remember.checked;
+
+        authService.Login(username, password, remember).then((data) => {
             if (data.message) {
 
                 setError(data.message);
@@ -57,13 +61,20 @@ export default function LogIn() {
                         <input type="text" id="username" placeholder="Username" className="bg-zinc-600 text-zinc-200 rounded-lg p-2" />
                         <input type="password" id="password" placeholder="Password" className="bg-zinc-600 text-zinc-200 rounded-lg p-2" />
 
+                        <div className="flex text-zinc-300 gap-2 items-center">
+                            <label className={`inline-flex items-center cursor-pointer`}>
+                                <input type="checkbox" className="sr-only peer disabled:cursor-default " id="remember" />
+                                <div className="relative w-11 h-6 bg-zinc-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-gray-600 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gray-400"></div>
+                            </label>
+                            <label htmlFor="remember">Remember me</label>
+                        </div>
                     </div>
 
                     {error && <div className="text-red-500 text-center">{error}</div>}
 
                     <div className="flex items-center justify-center">
                         <button type="submit" disabled={loading} className="flex justify-center items-center gap-2 bg-blue-700 hover:bg-blue-800 text-zinc-200 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 w-1/2 disabled:bg-blue-900 disabled:text-zinc-400">
-                            { loading && <span className="animate-spin"><Icon name="loader" size={18}></Icon></span> }
+                            {loading && <span className="animate-spin"><Icon name="loader" size={18}></Icon></span>}
                             Log in
                         </button>
                     </div>
