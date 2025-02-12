@@ -21,7 +21,6 @@ export default class SocketIO {
                     if (inGame) {
                         const obj: any = inGame.toObject();
                         const playerCard = obj.playerCards[identifier.player_id];
-
                         ws.send(JSON.stringify({
                             lobby: inLobby,
                             game: { ...obj, playerCards: Object.keys(obj.playerCards).map((key) => { return { [key]: obj.playerCards[key].length } }) },
@@ -54,7 +53,7 @@ export default class SocketIO {
 
             this.wss.clients.forEach((client) => {
                 if (client.readyState === WebSocket.OPEN) {
-                    client.send(JSON.stringify(change));
+                    client.send(JSON.stringify({ refresh: true }));
                 }
             });
         });

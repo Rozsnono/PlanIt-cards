@@ -1,16 +1,12 @@
 "use client";
 import Icon from "@/assets/icons";
-import Chart from "@/components/chart";
 import { getColorByInitials, getUserInitials } from "@/functions/user.function";
 import { useParams } from "next/navigation";
 import { useQuery } from "react-query";
-import Image from "next/image";
-import { getCurrentRank, getRankName } from "@/interfaces/rank.enum";
+import { getRankName } from "@/interfaces/rank.enum";
 import Pagination from "@/components/pagination";
-import React, { useContext } from "react";
-import { achievements } from "@/interfaces/achievement.enum";
-import { getProfileData } from "@/services/profile.service";
-import { UserContext } from "@/contexts/user.context";
+import React from "react";
+import ProfileService from "@/services/profile.service";
 import { Iplayer } from "@/interfaces/interface";
 import Link from "next/link";
 
@@ -20,10 +16,11 @@ export default function ProfilePage() {
 
     const [page, setPage] = React.useState(1);
 
-    const { user } = useContext(UserContext);
+    const profileService = new ProfileService();
+
 
     function getPlayer() {
-        return getProfileData(player_id as string).then(res => res.json());
+        return profileService.getProfileData(player_id as string).then(res => res.json());
     }
 
     const player = useQuery("player", getPlayer, { enabled: !!player_id, refetchOnWindowFocus: false });

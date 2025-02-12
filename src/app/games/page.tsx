@@ -5,15 +5,16 @@ import RightSideBar, { RightSideBarHeader } from "./sidebar";
 import { useState } from "react";
 import { useQuery } from "react-query";
 import { Ilobby } from "@/interfaces/interface";
-import { getLobbyData, createLobby } from "@/services/game.service";
 import Loading from "../loading";
 import { useRouter } from "next/navigation";
+import LobbyService from "@/services/lobby.service";
+const lobbyService = new LobbyService();
 
 export default function Games() {
     const [open, setOpen] = useState(false);
     const [openPrivate, setOpenPrivate] = useState(false);
 
-    const data = useQuery("lobbies", getLobbyData, { refetchOnWindowFocus: false });
+    const data = useQuery("lobbies", lobbyService.getLobbyData, { refetchOnWindowFocus: false });
 
     return (
         <main className="flex gap-2">
@@ -84,7 +85,7 @@ function SideBarContent({ onClose }: Readonly<{ onClose?: () => void }>) {
         };
 
         try {
-            const result = await createLobby(lobbySettings);
+            const result = await lobbyService.createLobby(lobbySettings);
             router.push(`/games/${result._id}`);
         } catch (error) {
             console.error("Error creating lobby:", error);

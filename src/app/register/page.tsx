@@ -1,6 +1,6 @@
 "use client";
 import Icon from "@/assets/icons"
-import { Register } from "@/services/auth.service";
+import { AuthService } from "@/services/auth.service";
 import Image from "next/image"
 import Link from "next/link"
 import { useState } from "react";
@@ -10,6 +10,8 @@ export default function RegisterPage() {
 
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState<boolean>(false);
+
+    const authService = new AuthService();
     
     async function formAction(e: any) {
 
@@ -37,7 +39,7 @@ export default function RegisterPage() {
         }
         
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        Register(body).then((data) => {
+        authService.Register(body).then((data) => {
             if (data.message) {
                 setError(data.message);
                 setLoading(false);

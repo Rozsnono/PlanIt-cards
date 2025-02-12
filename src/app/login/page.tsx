@@ -2,7 +2,7 @@
 import Icon from "@/assets/icons"
 import { UserContext } from "@/contexts/user.context";
 import { getUser } from "@/functions/user.function";
-import { Login } from "@/services/auth.service";
+import { AuthService } from "@/services/auth.service";
 import Image from "next/image"
 import Link from "next/link"
 import { useRouter } from "next/navigation";
@@ -16,12 +16,14 @@ export default function LogIn() {
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState<boolean>(false);
 
+    const authService = new AuthService();
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     function handleSubmit(e: any) {
         e.preventDefault();
         setLoading(true);
 
-        Login(e.target.username.value, e.target.password.value).then((data) => {
+        authService.Login(e.target.username.value, e.target.password.value).then((data) => {
             if (data.message) {
 
                 setError(data.message);

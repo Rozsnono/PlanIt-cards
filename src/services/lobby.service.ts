@@ -1,68 +1,88 @@
 import { getCookie } from "@/functions/user.function";
 import { Ilobby } from "@/interfaces/interface";
 
-export const connectWebSocket = (lobbyId: string, userId: string, onMessage: (data: any) => void) => {
-    const socket = new WebSocket("ws://localhost:8080");
+export default class LobbyService {
 
-    socket.addEventListener('open', () => {
-        console.log('WebSocket is connected');
-        socket.send(JSON.stringify({ _id: lobbyId, player_id: userId }));
-    });
+    public async getLobbyData() {
+        const token = getCookie("token");
+        const response = await fetch(`/api/get`, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        return response.json();
+    }
 
-    socket.addEventListener('message', (event) => {
-        const data = JSON.parse(event.data);
-        onMessage(data);
-    });
+    public async joinLobby(lobbyId: string, lobbyCode?: string) {
+        const response = await fetch(`/api/join/${lobbyId}`, {
+            method: "PUT",
+            headers: {
+                body: JSON.stringify({ password: lobbyCode }),
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${getCookie("token")}`
+            }
+        });
 
-    return socket;
-};
+        const data = await response.json();
+        return data.lobby as Ilobby;
+    };
 
-export const joinLobby = async (lobbyId: string, lobbyCode?: string) => {
-    const response = await fetch(`/api/join/${lobbyId}`, {
-        method: "PUT",
-        headers: {
-            body: JSON.stringify({ password: lobbyCode }),
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${getCookie("token")}`
-        }
-    });
+    public async sendChatMessage(lobbyId: string, userId: string, chat: string) {
+        await fetch(`/api/chat/${lobbyId}`, {
+            method: "PUT",
+            body: JSON.stringify({ sender: userId, message: chat, time: new Date().toISOString(), type: "text" }),
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${getCookie("token")}`
+            }
+        });
+    };
 
-    const data = await response.json();
-    return data.lobby as Ilobby;
-};
+    public async editLobby(lobbyId: string, lobby: any) {
+        const response = await fetch(`/api/update`, {
+            method: "PUT",
+            body: JSON.stringify({ ...lobby, _id: lobbyId }),
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${getCookie("token")}`
+            }
+        });
 
-export const sendChatMessage = async (lobbyId: string, userId: string, chat: string) => {
-    await fetch(`/api/chat/${lobbyId}`, {
-        method: "PUT",
-        body: JSON.stringify({ sender: userId, message: chat, time: new Date().toISOString(), type: "text" }),
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${getCookie("token")}`
-        }
-    });
-};
+        return await response.json();
+    }
 
-export const startGame = async (lobbyId: string) => {
-    const response = await fetch(`/api/start/${lobbyId}`, {
-        method: "POST",
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${getCookie("token")}`
-        }
-    });
+    public async createLobby(lobbySettings: any) {
+        const token = getCookie("token");
 
-    return await response.json();
-};
+        const response = await fetch("/api/create", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`
+            },
+            body: JSON.stringify({ settings: lobbySettings }),
+        });
 
-export async function editLobby(lobbyId: string, lobby: any) {
-    const response = await fetch(`/api/update`, {
-        method: "PUT",
-        body: JSON.stringify({ ...lobby, _id: lobbyId }),
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${getCookie("token")}`
-        }
-    });
+        return response.json();
+    }
 
-    return await response.json();
+    public connectWebSocket(lobbyId: string, userId: string, onMessage: (data: any) => void) {
+        const socket = new WebSocket("ws://localhost:8080");
+
+        socket.addEventListener('open', () => {
+            console.log('WebSocket is connected');
+            socket.send(JSON.stringify({ _id: lobbyId, player_id: userId }));
+        });
+
+        socket.addEventListener('message', (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                onMessage(data);
+            } catch {
+                onMessage({ message: "An error occurred" });
+            }
+        });
+
+        return socket;
+
+    }
+
 }

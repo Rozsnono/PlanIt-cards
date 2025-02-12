@@ -13,6 +13,10 @@ const lobbySchema = new Schema(
             ref: "user",
             required: true,
         }],
+        bots: [{
+            type: String,
+            default: []
+        }],
         mutedPlayers: [{
             type: Schema.Types.ObjectId,
             ref: "user",

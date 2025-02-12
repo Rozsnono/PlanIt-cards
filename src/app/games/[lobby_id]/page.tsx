@@ -3,12 +3,15 @@ import Icon from "@/assets/icons";
 import { UserContext } from "@/contexts/user.context";
 import { useParams, useRouter } from "next/navigation";
 import { useContext, useEffect, useState } from "react";
-import { connectWebSocket, editLobby, joinLobby, sendChatMessage, startGame } from "@/services/lobby.service";
 import { Ilobby } from "@/interfaces/interface";
 import React from "react";
 import Link from "next/link";
 import Loader from "@/components/loader.component";
 import { LobbyComponent } from "@/components/lobby/lobby.component";
+import { GameService } from "@/services/game.service";
+import LobbyService from "@/services/lobby.service";
+const lobbyService = new LobbyService();
+const gameService = new GameService("rummy");
 
 export default function LobbyId() {
     const lobby_id = useParams().lobby_id;
@@ -20,12 +23,14 @@ export default function LobbyId() {
 
 
     useEffect(() => {
-        const socket = connectWebSocket(lobby_id as string, user!._id, (data: any) => {
+        const socket = lobbyService.connectWebSocket(lobby_id as string, user!._id, (data: any) => {
             if (data.game) {
-                router.push(`/games/${lobby_id}/${data.game._id}/${data.lobby.settings.cardType.toLocaleLowerCase()}`);
+                router.push(`/games/${lobby_id}/${data.game_id}/${data.lobby.settings.cardType.toLocaleLowerCase()}`);
+            } else if (data.game_id) {
+                router.push(`/games/${lobby_id}/${data.game_id}/${data.settings.cardType.toLocaleLowerCase()}`);
             } else if (data.message) {
-                joinLobby(lobby_id as string).then(data => {
-                    if(data.message){
+                lobbyService.joinLobby(lobby_id as string).then(data => {
+                    if (data.message) {
                         router.replace("/gamems");
                     }
                     setLobby(data);
@@ -47,13 +52,11 @@ export default function LobbyId() {
         e.preventDefault();
         const chat = e.target.chat.value;
         e.target.chat.value = "";
-        sendChatMessage(lobby_id as string, user!.username, chat);
+        lobbyService.sendChatMessage(lobby_id as string, user!.username, chat);
     }
 
     function startLobbyGame() {
-        startGame(lobby_id as string).then(data => {
-            router.push(`/games/${lobby_id}/${data.game_id}/${lobby?.settings.cardType.toLocaleLowerCase()}`);
-        });
+        gameService.startGame(lobby_id as string);
     }
 
     function setFormData(e: React.ChangeEvent<HTMLInputElement> | any) {
@@ -62,7 +65,7 @@ export default function LobbyId() {
 
     function saveEdit() {
         console.log(form);
-        editLobby(lobby_id as string, form);
+        lobbyService.editLobby(lobby_id as string, form);
     }
 
     function cancelEdit() {

@@ -335,7 +335,7 @@ export class Cards {
             { name: "J", rank: 11 },
             { name: "Q", rank: 12 },
             { name: "K", rank: 13 },
-            { name: "A", rank: 14 }
+            { name: "A", rank: 14|1 }
         ];
 
         // Generating both packs

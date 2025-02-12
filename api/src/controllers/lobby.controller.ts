@@ -69,6 +69,7 @@ export default class LobbyController implements Controller {
         body["_id"] = new mongoose.Types.ObjectId();
         body["users"] = [new mongoose.Types.ObjectId(userid)];
         body["createdBy"] = new mongoose.Types.ObjectId(userid);
+        body["bots"] = (body.settings.fillWithRobots ? Array.from({ length: body.settings.numberOfRobots }, (_, i) => `${body.settings.robotsDifficulty}-bot-${i}`) : []);
         const newLobby = new this.lobby(body);
         await newLobby.save();
         res.send({ _id: newLobby._id });
@@ -122,7 +123,7 @@ export default class LobbyController implements Controller {
         const body = req.body;
         const lobby = await this.lobby.findOne({ _id: id });
         if (lobby) {
-            if(body.password && lobby.settings?.lobbyCode !== body.password){
+            if (body.password && lobby.settings?.lobbyCode !== body.password) {
                 res.status(400).send({ message: "Wrong password!" });
                 return;
             }
