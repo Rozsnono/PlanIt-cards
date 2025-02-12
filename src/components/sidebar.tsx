@@ -60,14 +60,20 @@ export default function Sidebar() {
                         <div className="flex flex-col gap-2">
                             <Link href={"/games"}>
                                 <div className="text-zinc-300 text-md hover:text-white hover:font-bold duration-200 flex items-center gap-1 hover:gap-2">
-                                    <Icon name="user"></Icon>
+                                    <StrokeIcon name="card"></StrokeIcon>
                                     Rummy
                                 </div>
                             </Link>
                             <Link href={"/games"}>
                                 <div className="text-zinc-300 text-md hover:text-white hover:font-bold duration-200 flex items-center gap-1 hover:gap-2">
-                                    <Icon name="users"></Icon>
-                                    Robber Rummy
+                                    <StrokeIcon name="card"></StrokeIcon>
+                                    UNO
+                                </div>
+                            </Link>
+                            <Link href={"/games"}>
+                                <div className="text-zinc-300 text-md hover:text-white hover:font-bold duration-200 flex items-center gap-1 hover:gap-2">
+                                    <StrokeIcon name="card"></StrokeIcon>
+                                    Schnapps
                                 </div>
                             </Link>
                         </div>
