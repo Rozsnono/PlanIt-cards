@@ -139,31 +139,14 @@ function SideBarContent({ onClose }: Readonly<{ onClose?: () => void }>) {
                             <button onClick={() => { setCt('RUMMY') }} type="button" className={`w-full px-4 py-2 text-sm font-medium text-zinc-400 border border-zinc-600 rounded-s-lg hover:bg-zinc-700 hover:text-gray-200 focus:z-10 focus:ring-2 focus:ring-gray-500 focus:text-gray-100 ${ct === 'RUMMY' ? "text-gray-100 bg-zinc-600 ring-gray-500 ring-1" : "bg-zinc-800"}`}>
                                 RUMMY
                             </button>
-                            <button disabled onClick={() => { setCt('UNO') }} type="button" className={`w-full px-4 py-2 text-sm font-medium text-zinc-400 border border-zinc-600 rounded-e-lg hover:bg-zinc-700 hover:text-gray-200 focus:z-10 focus:ring-2 focus:ring-gray-500 focus:text-gray-100 ${ct === 'UNO' ? "text-gray-100 bg-zinc-600 ring-gray-500 ring-1" : "bg-zinc-800"}`}>
+                            <button onClick={() => { setCt('UNO') }} type="button" className={`w-full px-4 py-2 text-sm font-medium text-zinc-400 border border-zinc-600 hover:bg-zinc-700 hover:text-gray-200 focus:z-10 focus:ring-2 focus:ring-gray-500 focus:text-gray-100 ${ct === 'UNO' ? "text-gray-100 bg-zinc-600 ring-gray-500 ring-1" : "bg-zinc-800"}`}>
                                 UNO
+                            </button>
+                            <button onClick={() => { setCt('SCHNAPPS') }} type="button" className={`w-full px-4 py-2 text-sm font-medium text-zinc-400 border border-zinc-600 rounded-e-lg hover:bg-zinc-700 hover:text-gray-200 focus:z-10 focus:ring-2 focus:ring-gray-500 focus:text-gray-100 ${ct === 'SCHNAPPS' ? "text-gray-100 bg-zinc-600 ring-gray-500 ring-1" : "bg-zinc-800"}`}>
+                                SCHNAPPS
                             </button>
                         </div>
                     </div>
-
-                    <div className="flex gap-2 text-zinc-200 items-center">
-                        <div className="text-md w-1/3">Robber Rummy</div>
-
-                        <div className="w-full flex items-center">
-
-                            <label className="inline-flex items-center cursor-pointer">
-                                <input type="checkbox" value="" className="sr-only peer" id="robber_rummy" onChange={(e) => { setRr(e.target.checked) }} checked={rr} />
-                                <div className="relative w-11 h-6 bg-zinc-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-gray-600 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gray-400"></div>
-                            </label>
-
-                        </div>
-                    </div>
-
-                    {
-                        rr &&
-                        <div className="flex gap-2 text-zinc-200 items-center italic">
-                            <Icon name="info" size={100}></Icon> <span className="text-[.8rem]">Robber Rummy enhances traditional Rummy with several key changes. users can draw any card from the discard pile but must take all cards above it, adding strategic depth. The game continues until a player reaches 500 points, making it more competitive over multiple rounds, unlike classic Rummy, which often ends when a player goes out. Additionally, users can add cards to opponents’ melds, promoting more interaction between users. These elements make Robber Rummy faster-paced and more engaging than its traditional counterpart.</span>
-                        </div>
-                    }
 
                     <div className="flex gap-2 text-zinc-200 items-center">
                         <div className="text-md w-1/3">Private lobby</div>
