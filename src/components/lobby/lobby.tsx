@@ -64,7 +64,7 @@ export default function LobbyCard({ lobbyDatas, lobbyNumber }: { lobbyDatas: Ilo
                 </Link>
             )
         }
-        else if (lobbyDatas.game_id || (lobbyDatas.users?.length && lobbyDatas.users?.length >= lobbyDatas.settings.numberOfPlayers)) {
+        else if (lobbyDatas.game_id || (lobbyDatas.users?.length && lobbyDatas.users?.length + (lobbyDatas.bots?.length ? lobbyDatas.bots?.length : 0) >= lobbyDatas.settings.numberOfPlayers)) {
             return (
                 <Link href={"games/" + lobbyDatas._id} className="bg-zinc-500 text-white p-2 px-2 rounded-md hover:bg-zinc-400 flex items-center gap-1">
                     <Icon name="watch"></Icon>
@@ -106,8 +106,17 @@ export default function LobbyCard({ lobbyDatas, lobbyNumber }: { lobbyDatas: Ilo
                     }
 
                     {
-                        !lobbyDatas.users?.length || lobbyDatas.users?.length < lobbyDatas.settings.numberOfPlayers ?
-                            new Array(lobbyDatas.settings.numberOfPlayers - (lobbyDatas.users?.length || 0)).fill(0).map((_, i) => (
+                        lobbyDatas.bots?.map(bot => (
+                            <div key={bot} className="flex flex-col gap-1 items-center h-14 w-full mx-auto border border-zinc-500 rounded-md">
+                                <div className="">{bot}</div>
+                                <div className="text-md">Bot</div>
+                            </div>
+                        ))
+                    }
+
+                    {
+                        !lobbyDatas.game_id || !(lobbyDatas.users?.length && lobbyDatas.users?.length + (lobbyDatas.bots?.length || 0) >= lobbyDatas.settings.numberOfPlayers) ?
+                            new Array(lobbyDatas.settings.numberOfPlayers - (lobbyDatas.users?.length + (lobbyDatas.bots?.length || 0) || 0)).fill(0).map((_, i) => (
                                 <div key={i} className="flex flex-col gap-1 h-14 w-full justify-center items-center bg-zinc-700 p-2 rounded-lg animate-pulse mx-auto">
                                 </div>
                             )) : null

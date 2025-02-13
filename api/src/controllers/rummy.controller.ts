@@ -7,6 +7,8 @@ import { RummyDealer } from "../services/dealer.services";
 import lobbyModel from "../models/lobby.model";
 import { Cards } from "../cards/cards";
 import mongoose from "mongoose";
+import { ERROR } from "../enums/error.enum";
+import GameHistoryService from "../services/history.services";
 
 
 export default class RummyController implements Controller {
@@ -14,6 +16,7 @@ export default class RummyController implements Controller {
     public validate = gameModel.validate;
     public game = gameModel.gameModel;
     public lobby = lobbyModel.lobbyModel;
+    private gameHistoryService = new GameHistoryService();
 
     constructor() {
         // API route to start a game
@@ -46,18 +49,18 @@ export default class RummyController implements Controller {
         const lobby = await this.lobby.findOne({ _id: lobbyId });
         // check if the lobby exists
         if (!lobby) {
-            res.status(404).send({ message: "Lobby not found!" });
+            res.status(404).send({ error: ERROR.LOBBY_NOT_FOUND });
             return;
         }
         // check if the lobby has a game
         if (lobby.game_id) {
-            res.status(400).send({ message: "Game already started!" });
+            res.status(400).send({ error: ERROR.GAME_ALREADY_STARTED });
             return;
         }
         // check if user in lobby
         const playerId = await getIDfromToken(req);
         if (!lobby.users.find((player) => player.toString() == playerId)) {
-            res.status(403).send({ message: "Not in the lobby!" });
+            res.status(403).send({ error: ERROR.NOT_IN_LOBBY});
             return;
         }
 
@@ -83,26 +86,37 @@ export default class RummyController implements Controller {
         const playerId = await getIDfromToken(req);
         const lobby = await this.lobby.findOne({ _id: lobbyId });
         if (!lobby) {
-            res.status(404).send({ message: "Lobby not found!" });
+            res.status(404).send({ error: ERROR.LOBBY_NOT_FOUND });
             return;
         }
         const gameId = lobby.game_id;
         const game = await this.game.findOne({ _id: gameId });
         if (!game) {
-            res.status(404).send({ message: "Game not found!" });
+            res.status(404).send({ error: ERROR.GAME_NOT_FOUND });
             return;
         }
         // check if the player is the current player
         if (playerId.toString() !== game.currentPlayer.toString()) {
-            res.status(403).send({ message: "Not your turn!" });
+            res.status(403).send({ error: ERROR.NOT_YOUR_TURN });
             return;
         }
 
         // get the next player
         const currentPlayerIndex = lobby.users.indexOf(game.currentPlayer);
 
-        if ( game.droppedCards.length === 0 || game.droppedCards.length % lobby.users.length !== currentPlayerIndex) {
-            res.status(403).send({ message: "You need to drop a card!" });
+        if (game.droppedCards.length === 0 || game.droppedCards.length % lobby.users.length !== currentPlayerIndex) {
+            res.status(403).send({ error: ERROR.NO_CARDS_DROPPED });
+            return;
+        }
+        const dealer = new RummyDealer(game.shuffledCards);
+        if (!dealer.isValidToNext(game.playedCards, playerId)) {
+            const { cardsToReturn, playedCardsToReturn } = dealer.cardsToReturn(game.playedCards, playerId);
+            game.playerCards[playerId] = game.playerCards[playerId].concat(cardsToReturn);
+            game.playerCards[playerId].push(game.droppedCards[game.droppedCards.length - 1]);
+            game.playedCards = playedCardsToReturn;
+            game.droppedCards.shift();
+            await this.game.replaceOne({ _id: gameId }, game, { runValidators: true });
+            res.status(403).send({ error: ERROR.MIN_51_VALUE });
             return;
         }
 
@@ -111,7 +125,7 @@ export default class RummyController implements Controller {
         game.currentPlayer = lobby.users[nextPlayerIndex];
 
         await this.game.replaceOne({ _id: gameId }, game, { runValidators: true });
-
+        this.gameHistoryService.saveHistory(playerId, gameId);
         res.send({ message: "Next turn!" });
     };
 
@@ -120,22 +134,22 @@ export default class RummyController implements Controller {
         const playerId = await getIDfromToken(req);
         const lobby = await this.lobby.findOne({ _id: lobbyId });
         if (!lobby) {
-            res.status(404).send({ message: "Lobby not found!" });
+            res.status(404).send({ error: ERROR.LOBBY_NOT_FOUND });
             return;
         }
         if (!lobby.users.find((player) => player.toString() == playerId)) {
-            res.status(403).send({ message: "Not in the lobby!" });
+            res.status(403).send({ error: ERROR.NOT_IN_LOBBY });
             return;
         }
         const gameId = lobby.game_id;
         const game = await this.game.findOne({ _id: gameId });
         if (!game) {
-            res.status(404).send({ message: "Game not found!" });
+            res.status(404).send({ error: ERROR.GAME_NOT_FOUND });
             return;
         }
         // check if the player is the current player
         if (playerId.toString() !== game.currentPlayer.toString()) {
-            res.status(403).send({ message: "Not your turn!" });
+            res.status(403).send({ error: ERROR.NOT_YOUR_TURN });
             return;
         }
         const dealer = new RummyDealer(game.shuffledCards);
@@ -156,12 +170,12 @@ export default class RummyController implements Controller {
         const lobby = await this.lobby.findOne({ _id: lobbyId });
 
         if (!lobby) {
-            res.status(404).send({ message: "Lobby not found!" });
+            res.status(404).send({ error: ERROR.LOBBY_NOT_FOUND });
             return;
         }
 
         if (!lobby.users.find((player) => player.toString() == playerId)) {
-            res.status(403).send({ message: "Not in the lobby!" });
+            res.status(403).send({ error: ERROR.NOT_IN_LOBBY });
             return;
         }
 
@@ -169,25 +183,25 @@ export default class RummyController implements Controller {
         const game = await this.game.findOne({ _id: gameId });
 
         if (!game) {
-            res.status(404).send({ message: "Game not found!" });
+            res.status(404).send({ error: ERROR.GAME_NOT_FOUND });
             return;
         }
 
         // check if the player is the current player
         if (playerId.toString() !== game.currentPlayer.toString()) {
-            res.status(403).send({ message: "Not your turn!" });
+            res.status(403).send({ error: ERROR.NOT_YOUR_TURN });
             return;
         }
 
         const body = req.body;
         if (!body.droppedCard) {
-            res.status(400).send({ message: "No card dropped!" });
+            res.status(400).send({ error: ERROR.NO_CARDS_DROPPED });
             return;
         }
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         if (!game.playerCards[playerId].find((card: any) => JSON.stringify(card) === JSON.stringify(body.droppedCard))) {
-            res.status(400).send({ message: "Card not in hand!" });
+            res.status(400).send({ error: ERROR.CARD_NOT_FOUND});
             return;
         }
 
@@ -206,12 +220,12 @@ export default class RummyController implements Controller {
         const lobby = await this.lobby.findOne({ _id: lobbyId });
 
         if (!lobby) {
-            res.status(404).send({ message: "Lobby not found!" });
+            res.status(404).send({ error: ERROR.LOBBY_NOT_FOUND });
             return;
         }
 
         if (!lobby.users.find((player) => player.toString() == playerId)) {
-            res.status(403).send({ message: "Not in the lobby!" });
+            res.status(403).send({ error: ERROR.NOT_IN_LOBBY });
             return;
         }
 
@@ -219,25 +233,25 @@ export default class RummyController implements Controller {
         const game = await this.game.findOne({ _id: gameId });
 
         if (!game) {
-            res.status(404).send({ message: "Game not found!" });
+            res.status(404).send({ error: ERROR.GAME_NOT_FOUND });
             return;
         }
 
         // check if the player is the current player
         if (playerId.toString() !== game.currentPlayer.toString()) {
-            res.status(403).send({ message: "Not your turn!" });
+            res.status(403).send({ error: ERROR.NOT_YOUR_TURN });
             return;
         }
 
         const body = req.body;
         if (!body.playedCards) {
-            res.status(400).send({ message: "No card played!" });
+            res.status(400).send({ error: ERROR.NO_CARD_PLAYED });
             return;
         }
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         if (!game.playerCards[playerId].find((card: any) => body.playedCards.find((c: any) => JSON.stringify(c) === JSON.stringify(card)))) {
-            res.status(400).send({ message: "Card not in hand!" });
+            res.status(400).send({ error: ERROR.CARD_NOT_FOUND });
             return;
         }
 
@@ -246,7 +260,7 @@ export default class RummyController implements Controller {
         //Check if the player has played a valid card
         const validation = dealer.validatePlay(body.playedCards, game.playerCards[playerId], game.playedCards, playerId);
         if (validation !== "Valid") {
-            res.status(400).send({ message: validation });
+            res.status(400).send({ error: validation });
             return;
         }
 
@@ -254,7 +268,7 @@ export default class RummyController implements Controller {
         game.playedCards.push({ playedBy: playerId, cards: body.playedCards });
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         game.playerCards[playerId] = game.playerCards[playerId].filter((card: any) => !body.playedCards.find((c: any) => JSON.stringify(c) === JSON.stringify(card)));
-        
+
         await this.game.replaceOne({ _id: gameId }, game, { runValidators: true });
 
         res.send({ message: "Card played!" });

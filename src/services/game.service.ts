@@ -40,8 +40,8 @@ export class GameService {
                 Authorization: `Bearer ${getCookie("token")}`
             }
         });
-
-        return await response.json();
+        const res = await response.json();
+        return res;
     }
 
     async playCard(lobbyId: string, body: { playedCards: Icard[] }) {
@@ -53,8 +53,8 @@ export class GameService {
                 Authorization: `Bearer ${getCookie("token")}`
             }
         });
-
-        return await response.json();
+        const res = await response.json();
+        return res;
     }
 
     async nextTurn(lobbyId: string,) {
@@ -65,8 +65,8 @@ export class GameService {
                 Authorization: `Bearer ${getCookie("token")}`
             }
         });
-
-        return await response.json();
+        const res = await response.json();
+        return res;
     }
 
     public getDataFromWebsocket(object: any, socket: any, data: object): { lobby: any, game: any, playerCards: any } | null {

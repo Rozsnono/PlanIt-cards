@@ -40,8 +40,8 @@ export default function RegisterPage() {
         
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         authService.Register(body).then((data) => {
-            if (data.message) {
-                setError(data.message);
+            if (data.error) {
+                setError(data.error);
                 setLoading(false);
                 return;
             }

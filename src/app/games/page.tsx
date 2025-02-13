@@ -63,7 +63,7 @@ function SideBarContent({ onClose }: Readonly<{ onClose?: () => void }>) {
     const [lc, setLc] = useState<string | null>(null); // Lobby code
 
     const [fr, setFr] = useState(false); // Fill with robots
-    const [nor, setNor] = useState(0); // Number of robots
+    const [nor, setNor] = useState(1); // Number of robots
     const [rd, setRd] = useState(0); // Number of robots
 
     const [ur, setUr] = useState(false); // Unranked

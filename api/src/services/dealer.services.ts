@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { ERROR } from "../enums/error.enum";
 
 const UnoRank = {
     18: "Double",
@@ -89,21 +90,16 @@ export class RummyDealer extends CardDealer {
 
     public validatePlay(deck: Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number, value: number }>, playerCards: Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number, value: number }>, playedCards: Array<{ playedBy: string, cards: Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number, value: number }> }>, playerId: string): string {
         if (typeof deck === "undefined") {
-            return "No cards selected";
+            return ERROR.CARD_NOT_FOUND;
         }
         if (!deck.every(card => playerCards.find(playerCards => JSON.stringify(playerCards) === JSON.stringify(card)))) {
-            return "Invalid card selected";
+            return ERROR.INVALID_CARD_SELECTED;
         }
         if (deck.length < 3) {
-            return "Minimum 3 cards required";
+            return ERROR.MIN_3_CARDS;
         }
         if (deck.length > 13) {
-            return "Maximum 13 cards allowed";
-        }
-        if (!playedCards.find(card => card.playedBy === playerId)) {
-            if (deck.map(card => card.value).reduce((a, b) => a + b) < 30) {
-                return "Minimum 30 points required";
-            }
+            return ERROR.MAX_13_CARDS;
         }
 
         const sameRankSuits = [deck[0].suit];
@@ -116,7 +112,7 @@ export class RummyDealer extends CardDealer {
 
         const isValidSequence = this.isValidSequence(deck);
         if (isSameRank || isValidSequence) return "Valid";
-        return "Invalid sequence";
+        return ERROR.INVALID_SEQUENCE;
     }
 
     private isValidSequence(deck: Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number, value: number }>): boolean {
@@ -154,6 +150,20 @@ export class RummyDealer extends CardDealer {
         };
 
         return tryWithRanks(deck, false) || tryWithRanks(deck, true);
+    }
+
+    public isValidToNext(playedCards: {playedBy: string, cards: any[]}[], playerId: string){
+        if(playedCards.length === 0) return true;
+        if(playedCards.filter(cards => cards.playedBy === playerId).flatMap(obj => obj.cards).reduce((acc, item) => acc + item.value, 0) < 51) return false;
+        return true;
+    }
+
+    public cardsToReturn(playedCards: {playedBy: string, cards: any[]}[], playerId: string): any{
+        const cards = playedCards.filter(cards => cards.playedBy === playerId);
+        if(!cards) return [];
+        const cardsToReturn = cards.flatMap(obj => obj.cards);
+        const playedCardsToReturn = playedCards.filter(cards => cards.playedBy !== playerId);
+        return {cardsToReturn, playedCardsToReturn};
     }
 
 }

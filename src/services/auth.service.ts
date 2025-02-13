@@ -12,7 +12,7 @@ export class AuthService {
             .then((res) => res.json())
             .then((data) => {
                 if (data.status === 'error') {
-                    throw new Error(data.message);
+                    throw new Error(data.error);
                 }
                 this.saveInCookie(data.token, remember);
                 return data;
@@ -36,7 +36,7 @@ export class AuthService {
             .then((res) => res.json())
             .then((data) => {
                 if (data.status === 'error') {
-                    throw new Error(data.message);
+                    throw new Error(data.error);
                 }
                 this.saveInCookie(data.token);
                 return data;

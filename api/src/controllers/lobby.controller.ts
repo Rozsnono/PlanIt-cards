@@ -5,6 +5,7 @@ import { Auth } from "../enums/auth.enum";
 import lobbyModel from "../models/lobby.model";
 import gameModel from "../models/game.model";
 import mongoose from "mongoose";
+import { ERROR } from "../enums/error.enum";
 
 
 export default class LobbyController implements Controller {
@@ -90,7 +91,7 @@ export default class LobbyController implements Controller {
             await this.lobby.replaceOne({ _id: id }, lobby, { runValidators: true });
             res.send({ message: "OK" });
         } else {
-            res.status(404).send({ message: "Try again!" });
+            res.status(400).send({ error: ERROR.AN_ERROR_OCCURRED });
         }
     };
 
@@ -104,7 +105,7 @@ export default class LobbyController implements Controller {
             await this.lobby.replaceOne({ _id: id }, lobby, { runValidators: true });
             res.send({ message: "OK" });
         } else {
-            res.status(404).send({ message: "Try again!" });
+            res.status(400).send({ error: ERROR.AN_ERROR_OCCURRED });
         }
     };
 
@@ -114,7 +115,7 @@ export default class LobbyController implements Controller {
         if (lobby) {
             res.send(lobby);
         } else {
-            res.status(404).send({ message: "Try again!" });
+            res.status(400).send({ error: ERROR.AN_ERROR_OCCURRED });
         }
     };
 
@@ -124,7 +125,7 @@ export default class LobbyController implements Controller {
         const lobby = await this.lobby.findOne({ _id: id });
         if (lobby) {
             if (body.password && lobby.settings?.lobbyCode !== body.password) {
-                res.status(400).send({ message: "Wrong password!" });
+                res.status(400).send({ error: ERROR.INVALID_PASSWORD });
                 return;
             }
             await this.leftLobby(req);
@@ -134,7 +135,7 @@ export default class LobbyController implements Controller {
             const newLobby = await this.lobby.findOne({ _id: id }).populate("users", "customId username rank");
             res.send({ lobby: newLobby });
         } else {
-            res.status(404).send({ message: "Try again!" });
+           res.status(400).send({ error: ERROR.AN_ERROR_OCCURRED });
         }
     };
 
@@ -148,7 +149,7 @@ export default class LobbyController implements Controller {
             await this.lobby.replaceOne({ _id: id }, lobby, { runValidators: true });
             res.send({ message: "OK" });
         } else {
-            res.status(404).send({ message: "Try again!" });
+           res.status(400).send({ error: ERROR.AN_ERROR_OCCURRED });
         }
     };
 
@@ -161,7 +162,7 @@ export default class LobbyController implements Controller {
             await this.game.deleteOne({ _id: lobby.game_id });
             res.send({ message: "OK" });
         } else {
-            res.status(404).send({ message: "Try again!" });
+           res.status(400).send({ error: ERROR.AN_ERROR_OCCURRED });
         }
     };
 
@@ -173,7 +174,7 @@ export default class LobbyController implements Controller {
             await this.lobby.replaceOne({ _id: id }, { ...lobby, settings: body }, { runValidators: true });
             res.send({ message: "OK" });
         } else {
-            res.status(404).send({ message: "Try again!" });
+           res.status(400).send({ error: ERROR.AN_ERROR_OCCURRED });
         }
     };
 
@@ -187,7 +188,7 @@ export default class LobbyController implements Controller {
             await this.lobby.replaceOne({ _id: id }, lobby, { runValidators: true });
             res.send({ message: "OK" });
         } else {
-            res.status(404).send({ message: "Try again!" });
+           res.status(400).send({ error: ERROR.AN_ERROR_OCCURRED });
         }
     };
 
@@ -211,7 +212,7 @@ export default class LobbyController implements Controller {
 
             return true;
         } else {
-            console.log("No lobby found");
+            
             return false;
         }
     };

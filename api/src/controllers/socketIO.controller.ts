@@ -2,6 +2,7 @@ import WebSocket, { WebSocketServer } from 'ws';
 import lobbyModel from '../models/lobby.model';
 import gameModel from '../models/game.model';
 import mongoose from 'mongoose';
+import { ERROR } from '../enums/error.enum';
 
 export default class SocketIO {
     private wss = new WebSocketServer({ port: 8080 });
@@ -30,7 +31,7 @@ export default class SocketIO {
                         ws.send(JSON.stringify(inLobby));
                     }
                 } else {
-                    ws.send(JSON.stringify({ message: "You are not in a lobby" }));
+                    ws.send(JSON.stringify({ error: ERROR.NOT_IN_LOBBY }));
 
                 }
             });

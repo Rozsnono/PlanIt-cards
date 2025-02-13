@@ -28,9 +28,8 @@ export default function LogIn() {
         const remember = e.target.remember.checked;
 
         authService.Login(username, password, remember).then((data) => {
-            if (data.message) {
-
-                setError(data.message);
+            if (data.error) {
+                setError(data.error);
                 setLoading(false);
                 return;
             }

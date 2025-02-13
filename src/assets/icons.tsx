@@ -342,6 +342,21 @@ function getIcon(name: string) {
                 </>
             )
         }
+
+        case "robot": {
+            return (
+                <>
+                    <path d="M18.5 9h-13a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h13a1 1 0 0 0 1-1V10a1 1 0 0 0-1-1Z"></path>
+                    <path fill="currentColor" stroke="none" d="M8.5 14a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"></path>
+                    <path fill="currentColor" stroke="none" d="M15.5 14a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"></path>
+                    <path fill="currentColor" stroke="none" d="M10 16a1 1 0 1 0 0 2v-2Zm4 2a1 1 0 1 0 0-2v2Zm-4 0h4v-2h-4v2Z"></path>
+                    <path d="M12 5v4"></path>
+                    <path d="M2 13v4"></path>
+                    <path d="M22 13v4"></path>
+                    <path d="M12 5a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"></path>
+                </>
+            )
+        }
     }
 }
 

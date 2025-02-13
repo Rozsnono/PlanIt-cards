@@ -31,6 +31,7 @@ export interface Iplayer {
 export interface Ilobby {
     _id: string;
     users: Iplayer[];
+    bots: string[];
     mutedPlayers: string[];
     settings: {
         numberOfPlayers: number;

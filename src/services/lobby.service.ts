@@ -1,5 +1,6 @@
 import { getCookie } from "@/functions/user.function";
 import { Ilobby } from "@/interfaces/interface";
+import { error } from "console";
 
 export default class LobbyService {
 
@@ -77,7 +78,7 @@ export default class LobbyService {
                 const data = JSON.parse(event.data);
                 onMessage(data);
             } catch {
-                onMessage({ message: "An error occurred" });
+                onMessage({ error: "An error occurred" });
             }
         });
 

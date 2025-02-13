@@ -94,16 +94,16 @@ export default function Game() {
     function cardDropped() {
         if (!draggedCard) return;
         if (!user) return;
-        gameService.dropCard(lobby!._id, { droppedCard: draggedCard });
+        gameService.dropCard(lobby!._id, { droppedCard: draggedCard }).catch((e) => { console.log(e) });
         setDraggedCard(null);
     }
 
-    function playCards() {
+    async function playCards() {
         if (!user) return;
         if (selectedCards.length < 3) {
             return;
         }
-        gameService.playCard(lobby!._id, { playedCards: selectedCards });
+        gameService.playCard(lobby!._id, { playedCards: selectedCards })
         setSelectedCards([]);
     }
 

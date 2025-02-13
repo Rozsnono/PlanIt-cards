@@ -3,6 +3,7 @@ import Controller from "../interfaces/controller_interface";
 import { hasAuth } from "../middleware/middleware";
 import { Auth } from "../enums/auth.enum";
 import userModel from "../models/user.model";
+import { ERROR } from "../enums/error.enum";
 
 
 export default class PlayerController implements Controller {
@@ -25,7 +26,7 @@ export default class PlayerController implements Controller {
         const player = await this.user.findOne({ customId: id });
 
         if (!player) {
-            res.status(404).send({ message: "Player not found!" });
+            res.status(404).send({ error: ERROR.USER_NOT_FOUND });
             return;
         }
 
@@ -48,7 +49,7 @@ export default class PlayerController implements Controller {
         const players = await this.user.findOne({ customId: id });
 
         if(!players){
-            res.status(404).send({message: "Player not found!"});
+            res.status(404).send({ error: ERROR.USER_NOT_FOUND });
             return;
         }
 

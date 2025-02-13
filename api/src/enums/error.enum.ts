@@ -1,0 +1,32 @@
+export enum ERROR {
+    "NO_CARDS_DROPPED" = "0o1402",
+    "MIN_3_CARDS" = "0o1403",
+    "CARD_NOT_FOUND" = "0o1404",
+    "INVALID_CARD_SELECTED" = "0o1405",
+    "INVALID_SEQUENCE" = "0o1406",
+    "NOT_YOUR_TURN" = "0o1407",
+    "NO_CARD_PLAYED" = "0o1408",
+    "MAX_13_CARDS" = "0o1413",
+    "MIN_51_VALUE" = "0o1501",
+
+    "NOT_IN_LOBBY" = "0o2401",
+    "LOBBY_NOT_FOUND" = "0o2404",
+    "INVALID_LOBBY" = "0o2405",
+    "INVALID_PASSWORD" = "0o2406",
+
+    "USER_NOT_FOUND" = "0o3404",
+
+    "GAME_ALREADY_STARTED" = "0o4401",
+    "GAME_NOT_FOUND" = "0o4404",
+
+    "GAME_HISTORY_NOT_FOUND" = "0o5404",
+
+    "NO_AUTH" = "0o6401",
+    "INVALID_TOKEN" = "0o6402",
+    "INVALID_AUTH" = "0o6403",
+    "INVALID_USER" = "0o6406",
+    "ALERADY_REGISTERED" = "0o6407",
+
+    "AN_ERROR_OCCURRED" = "0o0400",
+    
+}

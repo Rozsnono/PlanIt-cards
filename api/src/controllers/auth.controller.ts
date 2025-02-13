@@ -6,6 +6,7 @@ import jwt from 'jsonwebtoken';
 import { getIDfromToken, hasAuth } from "../middleware/middleware";
 import { Auth } from "../enums/auth.enum";
 import mongoose from "mongoose";
+import { ERROR } from "../enums/error.enum";
 
 const { ACCESS_TOKEN_SECRET = "secret" } = process.env;
 
@@ -38,10 +39,10 @@ export default class AuthController implements Controller {
                 const token = jwt.sign({ _id: user._id, username: user.username, firstName: user.firstName, lastName: user.lastName, auth: user.auth, numberOfGames: user.numberOfGames, rank: user.rank, email: user.email, customId: user.customId, peddingFriends: user.peddingFriends.length }, ACCESS_TOKEN_SECRET);
                 res.send({ token: token });
             } else {
-                res.status(401).send({ message: "Wrong username or password!" });
+                res.status(401).send({ error: ERROR.INVALID_USER });
             }
         } else {
-            res.status(404).send({ message: "Try again!" });
+            res.status(404).send({ error: "Try again!" });
         }
     };
 
@@ -49,12 +50,12 @@ export default class AuthController implements Controller {
         const body = req.body;
         const { error } = this.validate(body);
         if (error) {
-            res.status(400).send({ message: error.details[0].message });
+            res.status(400).send({ error: error.details[0].message });
             return;
         }
         const user = await this.user.findOne({ $or: [{ username: body.username }, { email: body.email }] });
         if (user) {
-            res.status(400).send({ message: "This user already exists!" });
+            res.status(400).send({ error: ERROR.ALERADY_REGISTERED });
             return;
         }
         body["_id"] = new mongoose.Types.ObjectId();
@@ -79,10 +80,10 @@ export default class AuthController implements Controller {
                 await this.user.replaceOne({ _id: id }, user, { runValidators: true });
                 res.send({ message: "OK" });
             } else {
-                res.status(401).send({ message: "Wrong username or password!" });
+                res.status(401).send({ error: ERROR.INVALID_USER });
             }
         } else {
-            res.status(404).send({ message: "Try again!" });
+            res.status(404).send({ error: "Try again!" });
         }
     };
 

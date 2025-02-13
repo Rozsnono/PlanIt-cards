@@ -1,5 +1,5 @@
 "use client";
-import Icon from "@/assets/icons";
+import Icon, { StrokeIcon } from "@/assets/icons";
 import { UserContext } from "@/contexts/user.context";
 import { useParams, useRouter } from "next/navigation";
 import { useContext, useEffect, useState } from "react";
@@ -29,9 +29,9 @@ export default function LobbyId() {
             } else if (data.game_id) {
                 router.push(`/games/${lobby_id}/${data.game_id}/${data.settings.cardType.toLocaleLowerCase()}`);
             } else if (data.message) {
-                lobbyService.joinLobby(lobby_id as string).then(data => {
-                    if (data.message) {
-                        router.replace("/gamems");
+                lobbyService.joinLobby(lobby_id as string).then((data: any) => {
+                    if (data.error) {
+                        router.replace("/games");
                     }
                     setLobby(data);
                     setForm(data.settings);
@@ -104,50 +104,48 @@ export default function LobbyId() {
 
                             {
                                 new Array(lobby.settings.numberOfPlayers).fill(0).map((_, i) => {
-
                                     if (i < lobby.users.length) {
                                         return (
                                             <div key={i} className={`absolute group ${lobby.users[i]._id !== user!._id ? "bg-zinc-500 text-zinc-800" : "bg-zinc-300 text-zinc-600"}  flex items-center justify-center border-2 border-zinc-800 cursor-pointer rounded-full ${positionEnum[i]} w-24 h-24 duration-200`}>
-                                                <Icon name="user" size={64}></Icon>
+                                                <Icon name="user" size={64} />
                                                 <div className="absolute bottom-[-2rem] text-zinc-300">{lobby.users[i].username}</div>
-
-                                                {
-
-                                                    lobby.users[i]._id !== user!._id &&
-
+                                                {lobby.users[i]._id !== user!._id && (
                                                     <React.Fragment>
-                                                        {
-                                                            lobby.createdBy === user!._id &&
-                                                            <div onClick={() => { removePlayer(i) }} className="absolute group-hover:opacity-100 opacity-0 duration-200 group-hover:left-[-1.5rem] left-0 p-2 rounded-full bg-red-500 hover:bg-red-400">
-                                                                <Icon name="close"></Icon>
+                                                        {lobby.createdBy === user!._id && (
+                                                            <div onClick={() => removePlayer(i)} className="absolute group-hover:opacity-100 opacity-0 duration-200 group-hover:left-[-1.5rem] left-0 p-2 rounded-full bg-red-500 hover:bg-red-400">
+                                                                <Icon name="close" />
                                                             </div>
-                                                        }
-
-                                                        {
-                                                            lobby.createdBy === user!._id &&
+                                                        )}
+                                                        {lobby.createdBy === user!._id && (
                                                             <div className="absolute group-hover:opacity-100 opacity-0 duration-200 group-hover:top-[-1.5rem] top-0 p-2 rounded-full bg-gray-500 hover:bg-gray-400">
-                                                                <Icon name="unmute"></Icon>
+                                                                <Icon name="unmute" />
                                                             </div>
-                                                        }
-
+                                                        )}
                                                         <div className="absolute group-hover:opacity-100 opacity-0 duration-200 group-hover:right-[-1.5rem] right-0 p-2 rounded-full bg-blue-500 hover:bg-blue-400">
-                                                            <Icon name="add-friend"></Icon>
+                                                            <Icon name="add-friend" />
                                                         </div>
-                                                        <Link href={"/profile/" + lobby.users[i].customId} className="absolute group-hover:opacity-100 opacity-0 duration-200 group-hover:right-[-3.8rem] right-0 p-2 rounded-full bg-sky-500 hover:bg-sky-400">
-                                                            <Icon name="info"></Icon>
+                                                        <Link href={`/profile/${lobby.users[i].customId}`} className="absolute group-hover:opacity-100 opacity-0 duration-200 group-hover:right-[-3.8rem] right-0 p-2 rounded-full bg-sky-500 hover:bg-sky-400">
+                                                            <Icon name="info" />
                                                         </Link>
                                                     </React.Fragment>
-                                                }
+                                                )}
                                             </div>
-                                        )
+                                        );
+                                    } else if (i - lobby.users.length < lobby.bots.length) {
+                                        return (
+                                            <div key={i} className={`absolute bg-zinc-400 text-zinc-700 flex items-center justify-center border-2 border-zinc-700 rounded-full ${positionEnum[i]} w-24 h-24 duration-200`}>
+                                                <StrokeIcon name="robot" size={56} />
+                                                <div className="absolute bottom-[-2rem] text-zinc-300">{lobby.bots[i - lobby.users.length]}</div>
+                                            </div>
+                                        );
                                     }
-
                                     return (
                                         <div key={i} className={`absolute bg-zinc-500 text-zinc-800 flex items-center justify-center border-2 border-zinc-800 cursor-pointer rounded-full ${positionEnum[i]} w-24 h-24 animate-spin duration-200`}>
-                                            <Icon name="loader" size={32}></Icon>
+                                            <Icon name="loader" size={32} />
                                         </div>
-                                    )
+                                    );
                                 })
+
                             }
 
                         </div>
@@ -157,7 +155,7 @@ export default function LobbyId() {
                     {
                         lobby.settings &&
                         <div className="absolute top-3 right-3 text-lg">
-                            {lobby.users.length} / {lobby.settings.numberOfPlayers}
+                            {lobby.users.length + lobby.bots.length} / {lobby.settings.numberOfPlayers}
                         </div>
                     }
                 </div>
