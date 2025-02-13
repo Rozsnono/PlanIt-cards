@@ -9,6 +9,7 @@ import { Cards } from "../cards/cards";
 import mongoose from "mongoose";
 import { ERROR } from "../enums/error.enum";
 import GameHistoryService from "../services/history.services";
+import { EasyRummyBot } from "../services/bot.services";
 
 
 export default class RummyController implements Controller {
@@ -60,7 +61,7 @@ export default class RummyController implements Controller {
         // check if user in lobby
         const playerId = await getIDfromToken(req);
         if (!lobby.users.find((player) => player.toString() == playerId)) {
-            res.status(403).send({ error: ERROR.NOT_IN_LOBBY});
+            res.status(403).send({ error: ERROR.NOT_IN_LOBBY });
             return;
         }
 
@@ -71,7 +72,7 @@ export default class RummyController implements Controller {
         // set the game state
         body["shuffledCards"] = dealer.shuffleDeck();
         // deal the cards
-        body["playerCards"] = dealer.dealCards(lobby?.users, 14);
+        body["playerCards"] = dealer.dealCards(lobby?.users.concat(lobby?.bots as any), 14);
         body["currentPlayer"] = lobby?.users[0];
         body["_id"] = new mongoose.Types.ObjectId();
         const newGame = new this.game(body);
@@ -102,7 +103,7 @@ export default class RummyController implements Controller {
         }
 
         // get the next player
-        const currentPlayerIndex = lobby.users.indexOf(game.currentPlayer);
+        const currentPlayerIndex = lobby.users.indexOf(new mongoose.Types.ObjectId(game.currentPlayer));
 
         if (game.droppedCards.length === 0 || game.droppedCards.length % lobby.users.length !== currentPlayerIndex) {
             res.status(403).send({ error: ERROR.NO_CARDS_DROPPED });
@@ -120,9 +121,26 @@ export default class RummyController implements Controller {
             return;
         }
 
-        const nextPlayerIndex = this.nextPlayer(currentPlayerIndex, lobby.users.length - 1);
+        let nextPlayer = this.nextPlayer(lobby.users.map(id => { return id.toString() }), game.currentPlayer.toString(), lobby.bots);
 
-        game.currentPlayer = lobby.users[nextPlayerIndex];
+        do {
+            const easyBot = new EasyRummyBot(nextPlayer);
+            game.playerCards[nextPlayer] = game.playerCards[nextPlayer].concat(dealer.drawCard(1));
+            const { discard, melds, hand } = easyBot.playTurn({ hand: game.playerCards[nextPlayer], discardPile: game.droppedCards, melds: game.playedCards });
+            if (dealer.isValidToNext(game.playedCards, nextPlayer)) {
+                game.playerCards[nextPlayer] = hand;
+                if (game.playedCards.length > 0) {
+                    game.playedCards.concat(melds);
+                } else {
+                    game.playedCards = melds
+                }
+            }
+            game.droppedCards.push(discard);
+            nextPlayer = this.nextPlayer(lobby.users.map(id => { return id.toString() }), nextPlayer, lobby.bots);
+        } while (nextPlayer.includes("bot"))
+
+
+        game.currentPlayer = nextPlayer;
 
         await this.game.replaceOne({ _id: gameId }, game, { runValidators: true });
         this.gameHistoryService.saveHistory(playerId, gameId);
@@ -160,8 +178,15 @@ export default class RummyController implements Controller {
         res.send({ message: "Card drawn!" });
     };
 
-    private nextPlayer(current: number, max: number): number {
-        return current === max ? 0 : current + 1;
+    private nextPlayer(users: string[], current: string, bots?: string[]): string {
+        if (bots?.includes(current)) {
+            return bots.indexOf(current) === bots.length - 1 ? users[0] : bots[bots.indexOf(current) + 1];
+        }
+        if (users.indexOf(current) === users.length - 1) {
+            return bots ? bots[0] : users[0];
+        }
+
+        return users[users.indexOf(current) + 1];
     }
 
     private dropCard = async (req: Request, res: Response) => {
@@ -201,7 +226,7 @@ export default class RummyController implements Controller {
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         if (!game.playerCards[playerId].find((card: any) => JSON.stringify(card) === JSON.stringify(body.droppedCard))) {
-            res.status(400).send({ error: ERROR.CARD_NOT_FOUND});
+            res.status(400).send({ error: ERROR.CARD_NOT_FOUND });
             return;
         }
 

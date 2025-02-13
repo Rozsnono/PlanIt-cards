@@ -203,7 +203,8 @@ export default class LobbyController implements Controller {
                 const tmpLobby = l;
                 tmpLobby.users = tmpLobby.users.filter((p) => p.toString() !== userid.toString());
                 if (tmpLobby.users.length === 0) {
-                    await this.lobby.deleteOne({ _id: l._id });
+                    await this.lobby.deleteOne({ _id: tmpLobby._id });
+                    await this.game.deleteOne({ _id: tmpLobby.game_id });
                     return;
                 }
                 tmpLobby.createdBy = tmpLobby.createdBy?.toString() === userid ? tmpLobby.users[0] : tmpLobby.createdBy;

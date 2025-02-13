@@ -25,6 +25,19 @@ export default class GameHistoryService {
             player.gameHistory.push(new mongoose.Types.ObjectId(game_id));
             player.numberOfGames++;
             await player.save();
+
+            const gameHistory = {
+                gameId: game_id,
+                turns: {
+                    1: {
+                        playerCards: game.playerCards[player_id].map((card: any) => {return card.name}),
+                        playedCards: game.playedCards,
+                        droppedCards: game.droppedCards
+                    }
+                }
+            };
+
+            await this.gameHistory.create(gameHistory);
             return { message: "History saved!" };
         }
 

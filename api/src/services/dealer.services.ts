@@ -154,6 +154,7 @@ export class RummyDealer extends CardDealer {
 
     public isValidToNext(playedCards: {playedBy: string, cards: any[]}[], playerId: string){
         if(playedCards.length === 0) return true;
+        if(playedCards.filter(cards => cards.playedBy === playerId).length === 0) return true;
         if(playedCards.filter(cards => cards.playedBy === playerId).flatMap(obj => obj.cards).reduce((acc, item) => acc + item.value, 0) < 51) return false;
         return true;
     }

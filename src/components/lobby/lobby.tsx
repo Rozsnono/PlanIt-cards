@@ -90,7 +90,7 @@ export default function LobbyCard({ lobbyDatas, lobbyNumber }: { lobbyDatas: Ilo
                     <div className="tracking-widest flex gap-3">
                         {lobbyDatas.settings.cardType}{lobbyDatas.settings.robberRummy && <div className="italic font-bold">Rubber</div>}
                     </div>
-                    <div className="font-thin">{lobbyDatas.users?.length ? lobbyDatas.users.length : 0}/{lobbyDatas.settings.numberOfPlayers}</div>
+                    <div className="font-thin">{(lobbyDatas.users.length || 0) + (lobbyDatas.bots.length || 0)}/{lobbyDatas.settings.numberOfPlayers}</div>
                 </div>
 
                 <hr />
