@@ -40,6 +40,10 @@ export default class RummyController implements Controller {
         this.router.put("/play/:lobbyId/rummy", hasAuth([Auth["RUMMY.PLAY"]]), (req, res, next) => {
             this.playCard(req, res).catch(next);
         });
+        // API route to put a card
+        this.router.put("/put/:lobbyId/rummy", hasAuth([Auth["RUMMY.PLAY"]]), (req, res, next) => {
+            this.putCard(req, res).catch(next);
+        });
 
     }
 
@@ -123,7 +127,7 @@ export default class RummyController implements Controller {
 
         let nextPlayer = this.nextPlayer(lobby.users.map(id => { return id.toString() }), game.currentPlayer.toString(), lobby.bots);
 
-        do {
+        while (nextPlayer.includes("bot")) {
             const easyBot = new EasyRummyBot(nextPlayer);
             game.playerCards[nextPlayer] = game.playerCards[nextPlayer].concat(dealer.drawCard(1));
             const { discard, melds, hand } = easyBot.playTurn({ hand: game.playerCards[nextPlayer], discardPile: game.droppedCards, melds: game.playedCards });
@@ -137,7 +141,10 @@ export default class RummyController implements Controller {
             }
             game.droppedCards.push(discard);
             nextPlayer = this.nextPlayer(lobby.users.map(id => { return id.toString() }), nextPlayer, lobby.bots);
-        } while (nextPlayer.includes("bot"))
+            await this.game.replaceOne({ _id: gameId }, game, { runValidators: true });
+            await new Promise(resolve => setTimeout(resolve, Math.random() * 3));
+            console.log("Bot played");
+        }
 
 
         game.currentPlayer = nextPlayer;
@@ -299,4 +306,72 @@ export default class RummyController implements Controller {
         res.send({ message: "Card played!" });
     }
 
+    private putCard = async (req: Request, res: Response) => {
+        const lobbyId = req.params.lobbyId;
+        const playerId = await getIDfromToken(req);
+        const lobby = await this.lobby.findOne({ _id: lobbyId });
+
+        if (!lobby) {
+            res.status(404).send({ error: ERROR.LOBBY_NOT_FOUND });
+            return;
+        }
+
+        if (!lobby.users.find((player) => player.toString() == playerId)) {
+            res.status(403).send({ error: ERROR.NOT_IN_LOBBY });
+            return;
+        }
+
+        const gameId = lobby.game_id;
+        const game = await this.game.findOne({ _id: gameId });
+
+        if (!game) {
+            res.status(404).send({ error: ERROR.GAME_NOT_FOUND });
+            return;
+        }
+
+        // check if the player is the current player
+        if (playerId.toString() !== game.currentPlayer.toString()) {
+            res.status(403).send({ error: ERROR.NOT_YOUR_TURN });
+            return;
+        }
+
+        const body = req.body;
+        if (!body.placeCard) {
+            res.status(400).send({ error: ERROR.NO_CARD_PLAYED });
+            return;
+        }
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        if (!game.playerCards[playerId].find((card: any) => JSON.stringify(body.placeCard) === JSON.stringify(card))) {
+            res.status(400).send({ error: ERROR.CARD_NOT_FOUND });
+            return;
+        }
+
+        const dealer = new RummyDealer(game.shuffledCards);
+
+        const playedCards = body.playedCards.cards;
+        playedCards.push(body.placeCard);
+
+        //Check if the player has played a valid card
+        const validation = dealer.validatePlay(playedCards, game.playerCards[playerId], game.playedCards, playerId, true);
+        if (validation !== "Valid") {
+            res.status(400).send({ error: validation });
+            return;
+        }
+
+        // update the game state
+        game.playedCards = game.playedCards.map((meld: any) => {
+            return meld._id.toString() === body.playedCards._id.toString() ?
+                { playedBy: playerId, cards: playedCards } :
+                meld
+        }
+        );
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        game.playerCards[playerId] = game.playerCards[playerId].filter((card: any) => JSON.stringify(body.placeCard) !== JSON.stringify(card));
+
+        await this.game.replaceOne({ _id: gameId }, game, { runValidators: true });
+
+        res.send({ message: "Card placed!" });
+    }
 }

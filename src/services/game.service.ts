@@ -78,4 +78,15 @@ export class GameService {
         return { lobby: object.lobby, game: object.game, playerCards: object.playerCard };
     }
 
+    public putCard(lobbyId: string, body: { playedCards: {playedBy: string, cards: Icard[]}, placeCard: Icard}){
+        fetch(`/api/put/${lobbyId}/${this.type}`, {
+            method: "PUT",
+            body: JSON.stringify(body),
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${getCookie("token")}`
+            }
+        });
+    }
+
 }

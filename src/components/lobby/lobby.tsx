@@ -5,13 +5,13 @@ import { Ilobby } from "@/interfaces/interface";
 import { useContext } from "react";
 import { UserContext } from "@/contexts/user.context";
 import React from "react";
-import { joinLobby } from "@/services/lobby.service";
 import { useRouter } from "next/navigation";
+import LobbyService from "@/services/lobby.service";
 
 export default function LobbyCard({ lobbyDatas, lobbyNumber }: { lobbyDatas: Ilobby, lobbyNumber: number }) {
 
     const { user } = useContext(UserContext);
-
+    const lobbyService = new LobbyService();
     const router = useRouter();
 
     function getGameTypeImage() {
@@ -38,7 +38,7 @@ export default function LobbyCard({ lobbyDatas, lobbyNumber }: { lobbyDatas: Ilo
     function joinLobbyByCode(e: any) {
         e.preventDefault();
         if (!e.target.lobbyCode.value) return;
-        joinLobby(lobbyDatas._id, e.target.lobbyCode.value).then(data => {
+        lobbyService.joinLobby(lobbyDatas._id, e.target.lobbyCode.value).then(data => {
             router.push("/games/" + lobbyDatas._id);
         });
     }

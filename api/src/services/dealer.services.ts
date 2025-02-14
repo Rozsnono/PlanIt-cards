@@ -88,11 +88,11 @@ export class RummyDealer extends CardDealer {
         super(cards);
     }
 
-    public validatePlay(deck: Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number, value: number }>, playerCards: Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number, value: number }>, playedCards: Array<{ playedBy: string, cards: Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number, value: number }> }>, playerId: string): string {
+    public validatePlay(deck: Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number, value: number }>, playerCards: Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number, value: number }>, playedCards: Array<{ playedBy: string, cards: Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number, value: number }> }>, playerId: string, puttingCard?: boolean): string {
         if (typeof deck === "undefined") {
             return ERROR.CARD_NOT_FOUND;
         }
-        if (!deck.every(card => playerCards.find(playerCards => JSON.stringify(playerCards) === JSON.stringify(card)))) {
+        if (!puttingCard && !deck.every(card => playerCards.find(playerCards => JSON.stringify(playerCards) === JSON.stringify(card)))) {
             return ERROR.INVALID_CARD_SELECTED;
         }
         if (deck.length < 3) {

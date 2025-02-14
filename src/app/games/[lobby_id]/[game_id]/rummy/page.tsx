@@ -113,6 +113,13 @@ export default function Game() {
         gameService.drawCard(lobby!._id);
     }
 
+    function cardPlacingDrop(playedCard: { playedBy: string, cards: Icard[] }) {
+        if (!playedCard) return;
+        if (!user) return;
+        gameService.putCard(lobby!._id, { playedCards: playedCard, placeCard: draggedCard! });
+        setDraggedCard(null);
+    }
+
     const [timer, setTimer] = useState(180);
 
     useEffect(() => {
@@ -141,14 +148,15 @@ export default function Game() {
                 <div className="flex justify-center items-center w-full h-full absolute">
                     <div className="border border-[#cccccc10] rounded-md w-2/3 h-2/3 flex flex-wrap gap-10 z-50 p-1" onDrop={playCards} onDragOver={overDrag} >
                         {
-                            game.playedCards && game.playedCards.map((e: Icard[], i: number) => {
+                            game.playedCards && game.playedCards.map((e: {playedBy: string, cards: Icard[]}, i: number) => {
                                 return (
-                                    <div key={i} className="flex gap-1 h-min">
+                                    <div key={i} className={`flex gap-1 h-min group`}>
                                         {
-                                            (Object.values(e)[1] as any).map((card: Icard, j: number) => {
+                                            e.cards.map((card: Icard, j: number) => {
                                                 return (
-                                                    <div key={j} className="w-8 h-16 relative group cursor-pointer overflow-visible">
-                                                        <Image className="card-animation w-16 max-w-16" key={j} src={"/assets/cards/" + getCardUrl(card.name)} width={70} height={60} alt={getCardUrl(card.name)}></Image>
+                                                    <div onDrop={()=>{cardPlacingDrop(e)}} key={j} className="w-8 h-16 relative group cursor-pointer overflow-visible">
+                                                        <Image className={`card-animation w-16 max-w-16 rounded-md border border-transparent ${e.playedBy === user?._id ? ' group-hover:border-green-500' : ""} `} key={j} src={"/assets/cards/" + getCardUrl(card.name)} width={70} height={60} alt={getCardUrl(card.name)}></Image>
+                                                        {j === 0 && <div className="opacity-0 group-hover:opacity-100 absolute group-hover:bottom-[-3.6rem] bottom-0 left-0 w-16 z-[-1] duration-200">{lobby?.users.find(user => user._id === e.playedBy)?.firstName || e.playedBy}</div>}
                                                     </div>
                                                 )
                                             })

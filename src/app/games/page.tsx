@@ -66,6 +66,12 @@ function SideBarContent({ onClose }: Readonly<{ onClose?: () => void }>) {
     const [nor, setNor] = useState(1); // Number of robots
     const [rd, setRd] = useState(0); // Number of robots
 
+    const maxNumber = {
+        "RUMMY": 6,
+        "UNO": 8,
+        "SCHNAPPS": 4
+    }
+
     const [ur, setUr] = useState(false); // Unranked
 
     const router = useRouter();
@@ -91,6 +97,13 @@ function SideBarContent({ onClose }: Readonly<{ onClose?: () => void }>) {
             console.error("Error creating lobby:", error);
         }
 
+    }
+
+    function setNumberAndChecking(param: string | number, setParam: any, checkingNnumber: number, setMaxNumber: any, max: number) {
+        setParam(param);
+        if (checkingNnumber > max) {
+            setMaxNumber(max);
+        }
     }
 
     return (
@@ -122,11 +135,11 @@ function SideBarContent({ onClose }: Readonly<{ onClose?: () => void }>) {
 
                         <div className="relative w-full">
                             <label htmlFor="number_of_player" className="sr-only">Labels range</label>
-                            <input id="number_of_player" type="range" onChange={(e) => setNop(parseInt(e.target.value))} value={nop} min="2" max="8" className="w-full h-2 bg-zinc-700 rounded-lg appearance-none cursor-pointer" />
+                            <input id="number_of_player" type="range" onChange={(e) => setNumberAndChecking(parseInt(e.target.value), setNop, nor, setNor, parseInt(e.target.value)-1)} value={nop} min="2" max={maxNumber[ct as "RUMMY"|"UNO"|"SCHNAPPS"]} className="w-full h-2 bg-zinc-700 rounded-lg appearance-none cursor-pointer" />
                             <div className="flex justify-between">
                                 <span className="text-sm text-gray-500 dark:text-gray-400">Min 2</span>
                                 <span className="text-sm text-gray-500 dark:text-gray-400">{nop}</span>
-                                <span className="text-sm text-gray-500 dark:text-gray-400">Max 8</span>
+                                <span className="text-sm text-gray-500 dark:text-gray-400">Max {maxNumber[ct as "RUMMY"|"UNO"|"SCHNAPPS"]}</span>
                             </div>
                         </div>
 
@@ -136,13 +149,13 @@ function SideBarContent({ onClose }: Readonly<{ onClose?: () => void }>) {
                         <div className="text-md w-1/3">Type</div>
 
                         <div className="w-full flex items-center">
-                            <button onClick={() => { setCt('RUMMY') }} type="button" className={`w-full px-4 py-2 text-sm font-medium text-zinc-400 border border-zinc-600 rounded-s-lg hover:bg-zinc-700 hover:text-gray-200 focus:z-10 focus:ring-2 focus:ring-gray-500 focus:text-gray-100 ${ct === 'RUMMY' ? "text-gray-100 bg-zinc-600 ring-gray-500 ring-1" : "bg-zinc-800"}`}>
+                            <button onClick={() => { setNumberAndChecking('RUMMY', setCt, nop, setNop, maxNumber.RUMMY) }} type="button" className={`w-full px-4 py-2 text-sm font-medium text-zinc-400 border border-zinc-600 rounded-s-lg hover:bg-zinc-700 hover:text-gray-200 focus:z-10 focus:ring-2 focus:ring-gray-500 focus:text-gray-100 ${ct === 'RUMMY' ? "text-gray-100 bg-zinc-600 ring-gray-500 ring-1" : "bg-zinc-800"}`}>
                                 RUMMY
                             </button>
-                            <button onClick={() => { setCt('UNO') }} type="button" className={`w-full px-4 py-2 text-sm font-medium text-zinc-400 border border-zinc-600 hover:bg-zinc-700 hover:text-gray-200 focus:z-10 focus:ring-2 focus:ring-gray-500 focus:text-gray-100 ${ct === 'UNO' ? "text-gray-100 bg-zinc-600 ring-gray-500 ring-1" : "bg-zinc-800"}`}>
+                            <button onClick={() => { setNumberAndChecking('UNO', setCt, nop, setNop, maxNumber.UNO) }} type="button" className={`w-full px-4 py-2 text-sm font-medium text-zinc-400 border border-zinc-600 hover:bg-zinc-700 hover:text-gray-200 focus:z-10 focus:ring-2 focus:ring-gray-500 focus:text-gray-100 ${ct === 'UNO' ? "text-gray-100 bg-zinc-600 ring-gray-500 ring-1" : "bg-zinc-800"}`}>
                                 UNO
                             </button>
-                            <button onClick={() => { setCt('SCHNAPPS') }} type="button" className={`w-full px-4 py-2 text-sm font-medium text-zinc-400 border border-zinc-600 rounded-e-lg hover:bg-zinc-700 hover:text-gray-200 focus:z-10 focus:ring-2 focus:ring-gray-500 focus:text-gray-100 ${ct === 'SCHNAPPS' ? "text-gray-100 bg-zinc-600 ring-gray-500 ring-1" : "bg-zinc-800"}`}>
+                            <button onClick={() => { setNumberAndChecking('SCHNAPPS', setCt, nop, setNop, maxNumber.SCHNAPPS) }} type="button" className={`w-full px-4 py-2 text-sm font-medium text-zinc-400 border border-zinc-600 rounded-e-lg hover:bg-zinc-700 hover:text-gray-200 focus:z-10 focus:ring-2 focus:ring-gray-500 focus:text-gray-100 ${ct === 'SCHNAPPS' ? "text-gray-100 bg-zinc-600 ring-gray-500 ring-1" : "bg-zinc-800"}`}>
                                 SCHNAPPS
                             </button>
                         </div>
