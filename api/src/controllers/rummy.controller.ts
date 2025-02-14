@@ -109,7 +109,7 @@ export default class RummyController implements Controller {
         // get the next player
         const currentPlayerIndex = lobby.users.indexOf(new mongoose.Types.ObjectId(game.currentPlayer));
 
-        if (game.droppedCards.length === 0 || game.droppedCards.length % lobby.users.length !== currentPlayerIndex) {
+        if (game.droppedCards.length === 0 || game.droppedCards.length % (lobby.users.length + (lobby.bots.length || 0)) !== currentPlayerIndex) {
             res.status(403).send({ error: ERROR.NO_CARDS_DROPPED });
             return;
         }
