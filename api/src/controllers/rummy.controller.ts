@@ -297,7 +297,7 @@ export default class RummyController implements Controller {
         }
 
         // update the game state
-        game.playedCards.push({ playedBy: playerId, cards: body.playedCards });
+        game.playedCards.push({ playedBy: playerId, cards: dealer.rankingMelds(body.playedCards).completedDeck });
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         game.playerCards[playerId] = game.playerCards[playerId].filter((card: any) => !body.playedCards.find((c: any) => JSON.stringify(c) === JSON.stringify(card)));
 
@@ -362,7 +362,7 @@ export default class RummyController implements Controller {
         // update the game state
         game.playedCards = game.playedCards.map((meld: any) => {
             return meld._id.toString() === body.playedCards._id.toString() ?
-                { playedBy: playerId, cards: playedCards } :
+                { playedBy: playerId, cards: dealer.rankingMelds(playedCards).completedDeck } :
                 meld
         }
         );

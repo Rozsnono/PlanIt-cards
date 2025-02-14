@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import { ERROR } from "../enums/error.enum";
+import { Icard } from "../interfaces/interface";
 
 const UnoRank = {
     18: "Double",
@@ -167,4 +168,42 @@ export class RummyDealer extends CardDealer {
         return {cardsToReturn, playedCardsToReturn};
     }
 
+    public rankingMelds(deck: Icard[]): { completedDeck: Icard[] } {
+        if (deck.length === 0) return { completedDeck: [] };
+    
+        const jokers = deck.filter(card => card.isJoker);
+        const nonJokers = deck.filter(card => !card.isJoker);
+        nonJokers.sort((a, b) => a.rank - b.rank);
+    
+        if (jokers.length === 0) return { completedDeck: nonJokers };
+    
+        const completedDeck: Icard[] = [];
+    
+        for (let i = 0; i < nonJokers.length; i++) {
+            completedDeck.push(nonJokers[i]);
+    
+            if (jokers.length > 0 && i < nonJokers.length - 1) {
+                let currentRank = nonJokers[i].rank;
+                const nextRank = nonJokers[i + 1].rank;
+    
+                while (nextRank > currentRank + 1 && jokers.length > 0) {
+                    const missingRank = currentRank + 1;
+                    const joker = jokers.pop()!;
+                    const assignedJoker = { ...joker, rank: missingRank };
+    
+                    completedDeck.push(assignedJoker);
+    
+                    currentRank++;
+                }
+            }
+        }
+    
+        while (jokers.length > 0) {
+            completedDeck.push(jokers.pop()!);
+        }
+    
+        return { completedDeck };
+    }
+    
+    
 }
