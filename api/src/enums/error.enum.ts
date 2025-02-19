@@ -13,6 +13,8 @@ export enum ERROR {
     "LOBBY_NOT_FOUND" = "0o2404",
     "INVALID_LOBBY" = "0o2405",
     "INVALID_PASSWORD" = "0o2406",
+    "LOBBY_FULL" = "0o2407",
+    "ALREADY_IN_LOBBY" = "0o2408",
 
     "USER_NOT_FOUND" = "0o3404",
 

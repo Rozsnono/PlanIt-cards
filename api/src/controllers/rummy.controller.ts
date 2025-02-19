@@ -109,7 +109,7 @@ export default class RummyController implements Controller {
         // get the next player
         const currentPlayerIndex = lobby.users.indexOf(new mongoose.Types.ObjectId(game.currentPlayer));
 
-        if (game.droppedCards.length === 0 || game.droppedCards.length % (lobby.users.length + (lobby.bots.length || 0)) !== currentPlayerIndex) {
+        if (game.droppedCards.length === 0 || game.droppedCards[game.droppedCards.length - 1].droppedBy !== playerId.toString()) {
             res.status(403).send({ error: ERROR.NO_CARDS_DROPPED });
             return;
         }
@@ -126,7 +126,6 @@ export default class RummyController implements Controller {
         }
 
         let nextPlayer = this.nextPlayer(lobby.users.map(id => { return id.toString() }), game.currentPlayer.toString(), lobby.bots);
-
         while (nextPlayer.includes("bot")) {
             const easyBot = new EasyRummyBot(nextPlayer);
             game.playerCards[nextPlayer] = game.playerCards[nextPlayer].concat(dealer.drawCard(1));
@@ -143,7 +142,6 @@ export default class RummyController implements Controller {
             nextPlayer = this.nextPlayer(lobby.users.map(id => { return id.toString() }), nextPlayer, lobby.bots);
             await this.game.replaceOne({ _id: gameId }, game, { runValidators: true });
             await new Promise(resolve => setTimeout(resolve, Math.random() * 3));
-            console.log("Bot played");
         }
 
 
@@ -186,14 +184,13 @@ export default class RummyController implements Controller {
     };
 
     private nextPlayer(users: string[], current: string, bots?: string[]): string {
-        if (bots?.includes(current)) {
+        if (bots && bots?.includes(current)) {
             return bots.indexOf(current) === bots.length - 1 ? users[0] : bots[bots.indexOf(current) + 1];
         }
-        if (users.indexOf(current) === users.length - 1) {
+        if (bots?.length && users.indexOf(current) === users.length - 1) {
             return bots ? bots[0] : users[0];
         }
-
-        return users[users.indexOf(current) + 1];
+        return users[users.indexOf(current) + 1 === users.length ? 0 : users.indexOf(current) + 1];
     }
 
     private dropCard = async (req: Request, res: Response) => {
@@ -239,7 +236,7 @@ export default class RummyController implements Controller {
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         game.playerCards[playerId] = game.playerCards[playerId].filter((card: any) => JSON.stringify(card) !== JSON.stringify(body.droppedCard));
-        game.droppedCards.push(body.droppedCard);
+        game.droppedCards.push({ droppedBy: playerId, card: body.droppedCard });
 
         await this.game.replaceOne({ _id: gameId }, game, { runValidators: true });
 
@@ -364,6 +361,7 @@ export default class RummyController implements Controller {
         if (melds.completedDeck[melds.completedDeck.length - 1].isJoker) {
             joker = melds.completedDeck.pop();
             joker!.rank = 50;
+            game.playerCards[playerId] = game.playerCards[playerId].concat(joker);
         }
 
         // update the game state
@@ -373,11 +371,9 @@ export default class RummyController implements Controller {
                 meld
         }
         );
-        
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         game.playerCards[playerId] = game.playerCards[playerId].filter((card: any) => JSON.stringify(body.placeCard) !== JSON.stringify(card));
-        game.playerCards[playerId] = game.playerCards[playerId].concat(joker);
 
         await this.game.replaceOne({ _id: gameId }, game, { runValidators: true });
 

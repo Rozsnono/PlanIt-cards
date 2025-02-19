@@ -128,8 +128,16 @@ export default class LobbyController implements Controller {
                 res.status(400).send({ error: ERROR.INVALID_PASSWORD });
                 return;
             }
-            await this.leftLobby(req);
+            if(lobby.users.length >= lobby.settings!.numberOfPlayers!) {
+                res.status(400).send({ error: ERROR.LOBBY_FULL });
+                return;
+            }
             const userid = await getIDfromToken(req);
+            if(lobby.users.find((p) => p.toString() === userid.toString())) {
+                res.status(400).send({ error: ERROR.ALREADY_IN_LOBBY });
+                return;
+            }
+            await this.leftLobby(req);
             lobby.users.push(new mongoose.Types.ObjectId(userid));
             await this.lobby.replaceOne({ _id: id }, lobby, { runValidators: true });
             const newLobby = await this.lobby.findOne({ _id: id }).populate("users", "customId username rank");

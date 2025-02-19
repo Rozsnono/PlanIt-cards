@@ -54,6 +54,7 @@ export default class SocketIO {
 
             this.wss.clients.forEach((client) => {
                 if (client.readyState === WebSocket.OPEN) {
+                    console.log('Game Change Stream:');
                     client.send(JSON.stringify({ refresh: true }));
                 }
             });

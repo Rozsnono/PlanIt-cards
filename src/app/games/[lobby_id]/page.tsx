@@ -28,7 +28,7 @@ export default function LobbyId() {
                 router.push(`/games/${lobby_id}/${data.game_id}/${data.lobby.settings.cardType.toLocaleLowerCase()}`);
             } else if (data.game_id) {
                 router.push(`/games/${lobby_id}/${data.game_id}/${data.settings.cardType.toLocaleLowerCase()}`);
-            } else if (data.message) {
+            } else if (data.error) {
                 lobbyService.joinLobby(lobby_id as string).then((data: any) => {
                     if (data.error) {
                         router.replace("/games");
@@ -161,10 +161,12 @@ export default function LobbyId() {
                 </div>
 
                 <div className="flex gap-2 h-1/2 w-full">
-
-                    <div className="flex flex-col w-1/2 justify-end">
-                        <button onClick={startLobbyGame} className="bg-blue-600 w-full rounded-lg p-2 px-5 text-zinc-200 font-bold hover:bg-blue-500 duration-200 focus:ring-2 ">Start</button>
-                    </div>
+                    {
+                        lobby.createdBy === user!._id &&
+                        <div className="flex flex-col w-1/2 justify-end">
+                            <button onClick={startLobbyGame} className="bg-blue-600 w-full rounded-lg p-2 px-5 text-zinc-200 font-bold hover:bg-blue-500 duration-200 focus:ring-2 ">Start</button>
+                        </div>
+                    }
 
                     <div className="flex relative flex-col w-full bg-zinc-800 rounded-md h-full p-2">
                         <div className="h-full w-full border border-zinc-600 rounded-md flex flex-col gap-1 text-zinc-300 p-2 overflow-auto">
