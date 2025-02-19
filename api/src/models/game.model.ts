@@ -9,7 +9,7 @@ const gameSchema = new Schema(
             readonly: true
         },
         currentPlayer: {
-            type: String,
+            type: { playerId: { type: String, required: true }, time: { type: Number, required: true } },
             default: null,
         },
         playerCards: {

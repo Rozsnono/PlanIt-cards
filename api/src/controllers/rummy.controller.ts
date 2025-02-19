@@ -44,6 +44,9 @@ export default class RummyController implements Controller {
         this.router.put("/put/:lobbyId/rummy", hasAuth([Auth["RUMMY.PLAY"]]), (req, res, next) => {
             this.putCard(req, res).catch(next);
         });
+        this.router.put("/force-next/:lobbyId/rummy", hasAuth([Auth["RUMMY.PLAY"]]), (req, res, next) => {
+            this.forcedNextTurn(req, res).catch(next);
+        });
 
     }
 
@@ -77,7 +80,7 @@ export default class RummyController implements Controller {
         body["shuffledCards"] = dealer.shuffleDeck();
         // deal the cards
         body["playerCards"] = dealer.dealCards(lobby?.users.concat(lobby?.bots as any), 14);
-        body["currentPlayer"] = lobby?.users[0];
+        body["currentPlayer"] = {playerId: lobby?.users[0], time: new Date().getTime()};
         body["_id"] = new mongoose.Types.ObjectId();
         const newGame = new this.game(body);
         await newGame.save();
@@ -101,13 +104,10 @@ export default class RummyController implements Controller {
             return;
         }
         // check if the player is the current player
-        if (playerId.toString() !== game.currentPlayer.toString()) {
+        if (playerId.toString() !== game.currentPlayer.playerId.toString()) {
             res.status(403).send({ error: ERROR.NOT_YOUR_TURN });
             return;
         }
-
-        // get the next player
-        const currentPlayerIndex = lobby.users.indexOf(new mongoose.Types.ObjectId(game.currentPlayer));
 
         if (game.droppedCards.length === 0 || game.droppedCards[game.droppedCards.length - 1].droppedBy !== playerId.toString()) {
             res.status(403).send({ error: ERROR.NO_CARDS_DROPPED });
@@ -125,7 +125,7 @@ export default class RummyController implements Controller {
             return;
         }
 
-        let nextPlayer = this.nextPlayer(lobby.users.map(id => { return id.toString() }), game.currentPlayer.toString(), lobby.bots);
+        let nextPlayer = this.nextPlayer(lobby.users.map(id => { return id.toString() }), game.currentPlayer.playerId.toString(), lobby.bots);
         while (nextPlayer.includes("bot")) {
             const easyBot = new EasyRummyBot(nextPlayer);
             game.playerCards[nextPlayer] = game.playerCards[nextPlayer].concat(dealer.drawCard(1));
@@ -145,12 +145,79 @@ export default class RummyController implements Controller {
         }
 
 
-        game.currentPlayer = nextPlayer;
+        game.currentPlayer = { playerId: nextPlayer, time: new Date().getTime() };
+
+        await this.game.replaceOne({ _id: gameId }, game, { runValidators: true });
+        this.gameHistoryService.saveHistory(playerId, gameId);
+
+
+
+        res.send({ message: "Next turn!" });
+    };
+
+    private forcedNextTurn = async (req: Request, res: Response) => {
+        const lobbyId = req.params.lobbyId;
+        const lobby = await this.lobby.findOne({ _id: lobbyId });
+        if (!lobby) {
+            res.status(404).send({ error: ERROR.LOBBY_NOT_FOUND });
+            return;
+        }
+        const gameId = lobby.game_id;
+        const game = await this.game.findOne({ _id: gameId });
+        if (!game) {
+            res.status(404).send({ error: ERROR.GAME_NOT_FOUND });
+            return;
+        }
+        const playerId = game.currentPlayer.playerId;
+        // check if the player is the current player
+        if (playerId.toString() !== game.currentPlayer.playerId.toString()) {
+            res.status(403).send({ error: ERROR.NOT_YOUR_TURN });
+            return;
+        }
+
+        if (game.droppedCards.length === 0 || game.droppedCards[game.droppedCards.length - 1].droppedBy !== playerId.toString()) {
+            game.droppedCards.push({ droppedBy: playerId, card: game.playerCards[playerId].pop()});
+        }
+        
+        const dealer = new RummyDealer(game.shuffledCards);
+        if (!dealer.isValidToNext(game.playedCards, playerId)) {
+            const { cardsToReturn, playedCardsToReturn } = dealer.cardsToReturn(game.playedCards, playerId);
+            game.playerCards[playerId] = game.playerCards[playerId].concat(cardsToReturn);
+            game.playerCards[playerId].push(game.droppedCards[game.droppedCards.length - 1]);
+            game.playedCards = playedCardsToReturn;
+            game.droppedCards.shift();
+            await this.game.replaceOne({ _id: gameId }, game, { runValidators: true });
+            res.status(403).send({ error: ERROR.MIN_51_VALUE });
+            return;
+        }
+
+        let nextPlayer = this.nextPlayer(lobby.users.map(id => { return id.toString() }), game.currentPlayer.playerId.toString(), lobby.bots);
+        while (nextPlayer.includes("bot")) {
+            const easyBot = new EasyRummyBot(nextPlayer);
+            game.playerCards[nextPlayer] = game.playerCards[nextPlayer].concat(dealer.drawCard(1));
+            const { discard, melds, hand } = easyBot.playTurn({ hand: game.playerCards[nextPlayer], discardPile: game.droppedCards, melds: game.playedCards });
+            if (dealer.isValidToNext(game.playedCards, nextPlayer)) {
+                game.playerCards[nextPlayer] = hand;
+                if (game.playedCards.length > 0) {
+                    game.playedCards.concat(melds);
+                } else {
+                    game.playedCards = melds
+                }
+            }
+            game.droppedCards.push(discard);
+            nextPlayer = this.nextPlayer(lobby.users.map(id => { return id.toString() }), nextPlayer, lobby.bots);
+            await this.game.replaceOne({ _id: gameId }, game, { runValidators: true });
+            await new Promise(resolve => setTimeout(resolve, Math.random() * 3));
+        }
+
+
+        game.currentPlayer = { playerId: nextPlayer, time: new Date().getTime() };
 
         await this.game.replaceOne({ _id: gameId }, game, { runValidators: true });
         this.gameHistoryService.saveHistory(playerId, gameId);
         res.send({ message: "Next turn!" });
-    };
+
+    }
 
     private drawCard = async (req: Request, res: Response) => {
         const lobbyId = req.params.lobbyId;
@@ -171,7 +238,7 @@ export default class RummyController implements Controller {
             return;
         }
         // check if the player is the current player
-        if (playerId.toString() !== game.currentPlayer.toString()) {
+        if (playerId.toString() !== game.currentPlayer.playerId.toString()) {
             res.status(403).send({ error: ERROR.NOT_YOUR_TURN });
             return;
         }
@@ -217,7 +284,7 @@ export default class RummyController implements Controller {
         }
 
         // check if the player is the current player
-        if (playerId.toString() !== game.currentPlayer.toString()) {
+        if (playerId.toString() !== game.currentPlayer.playerId.toString()) {
             res.status(403).send({ error: ERROR.NOT_YOUR_TURN });
             return;
         }
@@ -267,7 +334,7 @@ export default class RummyController implements Controller {
         }
 
         // check if the player is the current player
-        if (playerId.toString() !== game.currentPlayer.toString()) {
+        if (playerId.toString() !== game.currentPlayer.playerId.toString()) {
             res.status(403).send({ error: ERROR.NOT_YOUR_TURN });
             return;
         }
@@ -327,7 +394,7 @@ export default class RummyController implements Controller {
         }
 
         // check if the player is the current player
-        if (playerId.toString() !== game.currentPlayer.toString()) {
+        if (playerId.toString() !== game.currentPlayer.playerId.toString()) {
             res.status(403).send({ error: ERROR.NOT_YOUR_TURN });
             return;
         }

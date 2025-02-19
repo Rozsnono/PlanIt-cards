@@ -182,7 +182,7 @@ export default function Game() {
 
                 <div className="flex gap-10  w-full absolute top-2 p-2 justify-center">
                     <div className="flex relative cursor-pointer">
-                        <div className="2xl:w-[6rem] lg:w-[4.7rem] md:w-[4.7rem] 2xl:h-[9rem] lg:h-[7rem] md:h-[7rem] border border-zinc-400 rounded-md"></div>
+                        <div className="2xl:w-[6rem] lg:w-[4.7rem] md:w-[3.7rem] 2xl:h-[9rem] lg:h-[7rem] md:h-[6rem] border border-zinc-400 rounded-md"></div>
                         <Image className="absolute top-1 left-1" draggable={false} src={"/assets/cards/gray_back.png"} width={140} height={100} alt="card"></Image>
                         <Image onClick={drawingCard} draggable={false} className="absolute border-2 border-transparent hover:border-green-500 rounded-lg" src={"/assets/cards/gray_back.png"} width={140} height={110} alt="card"></Image>
                     </div>
@@ -319,7 +319,7 @@ export default function Game() {
                     </div>
 
                     {
-                        game.currentPlayer == user?._id &&
+                        game.currentPlayer.playerId == user?._id &&
                         <div onClick={nextTurn} key={timer} className={`absolute right-10 h-[5rem] w-[5rem] justify-center items-center flex rounded-full border-2 border-lime-300 bottom-4`}
                             style={{ background: `conic-gradient(#bef264 ${360 - ((timer) * 360 / 180)}deg, transparent 0deg)` }}
                         >
