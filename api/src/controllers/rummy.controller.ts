@@ -359,16 +359,25 @@ export default class RummyController implements Controller {
             return;
         }
 
+        const melds = dealer.rankingMelds(playedCards);
+        let joker;
+        if (melds.completedDeck[melds.completedDeck.length - 1].isJoker) {
+            joker = melds.completedDeck.pop();
+            joker!.rank = 50;
+        }
+
         // update the game state
         game.playedCards = game.playedCards.map((meld: any) => {
             return meld._id.toString() === body.playedCards._id.toString() ?
-                { playedBy: playerId, cards: dealer.rankingMelds(playedCards).completedDeck } :
+                { playedBy: playerId, cards: melds.completedDeck } :
                 meld
         }
         );
+        
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         game.playerCards[playerId] = game.playerCards[playerId].filter((card: any) => JSON.stringify(body.placeCard) !== JSON.stringify(card));
+        game.playerCards[playerId] = game.playerCards[playerId].concat(joker);
 
         await this.game.replaceOne({ _id: gameId }, game, { runValidators: true });
 

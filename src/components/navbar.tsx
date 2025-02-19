@@ -27,9 +27,9 @@ export default function Navbar() {
     if (!userState) return null;
 
     return (
-        <main className="fixed top-0 left-0 w-screen bg-zinc-900 border-b border-zinc-400 z-50 select-none z-[100]" >
+        <main className="fixed top-0 left-0 w-screen bg-zinc-900 border-b border-zinc-400 z-50 select-none z-[100] max-h-[4.2rem]" >
             <div className="flex justify-between items-center p-4 pe-8 ps-4">
-                <div className="flex items-center justify-center gap-4 text-zinc-100">
+                <div className="flex items-center justify-center gap-4 text-zinc-100 max-h-[4.2rem]">
                     <div className='cursor-pointer' onClick={() => { setOpen(!isOpen) }}>
                         <Icon name='menu' size={24}></Icon>
                     </div>
