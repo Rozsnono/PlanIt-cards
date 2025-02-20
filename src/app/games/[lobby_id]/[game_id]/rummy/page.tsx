@@ -1,5 +1,6 @@
 "use client";
 import Icon, { StrokeIcon } from "@/assets/icons";
+import ErrorModal from "@/components/error.modal";
 import Loader from "@/components/loader.component";
 import getCardUrl from "@/contexts/cards.context"
 import { SettingsContext } from "@/contexts/settings.context";
@@ -45,7 +46,7 @@ export default function Game() {
             }
             if (game) {
                 setGame(game);
-                if(game.currentPlayer == user?._id) {
+                if (game.currentPlayer == user?._id) {
                     timerClass.start();
                 }
             }
@@ -97,10 +98,12 @@ export default function Game() {
         setDraggedCard(null);
     }
 
-    function cardDropped() {
+    async function cardDropped() {
         if (!draggedCard) return;
         if (!user) return;
-        gameService.dropCard(lobby!._id, { droppedCard: draggedCard }).catch((e) => { console.log(e) });
+
+        const res = await gameService.dropCard(lobby!._id, { droppedCard: draggedCard });
+        setError(res.error);
         setDraggedCard(null);
     }
 
@@ -109,20 +112,23 @@ export default function Game() {
         if (selectedCards.length < 3) {
             return;
         }
-        gameService.playCard(lobby!._id, { playedCards: selectedCards })
+        const res = await gameService.playCard(lobby!._id, { playedCards: selectedCards })
+        setError(res.error);
         setSelectedCards([]);
     }
 
-    function drawingCard() {
+    async function drawingCard() {
         if (!user) return;
         if (!lobby) return;
-        gameService.drawCard(lobby!._id);
+        const res = await gameService.drawCard(lobby!._id);
+        setError(res.error);
     }
 
-    function cardPlacingDrop(playedCard: { playedBy: string, cards: Icard[] }) {
+    async function cardPlacingDrop(playedCard: { playedBy: string, cards: Icard[] }) {
         if (!playedCard) return;
         if (!user) return;
-        gameService.putCard(lobby!._id, { playedCards: playedCard, placeCard: draggedCard! });
+        const res = await gameService.putCard(lobby!._id, { playedCards: playedCard, placeCard: draggedCard! });
+        setError(res.error);
         setDraggedCard(null);
     }
 
@@ -138,8 +144,10 @@ export default function Game() {
     async function nextTurn() {
         if (!user) return;
         const res = await gameService.nextTurn(lobby!._id);
-        if(!res.error){timerClass.stop();}
+        if (!res.error) { timerClass.stop(); }
     }
+
+    const [error, setError] = useState<string | null>(null);
 
     if (!game) return <Loader></Loader>
 
@@ -147,7 +155,9 @@ export default function Game() {
         <main className="flex bg-[#3f3f46c0] w-full min-h-screen rounded-md p-3 relative">
 
             <main className="bg-green-800 rounded-md w-full relative flex justify-center items-center">
-
+                {
+                    error && <ErrorModal errorCode={error} closeError={() => { setError(null) }}></ErrorModal>
+                }
                 <div className="flex justify-center items-center w-full h-full absolute py-8">
                     <div className="border border-[#cccccc10] rounded-md w-2/3 h-2/3 flex flex-wrap gap-10 z-50 p-1" onDrop={playCards} onDragOver={overDrag} >
                         {

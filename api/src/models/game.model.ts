@@ -19,7 +19,7 @@ const gameSchema = new Schema(
         playedCards: {
             type: [
                 {
-                    playedBy: {type: String, required: true},
+                    playedBy: { type: String, required: true },
                     cards: { type: Array, required: true },
                 }
             ],
@@ -35,6 +35,11 @@ const gameSchema = new Schema(
             type: Array,
             default: [],
             readonly: true
+        },
+        drawedCard: {
+            type: { lastDrawedBy: { type: String, required: true } },
+            default: { lastDrawedBy: null },
+            nullable: true
         },
         createdAt: {
             type: Date,
@@ -58,4 +63,4 @@ const validate = (message: object): Joi.ValidationResult => {
 const gameModel = model("game", gameSchema, "Game");
 
 
-export default {gameModel, validate};
+export default { gameModel, validate };

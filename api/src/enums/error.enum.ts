@@ -8,6 +8,8 @@ export enum ERROR {
     "NO_CARD_PLAYED" = "0o1408",
     "MAX_13_CARDS" = "0o1413",
     "MIN_51_VALUE" = "0o1501",
+    "ALREADY_DRAWN" = "0o1502",
+    "ALREADY_DROPPED" = "0o1503",
 
     "NOT_IN_LOBBY" = "0o2401",
     "LOBBY_NOT_FOUND" = "0o2404",

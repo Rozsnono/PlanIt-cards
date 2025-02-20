@@ -25,7 +25,7 @@ export class GameChecker {
             console.log(new Date().getTime() - this.lastTimes[gameId]);
             if (new Date().getTime() - this.lastTimes[gameId] >= this.time * 1000) {
                 this.stopInterval(gameId);
-                this.forceNextTurn();
+                this.forceNextTurn(gameId);
             }
         }, 10000);
     }
@@ -34,8 +34,8 @@ export class GameChecker {
         clearInterval(this.intervals[gameId]);
     }
 
-    public async forceNextTurn() {
-        const lobby = await this.lobby.findOne({ game_id: this.gameId });
+    public async forceNextTurn(LobbygameId: string) {
+        const lobby = await this.lobby.findOne({ game_id: LobbygameId });
         if (!lobby) {
             console.error("Lobby not found");
             return;
@@ -52,12 +52,15 @@ export class GameChecker {
             console.error("Not the current player");
             return;
         }
+        const dealer = new RummyDealer(game.shuffledCards);
+        if (game.drawedCard.lastDrawedBy !== playerId) {
+            game.playerCards[playerId].push(dealer.drawCard(1));
+        }
 
         if (game.droppedCards.length === 0 || game.droppedCards[game.droppedCards.length - 1].droppedBy !== playerId.toString()) {
             game.droppedCards.push({ droppedBy: playerId, card: game.playerCards[playerId].pop() });
         }
 
-        const dealer = new RummyDealer(game.shuffledCards);
         if (!dealer.isValidToNext(game.playedCards, playerId)) {
             const { cardsToReturn, playedCardsToReturn } = dealer.cardsToReturn(game.playedCards, playerId);
             game.playerCards[playerId] = game.playerCards[playerId].concat(cardsToReturn);

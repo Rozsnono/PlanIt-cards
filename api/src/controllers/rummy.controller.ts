@@ -80,7 +80,7 @@ export default class RummyController implements Controller {
         body["shuffledCards"] = dealer.shuffleDeck();
         // deal the cards
         body["playerCards"] = dealer.dealCards(lobby?.users.concat(lobby?.bots as any), 14);
-        body["currentPlayer"] = {playerId: lobby?.users[0], time: new Date().getTime()};
+        body["currentPlayer"] = { playerId: lobby?.users[0], time: new Date().getTime() };
         body["_id"] = new mongoose.Types.ObjectId();
         const newGame = new this.game(body);
         await newGame.save();
@@ -146,7 +146,6 @@ export default class RummyController implements Controller {
 
 
         game.currentPlayer = { playerId: nextPlayer, time: new Date().getTime() };
-
         await this.game.replaceOne({ _id: gameId }, game, { runValidators: true });
         this.gameHistoryService.saveHistory(playerId, gameId);
 
@@ -175,11 +174,16 @@ export default class RummyController implements Controller {
             return;
         }
 
-        if (game.droppedCards.length === 0 || game.droppedCards[game.droppedCards.length - 1].droppedBy !== playerId.toString()) {
-            game.droppedCards.push({ droppedBy: playerId, card: game.playerCards[playerId].pop()});
-        }
-        
         const dealer = new RummyDealer(game.shuffledCards);
+        if (game.drawedCard.lastDrawedBy !== playerId) {
+            game.playerCards[playerId].push(dealer.drawCard(1));
+            game.drawedCard.lastDrawedBy = playerId;
+        }
+
+        if (game.droppedCards.length === 0 || game.droppedCards[game.droppedCards.length - 1].droppedBy !== playerId.toString()) {
+            game.droppedCards.push({ droppedBy: playerId, card: game.playerCards[playerId].pop() });
+        }
+
         if (!dealer.isValidToNext(game.playedCards, playerId)) {
             const { cardsToReturn, playedCardsToReturn } = dealer.cardsToReturn(game.playedCards, playerId);
             game.playerCards[playerId] = game.playerCards[playerId].concat(cardsToReturn);
@@ -242,10 +246,14 @@ export default class RummyController implements Controller {
             res.status(403).send({ error: ERROR.NOT_YOUR_TURN });
             return;
         }
+        if (game.drawedCard.lastDrawedBy === playerId) {
+            res.status(403).send({ error: ERROR.ALREADY_DRAWN });
+            return;
+        }
         const dealer = new RummyDealer(game.shuffledCards);
         game.playerCards[playerId] = game.playerCards[playerId].concat(dealer.drawCard(1));
         game.shuffledCards = dealer.deck;
-
+        game.drawedCard.lastDrawedBy = playerId;
         await this.game.replaceOne({ _id: gameId }, game, { runValidators: true });
         res.send({ message: "Card drawn!" });
     };
@@ -292,6 +300,11 @@ export default class RummyController implements Controller {
         const body = req.body;
         if (!body.droppedCard) {
             res.status(400).send({ error: ERROR.NO_CARDS_DROPPED });
+            return;
+        }
+
+        if (game.droppedCards[game.droppedCards.length - 1].droppedBy === playerId) {
+            res.status(400).send({ error: ERROR.ALREADY_DROPPED });
             return;
         }
 

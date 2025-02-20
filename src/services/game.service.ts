@@ -78,8 +78,8 @@ export class GameService {
         return { lobby: object.lobby, game: object.game, playerCards: object.playerCard };
     }
 
-    public putCard(lobbyId: string, body: { playedCards: {playedBy: string, cards: Icard[]}, placeCard: Icard}){
-        fetch(`/api/put/${lobbyId}/${this.type}`, {
+    public async putCard(lobbyId: string, body: { playedCards: {playedBy: string, cards: Icard[]}, placeCard: Icard}){
+        const response = await fetch(`/api/put/${lobbyId}/${this.type}`, {
             method: "PUT",
             body: JSON.stringify(body),
             headers: {
@@ -87,6 +87,9 @@ export class GameService {
                 Authorization: `Bearer ${getCookie("token")}`
             }
         });
+        
+        const res = await response.json();
+        return res;
     }
 
 }
