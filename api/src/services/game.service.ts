@@ -10,29 +10,28 @@ export class GameChecker {
     gameHistoryService: any;
 
     public intervals: any = {};
-    private time = 20;
+    private time = 180;
     private gameId = "";
     public lastTimes: any = {};
 
 
-    constructor(gameId: string) {
-        this.gameId = gameId;
+    constructor() {
     }
 
-    public startInterval() {
-        if(this.intervals[this.gameId]) {return;}
-        this.intervals[this.gameId] = setInterval(() => {
-            if(this.lastTimes[this.gameId] === undefined) {}
-            console.log(this.lastTimes, new Date().getTime() - this.lastTimes[this.gameId])
-            if(new Date().getTime() - this.lastTimes[this.gameId] >= this.time * 1000) {
-                this.stopInterval();
+    public startInterval(gameId: string) {
+        if (this.intervals[gameId]) { return; }
+        this.intervals[gameId] = setInterval(() => {
+            if (this.lastTimes[gameId] === undefined) { }
+            console.log(new Date().getTime() - this.lastTimes[gameId]);
+            if (new Date().getTime() - this.lastTimes[gameId] >= this.time * 1000) {
+                this.stopInterval(gameId);
                 this.forceNextTurn();
             }
         }, 10000);
     }
 
-    public stopInterval() {
-        clearInterval(this.intervals[this.gameId]);
+    public stopInterval(gameId: string) {
+        clearInterval(this.intervals[gameId]);
     }
 
     public async forceNextTurn() {
@@ -93,7 +92,7 @@ export class GameChecker {
         game.currentPlayer = { playerId: nextPlayer, time: new Date().getTime() };
 
         await this.game.replaceOne({ _id: gameId }, game, { runValidators: true });
-        this.gameHistoryService.saveHistory(playerId, gameId);
+        // this.gameHistoryService.saveHistory(playerId, gameId);
         console.log("Forced turn")
 
     }

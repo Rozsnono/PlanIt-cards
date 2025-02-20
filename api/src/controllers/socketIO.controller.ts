@@ -44,6 +44,7 @@ export default class SocketIO {
         });
     }
 
+    private gameChecker = new GameChecker();
 
     public async monitorCollectionChanges() {
 
@@ -52,9 +53,8 @@ export default class SocketIO {
         const watching = this.game.watch([], options);
 
         watching.on('change', (change) => {
-            const gameChecker = new GameChecker(change.fullDocument._id);
-            gameChecker.startInterval();
-            gameChecker.lastTimes[change.fullDocument._id] = change.fullDocument.currentPlayer.time;
+            this.gameChecker.startInterval(change.fullDocument._id);
+            this.gameChecker.lastTimes[change.fullDocument._id] = change.fullDocument.currentPlayer.time;
             this.wss.clients.forEach((client) => {
                 if (client.readyState === WebSocket.OPEN) {
                     console.log('Game Change Stream:');

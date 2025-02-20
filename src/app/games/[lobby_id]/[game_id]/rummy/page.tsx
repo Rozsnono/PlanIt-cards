@@ -130,22 +130,13 @@ export default function Game() {
 
     useEffect(() => {
         const interval = setInterval(() => {
-            setTimer(timerClass.time);
-            if(timerClass.time >= 180) {forcedNextTurn();}
+            setTimer(parseInt(((new Date().getTime() - game.currentPlayer.time) / 1000).toFixed(0)));
         }, 1000);
         return () => clearInterval(interval);
-    }, [timerClass.time]);
+    }, [game]);
 
     async function nextTurn() {
         if (!user) return;
-        const res = await gameService.nextTurn(lobby!._id);
-        if(!res.error){timerClass.stop();}
-    }
-
-    async function forcedNextTurn() {
-        if (!user) return;
-        if (!lobby) return;
-        await gameService.dropCard(lobby!._id, { droppedCard: playerCards[0] }).catch((e) => { console.log(e) });
         const res = await gameService.nextTurn(lobby!._id);
         if(!res.error){timerClass.stop();}
     }
@@ -157,7 +148,7 @@ export default function Game() {
 
             <main className="bg-green-800 rounded-md w-full relative flex justify-center items-center">
 
-                <div className="flex justify-center items-center w-full h-full absolute">
+                <div className="flex justify-center items-center w-full h-full absolute py-8">
                     <div className="border border-[#cccccc10] rounded-md w-2/3 h-2/3 flex flex-wrap gap-10 z-50 p-1" onDrop={playCards} onDragOver={overDrag} >
                         {
                             game.playedCards && game.playedCards.map((e: { playedBy: string, cards: Icard[] }, i: number) => {
@@ -182,13 +173,13 @@ export default function Game() {
 
                 <div className="flex gap-10  w-full absolute top-2 p-2 justify-center">
                     <div className="flex relative cursor-pointer">
-                        <div className="2xl:w-[6rem] lg:w-[4.7rem] md:w-[3.7rem] 2xl:h-[9rem] lg:h-[7rem] md:h-[6rem] border border-zinc-400 rounded-md"></div>
+                        <div className="2xl:w-[5rem] lg:w-[4.7rem] md:w-[3.7rem] 2xl:h-[7.6rem] lg:h-[7rem] md:h-[6rem] border border-zinc-400 rounded-md"></div>
                         <Image className="absolute top-1 left-1" draggable={false} src={"/assets/cards/gray_back.png"} width={140} height={100} alt="card"></Image>
                         <Image onClick={drawingCard} draggable={false} className="absolute border-2 border-transparent hover:border-green-500 rounded-lg" src={"/assets/cards/gray_back.png"} width={140} height={110} alt="card"></Image>
                     </div>
 
                     <div className="flex relative" onDragOver={overDrag} onDrop={cardDropped} >
-                        <div className="2xl:w-[6rem] lg:w-[4.7rem] md:w-[4.7rem] 2xl:h-[9rem] lg:h-[7rem] md:h-[7rem] border border-zinc-400 rounded-md"></div>
+                        <div className="2xl:w-[5rem] lg:w-[4.7rem] md:w-[4.7rem] 2xl:h-[7.6rem] lg:h-[7rem] md:h-[7rem] border border-zinc-400 rounded-md"></div>
 
                         {
                             game.droppedCards.length > 1 &&
@@ -324,7 +315,7 @@ export default function Game() {
                             style={{ background: `conic-gradient(#bef264 ${360 - ((timer) * 360 / 180)}deg, transparent 0deg)` }}
                         >
                             <div className="w-[4.5rem] h-[4.5rem] bg-green-800 rounded-full border-2 flex items-center justify-center text-zinc-200 border-lime-300 text-xl cursor-pointer group duration-100">
-                                <span className="group-hover:opacity-0 group-hover:hidden flex opacity-100 duration-100">{180 - timerClass.time}s</span>
+                                <span className="group-hover:opacity-0 group-hover:hidden flex opacity-100 duration-100">{180 - timer}s</span>
                                 <span className="group-hover:opacity-100 group-hover:flex hidden opacity-0 duration-100"><Icon name="check-empty" size={44}></Icon></span>
                             </div>
                         </div>
