@@ -6,14 +6,17 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "start:api": "node ./api/dist/server.js",
+    "start:api": "node ./dist/server.js",
     "lint": "next lint",
     "build:start": "next build && next start",
     "build:api": "tsc -p ./api",
     "build:watch": "tsc --watch",
     "dev:api": "nodemon ./api/src/server.ts",
-    "api-build:start": "tsc -p ./api && node ./api/dist/server.js",
-    "dev:all": "concurrently \"npm run dev\" \"npm run dev:api\""
+    "api-build:start": "tsc -p ./api && node ./dist/server.js",
+    "dev:all": "concurrently \"npm run dev\" \"npm run dev:api\"",
+    "build:all": "concurrently \"npm run build\" \"npm run build:api\"",
+    "start:all": "concurrently \"npm run start\" \"npm run start:api\"",
+    "build-start:all": "concurrently \"npm run build:start\" \"npm run api-build:start\""
   },
   "dependencies": {
     "@types/bcryptjs": "^2.4.6",
