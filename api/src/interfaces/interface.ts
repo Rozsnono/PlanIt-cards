@@ -4,6 +4,7 @@ export interface Icard{
     suit: string;
     isJoker?: boolean;
     pack: number;
+    value: number;
 }
 
 export interface Iplayer {

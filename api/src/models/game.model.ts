@@ -37,7 +37,7 @@ const gameSchema = new Schema(
             readonly: true
         },
         drawedCard: {
-            type: { lastDrawedBy: { type: String, required: true } },
+            type: { lastDrawedBy: { type: String } },
             default: { lastDrawedBy: null },
             nullable: true
         },

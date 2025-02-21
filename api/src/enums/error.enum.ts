@@ -10,6 +10,7 @@ export enum ERROR {
     "MIN_51_VALUE" = "0o1501",
     "ALREADY_DRAWN" = "0o1502",
     "ALREADY_DROPPED" = "0o1503",
+    "NEED_TO_DRAW" = "0o1504",
 
     "NOT_IN_LOBBY" = "0o2401",
     "LOBBY_NOT_FOUND" = "0o2404",

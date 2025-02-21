@@ -10,6 +10,7 @@ import mongoose from "mongoose";
 import { ERROR } from "../enums/error.enum";
 import GameHistoryService from "../services/history.services";
 import { EasyRummyBot } from "../services/bot.services";
+import { RummyBot } from "../services/rummy.bot.service";
 
 
 export default class RummyController implements Controller {
@@ -109,6 +110,11 @@ export default class RummyController implements Controller {
             return;
         }
 
+        if (game.drawedCard.lastDrawedBy !== playerId.toString()) {
+            res.status(403).send({ error: ERROR.NEED_TO_DRAW });
+            return;
+        }
+
         if (game.droppedCards.length === 0 || game.droppedCards[game.droppedCards.length - 1].droppedBy !== playerId.toString()) {
             res.status(403).send({ error: ERROR.NO_CARDS_DROPPED });
             return;
@@ -127,21 +133,15 @@ export default class RummyController implements Controller {
 
         let nextPlayer = this.nextPlayer(lobby.users.map(id => { return id.toString() }), game.currentPlayer.playerId.toString(), lobby.bots);
         while (nextPlayer.includes("bot")) {
-            const easyBot = new EasyRummyBot(nextPlayer);
-            game.playerCards[nextPlayer] = game.playerCards[nextPlayer].concat(dealer.drawCard(1));
-            const { discard, melds, hand } = easyBot.playTurn({ hand: game.playerCards[nextPlayer], discardPile: game.droppedCards, melds: game.playedCards });
-            if (dealer.isValidToNext(game.playedCards, nextPlayer)) {
-                game.playerCards[nextPlayer] = hand;
-                if (game.playedCards.length > 0) {
-                    game.playedCards.concat(melds);
-                } else {
-                    game.playedCards = melds
-                }
-            }
-            game.droppedCards.push(discard);
-            nextPlayer = this.nextPlayer(lobby.users.map(id => { return id.toString() }), nextPlayer, lobby.bots);
+            const bot = new RummyBot(nextPlayer, 'easy', game.playerCards[nextPlayer], game.droppedCards, game.playedCards, game.shuffledCards);
+            const { droppedCards, playedCards, playerCards } = bot.play();
+            game.playerCards[nextPlayer] = playerCards;
+            game.playedCards = playedCards;
+            game.droppedCards = droppedCards;
+            game.drawedCard.lastDrawedBy = nextPlayer;
             await this.game.replaceOne({ _id: gameId }, game, { runValidators: true });
             await new Promise(resolve => setTimeout(resolve, Math.random() * 3));
+            nextPlayer = this.nextPlayer(lobby.users.map(id => { return id.toString() }), nextPlayer, lobby.bots);
         }
 
 
@@ -196,22 +196,28 @@ export default class RummyController implements Controller {
         }
 
         let nextPlayer = this.nextPlayer(lobby.users.map(id => { return id.toString() }), game.currentPlayer.playerId.toString(), lobby.bots);
+        // while (nextPlayer.includes("bot")) {
+        //     const easyBot = new EasyRummyBot(nextPlayer);
+        //     game.playerCards[nextPlayer] = game.playerCards[nextPlayer].concat(dealer.drawCard(1));
+        //     const { discard, melds, hand } = easyBot.playTurn({ hand: game.playerCards[nextPlayer], discardPile: game.droppedCards, melds: game.playedCards });
+        //     if (dealer.isValidToNext(game.playedCards, nextPlayer)) {
+        //         game.playerCards[nextPlayer] = hand;
+        //         if (game.playedCards.length > 0) {
+        //             game.playedCards.concat(melds);
+        //         } else {
+        //             game.playedCards = melds
+        //         }
+        //     }
+        //     game.droppedCards.push(discard);
+        //     nextPlayer = this.nextPlayer(lobby.users.map(id => { return id.toString() }), nextPlayer, lobby.bots);
+        //     await this.game.replaceOne({ _id: gameId }, game, { runValidators: true });
+        //     await new Promise(resolve => setTimeout(resolve, Math.random() * 3));
+        // }
+
         while (nextPlayer.includes("bot")) {
-            const easyBot = new EasyRummyBot(nextPlayer);
-            game.playerCards[nextPlayer] = game.playerCards[nextPlayer].concat(dealer.drawCard(1));
-            const { discard, melds, hand } = easyBot.playTurn({ hand: game.playerCards[nextPlayer], discardPile: game.droppedCards, melds: game.playedCards });
-            if (dealer.isValidToNext(game.playedCards, nextPlayer)) {
-                game.playerCards[nextPlayer] = hand;
-                if (game.playedCards.length > 0) {
-                    game.playedCards.concat(melds);
-                } else {
-                    game.playedCards = melds
-                }
-            }
-            game.droppedCards.push(discard);
-            nextPlayer = this.nextPlayer(lobby.users.map(id => { return id.toString() }), nextPlayer, lobby.bots);
-            await this.game.replaceOne({ _id: gameId }, game, { runValidators: true });
-            await new Promise(resolve => setTimeout(resolve, Math.random() * 3));
+            const bot = new RummyBot(nextPlayer, 'easy', game.playerCards[nextPlayer], game.droppedCards, game.playedCards, game.shuffledCards);
+            const { droppedCards, playedCards, playerCards } = bot.play();
+            console.log(droppedCards, playedCards, playerCards);
         }
 
 
@@ -303,7 +309,7 @@ export default class RummyController implements Controller {
             return;
         }
 
-        if (game.droppedCards[game.droppedCards.length - 1].droppedBy === playerId) {
+        if (game.droppedCards.length > 0 && game.droppedCards[game.droppedCards.length - 1].droppedBy === playerId) {
             res.status(400).send({ error: ERROR.ALREADY_DROPPED });
             return;
         }
@@ -367,7 +373,7 @@ export default class RummyController implements Controller {
         const dealer = new RummyDealer(game.shuffledCards);
 
         //Check if the player has played a valid card
-        const validation = dealer.validatePlay(body.playedCards, game.playerCards[playerId], game.playedCards, playerId);
+        const validation = dealer.validatePlay(body.playedCards, game.playerCards[playerId]);
         if (validation !== "Valid") {
             res.status(400).send({ error: validation });
             return;
@@ -430,7 +436,7 @@ export default class RummyController implements Controller {
         playedCards.push(body.placeCard);
 
         //Check if the player has played a valid card
-        const validation = dealer.validatePlay(playedCards, game.playerCards[playerId], game.playedCards, playerId, true);
+        const validation = dealer.validatePlay(playedCards, game.playerCards[playerId], true);
         if (validation !== "Valid") {
             res.status(400).send({ error: validation });
             return;
@@ -447,7 +453,7 @@ export default class RummyController implements Controller {
         // update the game state
         game.playedCards = game.playedCards.map((meld: any) => {
             return meld._id.toString() === body.playedCards._id.toString() ?
-                { playedBy: playerId, cards: melds.completedDeck } :
+                { playedBy: meld.playedBy, cards: melds.completedDeck } :
                 meld
         }
         );

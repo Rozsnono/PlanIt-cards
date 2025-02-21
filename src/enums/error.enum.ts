@@ -8,6 +8,9 @@ export enum ERROR {
     "0o1408" = "No card was played.",
     "0o1413" = "Maximum 13 cards allowed.",
     "0o1501" = "Minimum value of 51 is required.",
+    "0o1502" = "Card has already been drawn.",
+    "0o1503" = "Card has already been dropped.",
+    "0o1504" = "You need to draw a card.",
 
     "0o2401" = "You are not in the lobby.",
     "0o2404" = "Lobby not found.",
