@@ -1,5 +1,5 @@
 "use client";
-import Help from "@/app/help/page";
+import Help from "@/components/help/help.component";
 import Icon, { StrokeIcon } from "@/assets/icons";
 import { MenuContext } from "@/contexts/menu.context";
 import { UserContext } from "@/contexts/user.context";
