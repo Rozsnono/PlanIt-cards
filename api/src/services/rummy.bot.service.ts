@@ -31,7 +31,7 @@ export class RummyBot {
         if (melds.length > 0) {
             this.playedCards.concat(melds);
             this.playerCards = this.playerCards.filter(card => !melds.map((meld: any) => meld.cards).flat().includes(card));
-            // this.searchForPuttableCards(); //TODO: Implement this
+            this.searchForPuttableCards();
         }
 
         if (this.playerCards.length > 1) {
@@ -47,7 +47,6 @@ export class RummyBot {
         const melds = [];
         const sequence = this.hasSequence();
         const set = this.hasSet();
-        console.log(sequence, set);
         let values = 0;
         sequence.forEach(card => values += card.value);
         set.forEach(card => values += card.value);
@@ -80,8 +79,6 @@ export class RummyBot {
                 }
             }
         });
-
-        
 
         if (sequence.length < 3) {
             return [];
@@ -126,7 +123,7 @@ export class RummyBot {
                     this.playedCards = this.playedCards.map((meld: any) => {
                         console.log(meld, playedCard)
                         return meld._id.toString() === (playedCard as any)._id.toString() ?
-                            { playedBy: playedCard.cards, cards: playedCard.cards.concat(card) } :
+                            { playedBy: playedCard.playedBy, cards: playedCard.cards.concat(card) } :
                             meld
                     });
                     this.playerCards.splice(index, 1);

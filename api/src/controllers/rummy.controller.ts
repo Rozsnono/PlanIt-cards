@@ -11,6 +11,7 @@ import { ERROR } from "../enums/error.enum";
 import GameHistoryService from "../services/history.services";
 import { EasyRummyBot } from "../services/bot.services";
 import { RummyBot } from "../services/rummy.bot.service";
+import { Ilobby } from "../interfaces/interface";
 
 
 export default class RummyController implements Controller {
@@ -19,6 +20,8 @@ export default class RummyController implements Controller {
     public game = gameModel.gameModel;
     public lobby = lobbyModel.lobbyModel;
     private gameHistoryService = new GameHistoryService();
+
+    private wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
     constructor() {
         // API route to start a game
@@ -82,6 +85,7 @@ export default class RummyController implements Controller {
         // deal the cards
         body["playerCards"] = dealer.dealCards(lobby?.users.concat(lobby?.bots as any), 14);
         body["currentPlayer"] = { playerId: lobby?.users[0], time: new Date().getTime() };
+        body["drawedCard"] = { lastDrawedBy: lobby?.users[0] };
         body["_id"] = new mongoose.Types.ObjectId();
         const newGame = new this.game(body);
         await newGame.save();
@@ -132,18 +136,27 @@ export default class RummyController implements Controller {
         }
 
         let nextPlayer = this.nextPlayer(lobby.users.map(id => { return id.toString() }), game.currentPlayer.playerId.toString(), lobby.bots);
-        while (nextPlayer.includes("bot")) {
-            const bot = new RummyBot(nextPlayer, 'easy', game.playerCards[nextPlayer], game.droppedCards, game.playedCards, game.shuffledCards);
-            const { droppedCards, playedCards, playerCards } = bot.play();
-            game.playerCards[nextPlayer] = playerCards;
-            game.playedCards = playedCards;
-            game.droppedCards = droppedCards;
-            game.drawedCard.lastDrawedBy = nextPlayer;
-            await this.game.replaceOne({ _id: gameId }, game, { runValidators: true });
-            await new Promise(resolve => setTimeout(resolve, Math.random() * 3));
-            nextPlayer = this.nextPlayer(lobby.users.map(id => { return id.toString() }), nextPlayer, lobby.bots);
-        }
+        // while (nextPlayer.includes("bot")) {
+        //     const bot = new RummyBot(nextPlayer, 'easy', game.playerCards[nextPlayer], game.droppedCards, game.playedCards, game.shuffledCards);
+        //     const { droppedCards, playedCards, playerCards } = bot.play();
+        //     game.playerCards[nextPlayer] = playerCards;
+        //     game.playedCards = playedCards;
+        //     game.droppedCards = droppedCards;
+        //     game.drawedCard.lastDrawedBy = nextPlayer;
+        //     console.log("Bot played!")
+        //     await this.game.replaceOne({ _id: gameId }, game, { runValidators: true });
+        //     await new Promise(resolve => setTimeout(resolve, Math.random() * 3000));
+        //     nextPlayer = this.nextPlayer(lobby.users.map(id => { return id.toString() }), nextPlayer, lobby.bots);
+        // }
 
+        if (nextPlayer.includes("bot")) {
+            const { game: gameStat, nextPlayer: nextP } = await this.playWithBots(game, lobby as any, nextPlayer);
+            game.droppedCards = gameStat.droppedCards;
+            game.playedCards = gameStat.playedCards;
+            game.playerCards = gameStat.playerCards;
+            game.drawedCard.lastDrawedBy = nextP;
+            nextPlayer = nextP;
+        }
 
         game.currentPlayer = { playerId: nextPlayer, time: new Date().getTime() };
         await this.game.replaceOne({ _id: gameId }, game, { runValidators: true });
@@ -153,6 +166,26 @@ export default class RummyController implements Controller {
 
         res.send({ message: "Next turn!" });
     };
+
+    private playWithBots = async (game: any, lobby: Ilobby, nextPlayer: string) => {
+        const bot = new RummyBot(nextPlayer, 'easy', game.playerCards[nextPlayer], game.droppedCards, game.playedCards, game.shuffledCards);
+        const { droppedCards, playedCards, playerCards } = bot.play();
+        game.playerCards[nextPlayer] = playerCards;
+        game.playedCards = playedCards;
+        game.droppedCards = droppedCards;
+        game.drawedCard.lastDrawedBy = nextPlayer;
+        await this.wait(Math.random() * 6000);
+        console.log("Bot played!")
+        await this.game.replaceOne({ _id: game._id }, game, { runValidators: true });
+        await new Promise(resolve => setTimeout(resolve, Math.random() * 3000));
+        nextPlayer = this.nextPlayer(lobby.users.map(id => { return id.toString() }), nextPlayer, lobby.bots);
+        if (nextPlayer.includes("bot")) {
+            const { game: gameStat, nextPlayer: nextP } = await this.playWithBots(game, lobby, nextPlayer);
+            game = gameStat;
+            nextPlayer = nextP;
+        }
+        return { game, nextPlayer };
+    }
 
     private forcedNextTurn = async (req: Request, res: Response) => {
         const lobbyId = req.params.lobbyId;
@@ -217,7 +250,7 @@ export default class RummyController implements Controller {
         while (nextPlayer.includes("bot")) {
             const bot = new RummyBot(nextPlayer, 'easy', game.playerCards[nextPlayer], game.droppedCards, game.playedCards, game.shuffledCards);
             const { droppedCards, playedCards, playerCards } = bot.play();
-            console.log(droppedCards, playedCards, playerCards);
+            console.log("Bot played!")
         }
 
 

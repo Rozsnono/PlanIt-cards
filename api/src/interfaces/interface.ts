@@ -46,6 +46,7 @@ export interface Ilobby {
     chat: Imessage[];
     game_id?: string;
     createdBy: string;
+    bots: string[];
 }
 
 export interface Imessage {

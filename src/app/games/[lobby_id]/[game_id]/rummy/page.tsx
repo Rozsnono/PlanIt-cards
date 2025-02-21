@@ -46,6 +46,7 @@ export default function Game() {
             }
             if (game) {
                 setGame(game);
+                console.log(game);
                 if (game.currentPlayer == user?._id) {
                     timerClass.start();
                 }
