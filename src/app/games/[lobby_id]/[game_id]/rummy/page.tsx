@@ -61,6 +61,7 @@ export default function Game() {
     const { user } = useContext(UserContext);
     const [game, setGame] = useState<Igame | any>();
     const [lobby, setLobby] = useState<Ilobby>();
+    const [nextTurnLoader, setNextTurnLoader] = useState(false);
 
     const [selectedCards, setSelectedCards] = useState<Icard[]>([]);
     const [draggedCard, setDraggedCard] = useState<Icard | null>(null);
@@ -144,8 +145,14 @@ export default function Game() {
 
     async function nextTurn() {
         if (!user) return;
+        setNextTurnLoader(true);
         const res = await gameService.nextTurn(lobby!._id);
-        if (!res.error) { timerClass.stop(); }
+        if (!res.error) {
+            timerClass.stop();
+            setTimer(180);
+            game.currentPlayer.playerId = null;
+        }
+        setNextTurnLoader(false);
     }
 
     const [error, setError] = useState<string | null>(null);
@@ -238,7 +245,7 @@ export default function Game() {
                                         <StrokeIcon name="robot" size={32}></StrokeIcon>
                                     </div>
                                     <div>
-                                        <p className="text-zinc-300 text-center">{bot}</p>
+                                        <p className="text-zinc-300 text-center">{bot.name}</p>
                                     </div>
 
                                 </div>
@@ -283,7 +290,7 @@ export default function Game() {
                                         <StrokeIcon name="robot" size={32}></StrokeIcon>
                                     </div>
                                     <div>
-                                        <p className="text-zinc-300 text-center">{bot}</p>
+                                        <p className="text-zinc-300 text-center">{bot.name}</p>
                                     </div>
 
                                 </div>
@@ -321,13 +328,24 @@ export default function Game() {
                     </div>
 
                     {
-                        game.currentPlayer.playerId == user?._id &&
+                        game.currentPlayer.playerId == user?._id && !nextTurnLoader &&
                         <div onClick={nextTurn} key={timer} className={`absolute right-10 h-[5rem] w-[5rem] justify-center items-center flex rounded-full border-2 border-lime-300 bottom-4`}
                             style={{ background: `conic-gradient(#bef264 ${360 - ((timer) * 360 / 180)}deg, transparent 0deg)` }}
                         >
                             <div className="w-[4.5rem] h-[4.5rem] bg-green-800 rounded-full border-2 flex items-center justify-center text-zinc-200 border-lime-300 text-xl cursor-pointer group duration-100">
                                 <span className="group-hover:opacity-0 group-hover:hidden flex opacity-100 duration-100">{180 - timer}s</span>
                                 <span className="group-hover:opacity-100 group-hover:flex hidden opacity-0 duration-100"><Icon name="check-empty" size={44}></Icon></span>
+                            </div>
+                        </div>
+                    }
+
+                    {
+                       nextTurnLoader &&
+                        <div onClick={nextTurn} key={timer} className={`absolute right-10 h-[5rem] w-[5rem] justify-center items-center flex rounded-full border-2 border-lime-300 bottom-4`}
+                            style={{ background: `conic-gradient(#bef264 ${360 - ((0) * 360 / 180)}deg, transparent 0deg)` }}
+                        >
+                            <div className="w-[4.5rem] h-[4.5rem] bg-green-800 rounded-full border-2 flex items-center justify-center text-lime-200 border-lime-300 text-xl cursor-pointer group duration-100">
+                                <span className="opacity-100 group-hover:flex flex duration-100 animate-spin"><Icon name="loader" size={44}></Icon></span>
                             </div>
                         </div>
                     }

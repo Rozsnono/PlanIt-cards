@@ -1,7 +1,14 @@
-import React from "react";
+"use client";
+import React, { useEffect } from "react";
 
 export default function StarBackground() {
-    const stars = Array.from({ length: 500 }, (_, i) => i + 1);
+
+    const [stars, setStars] = React.useState<Array<number>>([]);
+    const [shootingStar, setShootingStar] = React.useState<Array<number>>([]);
+    useEffect(() => {
+        setStars(Array.from({ length: 500 }, (_, i) => i + 1));
+        setShootingStar(Array.from({ length: 10 }, (_, i) => i + 1));
+    }, []);
 
     function randomPositionForStars(index: number) {
         const size = (Math.random() * 10) % 9 == 0 ? 12 : Math.random() * 4;
@@ -11,7 +18,6 @@ export default function StarBackground() {
         return { left: `${Math.random() * 100}%`, top: `${Math.random() * 100}%`, animationDelay: `${Math.random() * 5}s`, width: `${size}px`, height: `${size}px`, background: colors[Math.floor(Math.random() * colors.length)] };
     }
 
-    const shootingStar = Array.from({ length: 10 }, (_, i) => i + 1);
 
     function getPlanetPos() {
         return { saturn: new Date().getMinutes() * (100 / 60), uranus: new Date().getDate() * (100 / 30), neptun: new Date().getHours() * 2.5 * (100 / 60), redgiant: new Date().getMonth() * (100 / 12), moon: new Date().getSeconds() * (200 / 60) - 50 };

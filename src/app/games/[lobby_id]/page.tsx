@@ -7,9 +7,9 @@ import { Ilobby } from "@/interfaces/interface";
 import React from "react";
 import Link from "next/link";
 import Loader from "@/components/loader.component";
-import { LobbyComponent } from "@/components/lobby/lobby.component";
 import { GameService } from "@/services/game.service";
 import LobbyService from "@/services/lobby.service";
+import LobbySettings from "@/components/lobby/lobby.settings.component";
 const lobbyService = new LobbyService();
 const gameService = new GameService("rummy");
 
@@ -59,11 +59,11 @@ export default function LobbyId() {
         gameService.startGame(lobby_id as string);
     }
 
-    function setFormData(e: React.ChangeEvent<HTMLInputElement> | any) {
-        setForm({ ...form, [e.target.id]: e.target.checked ? e.target.checked : e.target.value });
+    function setFormData(obj: any) {
+        setForm((prev:any) => ({ ...prev, ...obj }));
     }
 
-    function saveEdit() {
+    function saveEdit(form: any) {
         console.log(form);
         lobbyService.editLobby(lobby_id as string, form);
     }
@@ -135,7 +135,7 @@ export default function LobbyId() {
                                         return (
                                             <div key={i} className={`absolute bg-zinc-400 text-zinc-700 flex items-center justify-center border-2 border-zinc-700 rounded-full ${positionEnum[i]} w-24 h-24 duration-200`}>
                                                 <StrokeIcon name="robot" size={56} />
-                                                <div className="absolute bottom-[-2rem] text-zinc-300">{lobby.bots[i - lobby.users.length]}</div>
+                                                <div className="absolute bottom-[-2rem] text-zinc-300">{lobby.bots[i - lobby.users.length].name}</div>
                                             </div>
                                         );
                                     }
@@ -191,7 +191,10 @@ export default function LobbyId() {
 
 
             </main>
-            <LobbyComponent cancel={cancelEdit} form={form} setFormData={setFormData} save={saveEdit} canEdit title="Lobby settings"></LobbyComponent>
+            <main className="lg:w-1/2 w-full min-h-screen bg-[#3f3f46c0] rounded-md flex flex-col p-3 text-zinc-300">
+
+                <LobbySettings cancel={cancelEdit} getForm={form} save={saveEdit} canEdit title="Lobby settings"></LobbySettings>
+            </main>
         </main>
     )
 }

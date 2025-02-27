@@ -6,6 +6,7 @@ import lobbyModel from "../models/lobby.model";
 import gameModel from "../models/game.model";
 import mongoose from "mongoose";
 import { ERROR } from "../enums/error.enum";
+import Bot from "../services/bot.services";
 
 
 export default class LobbyController implements Controller {
@@ -70,15 +71,44 @@ export default class LobbyController implements Controller {
         body["_id"] = new mongoose.Types.ObjectId();
         body["users"] = [new mongoose.Types.ObjectId(userid)];
         body["createdBy"] = new mongoose.Types.ObjectId(userid);
-        body["bots"] = (body.settings.fillWithRobots ? Array.from({ length: body.settings.numberOfRobots }, (_, i) => `${body.settings.robotsDifficulty}-bot-${i}`) : []);
+        console.log(body)
+        body["bots"] = (body.settings.fillWithRobots ? Array.from({ length: body.settings.numberOfRobots }, (_, i) => { return { name: new Bot().getRobotName(body.settings.robotsDifficulty, i), _id: 'bot' + i } }) : []);
         const newLobby = new this.lobby(body);
         await newLobby.save();
         res.send({ _id: newLobby._id });
     };
 
     private getLobby = async (req: Request, res: Response) => {
-        const lobbies = await this.lobby.find().populate("users", "customId username rank");
-        res.send(lobbies);
+        const query = req.query;
+        const filter: any = {};
+        const paging: { page: number, limit: number } = { page: 1, limit: 16 };
+        if (query.cardType) {
+            filter["settings.cardType"] = query.cardType;
+        }
+        if (query.unranked === "true") {
+            filter["settings.unranked"] = true;
+        }
+        if (query.noPrivateLobby === "true") {
+            filter["settings.privateLobby"] = false;
+        }
+        if (query.noBots === "true") {
+            filter["settings.fillWithRobots"] = false;
+        }
+        if (query.robotsDifficulty) {
+            filter["settings.robotsDifficulty"] = parseInt(query.robotsDifficulty.toString());
+        }
+        if (query.numberOfPlayers) {
+            filter["settings.numberOfPlayers"] = parseInt(query.numberOfPlayers.toString());
+        }
+        if (query.page) {
+            paging.page = parseInt(query.page.toString());
+        }
+        if (query.limit) {
+            paging.limit = parseInt(query.limit.toString());
+        }
+        const lobbies = await this.lobby.find(filter).limit(paging.limit).skip((paging.page-1) * paging.limit).populate("users", "customId username rank");
+        const lobbyCount = await this.lobby.countDocuments();
+        res.send({ total: parseInt(((lobbyCount / paging.limit) + 1).toFixed(0)), data: lobbies });
     };
 
     private chatLobby = async (req: Request, res: Response) => {
@@ -128,12 +158,12 @@ export default class LobbyController implements Controller {
                 res.status(400).send({ error: ERROR.INVALID_PASSWORD });
                 return;
             }
-            if(lobby.users.length >= lobby.settings!.numberOfPlayers!) {
+            if (lobby.users.length >= lobby.settings!.numberOfPlayers!) {
                 res.status(400).send({ error: ERROR.LOBBY_FULL });
                 return;
             }
             const userid = await getIDfromToken(req);
-            if(lobby.users.find((p) => p.toString() === userid.toString())) {
+            if (lobby.users.find((p) => p.toString() === userid.toString())) {
                 res.status(400).send({ error: ERROR.ALREADY_IN_LOBBY });
                 return;
             }
@@ -143,7 +173,7 @@ export default class LobbyController implements Controller {
             const newLobby = await this.lobby.findOne({ _id: id }).populate("users", "customId username rank");
             res.send({ lobby: newLobby });
         } else {
-           res.status(400).send({ error: ERROR.AN_ERROR_OCCURRED });
+            res.status(400).send({ error: ERROR.AN_ERROR_OCCURRED });
         }
     };
 
@@ -157,7 +187,7 @@ export default class LobbyController implements Controller {
             await this.lobby.replaceOne({ _id: id }, lobby, { runValidators: true });
             res.send({ message: "OK" });
         } else {
-           res.status(400).send({ error: ERROR.AN_ERROR_OCCURRED });
+            res.status(400).send({ error: ERROR.AN_ERROR_OCCURRED });
         }
     };
 
@@ -170,7 +200,7 @@ export default class LobbyController implements Controller {
             await this.game.deleteOne({ _id: lobby.game_id });
             res.send({ message: "OK" });
         } else {
-           res.status(400).send({ error: ERROR.AN_ERROR_OCCURRED });
+            res.status(400).send({ error: ERROR.AN_ERROR_OCCURRED });
         }
     };
 
@@ -182,7 +212,7 @@ export default class LobbyController implements Controller {
             await this.lobby.replaceOne({ _id: id }, { ...lobby, settings: body }, { runValidators: true });
             res.send({ message: "OK" });
         } else {
-           res.status(400).send({ error: ERROR.AN_ERROR_OCCURRED });
+            res.status(400).send({ error: ERROR.AN_ERROR_OCCURRED });
         }
     };
 
@@ -196,7 +226,7 @@ export default class LobbyController implements Controller {
             await this.lobby.replaceOne({ _id: id }, lobby, { runValidators: true });
             res.send({ message: "OK" });
         } else {
-           res.status(400).send({ error: ERROR.AN_ERROR_OCCURRED });
+            res.status(400).send({ error: ERROR.AN_ERROR_OCCURRED });
         }
     };
 
@@ -221,7 +251,7 @@ export default class LobbyController implements Controller {
 
             return true;
         } else {
-            
+
             return false;
         }
     };

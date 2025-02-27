@@ -1,5 +1,12 @@
-export default function Icon({ name, size = 18 }: { name: string, size?: number }) {
+export default function Icon({ name, size = 18, stroke }: { name: string, size?: number, stroke?: boolean }) {
 
+    if (stroke) {
+        return (
+            <svg width={size} height={size} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                {getIcon(name)}
+            </svg>
+        );
+    }
     return (
         <svg width={size} height={size} fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             {getIcon(name)}
@@ -290,7 +297,10 @@ function getIcon(name: string) {
 
         case "key": {
             return (
-                <path d="M21 10h-8.35A5.99 5.99 0 0 0 7 6c-3.31 0-6 2.69-6 6s2.69 6 6 6a5.99 5.99 0 0 0 5.65-4H13l2 2 2-2 2 2 4-4.04L21 10ZM7 15c-1.65 0-3-1.35-3-3s1.35-3 3-3 3 1.35 3 3-1.35 3-3 3Z"></path>
+                <>
+                    <path d="M8.738 11.512a6.75 6.75 0 1 1 3.75 3.75v0L11.25 16.5H9v2.25H6.75V21H3v-3.75l5.738-5.738Z"></path>
+                    <path fill="currentColor" stroke="none" d="M16.875 8.625a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z"></path>
+                </>
             )
         }
         case "save": {
@@ -354,6 +364,22 @@ function getIcon(name: string) {
                     <path d="M2 13v4"></path>
                     <path d="M22 13v4"></path>
                     <path d="M12 5a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"></path>
+                </>
+            )
+        }
+
+        case "table": {
+            return (
+                <path d="M4 8h16V5H4v3Zm10 11v-9h-4v9h4Zm2 0h4v-9h-4v9Zm-8 0v-9H4v9h4ZM3 3h18a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z"></path>
+            )
+        }
+
+        case "unranked": {
+            return (
+                <>
+                    <path d="M5.11 18.89c-.863-.862-.291-2.671-.732-3.73C3.938 14.1 2.25 13.171 2.25 12c0-1.172 1.669-2.063 2.128-3.16.46-1.096-.131-2.868.731-3.73.863-.863 2.672-.291 3.732-.732C9.9 3.938 10.828 2.25 12 2.25c1.172 0 2.063 1.669 3.16 2.128 1.096.46 2.868-.131 3.73.731.863.863.291 2.672.732 3.732.44 1.059 2.128 1.987 2.128 3.159 0 1.172-1.669 2.063-2.128 3.16-.46 1.096.131 2.868-.731 3.73-.863.863-2.672.291-3.732.732-1.059.44-1.987 2.128-3.159 2.128-1.172 0-2.063-1.669-3.16-2.128-1.096-.46-2.868.131-3.73-.731Z"></path>
+                    <path fill="currentColor" stroke="none" d="M12 18a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z"></path>
+                    <path d="M12 12.75a2.625 2.625 0 1 0-2.625-2.625"></path>
                 </>
             )
         }

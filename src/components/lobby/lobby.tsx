@@ -107,8 +107,8 @@ export default function LobbyCard({ lobbyDatas, lobbyNumber }: { lobbyDatas: Ilo
 
                     {
                         lobbyDatas.bots?.map(bot => (
-                            <div key={bot} className="flex flex-col gap-1 items-center h-14 w-full mx-auto border border-zinc-500 rounded-md">
-                                <div className="">{bot}</div>
+                            <div key={bot._id} className="flex flex-col gap-1 items-center h-14 w-full mx-auto border border-zinc-500 rounded-md">
+                                <div className="">{bot.name}</div>
                                 <div className="text-md">Bot</div>
                             </div>
                         ))

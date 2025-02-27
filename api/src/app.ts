@@ -8,7 +8,6 @@ import AuthController from "./controllers/auth.controller";
 import SocketIO from "./controllers/socketIO.controller";
 import userModel from "./models/user.model";
 import lobbyModel from "./models/lobby.model";
-import { RummyBot } from "./services/bot.services";
 
 const { MONGO_URL = "mongodb+srv://admin:admin@planit-card.0lrdm.mongodb.net/?retryWrites=true&w=majority&appName=Planit-card" } = process.env;
 

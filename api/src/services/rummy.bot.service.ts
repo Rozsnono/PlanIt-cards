@@ -23,7 +23,7 @@ export class RummyBot {
     }
 
     public play(): any {
-
+        console.log(this.playerCards.length)
         this.playerCards.push(this.validator.drawCard(1)[0] as any);
 
         const melds = this.searchForMelds();
@@ -33,8 +33,8 @@ export class RummyBot {
             this.playerCards = this.playerCards.filter(card => !melds.map((meld: any) => meld.cards).flat().includes(card));
             this.searchForPuttableCards();
         }
-
-        if (this.playerCards.length > 1) {
+        console.log(this.playerCards)
+        if (this.playerCards.length > 0) {
             this.droppedCards.push({ droppedBy: this.name, card: this.playerCards.pop()! });
         } else {
             throw new Error('No cards to drop');
@@ -45,6 +45,7 @@ export class RummyBot {
 
     private searchForMelds(): any {
         const melds = [];
+        
         const sequence = this.hasSequence();
         const set = this.hasSet();
         let values = 0;
@@ -121,8 +122,7 @@ export class RummyBot {
             for (const playedCard of this.playedCards) {
                 if (this.validator.validatePlay(playedCard.cards.concat(card), this.playerCards, true)) {
                     this.playedCards = this.playedCards.map((meld: any) => {
-                        console.log(meld, playedCard)
-                        return meld._id.toString() === (playedCard as any)._id.toString() ?
+                        return !meld._id ?
                             { playedBy: playedCard.playedBy, cards: playedCard.cards.concat(card) } :
                             meld
                     });

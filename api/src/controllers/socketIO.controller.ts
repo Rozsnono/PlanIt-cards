@@ -53,8 +53,11 @@ export default class SocketIO {
         const watching = this.game.watch([], options);
 
         watching.on('change', (change) => {
-            this.gameChecker.startInterval(change.fullDocument._id);
-            this.gameChecker.lastTimes[change.fullDocument._id] = change.fullDocument.currentPlayer.time;
+            try {
+                this.gameChecker.startInterval(change.fullDocument._id);
+                this.gameChecker.lastTimes[change.fullDocument._id] = change.fullDocument.currentPlayer.time;
+            } catch {}
+            
             this.wss.clients.forEach((client) => {
                 if (client.readyState === WebSocket.OPEN) {
                     console.log('Game Change Stream:');

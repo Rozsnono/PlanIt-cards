@@ -4,12 +4,16 @@ import { error } from "console";
 
 export default class LobbyService {
 
-    public async getLobbyData() {
+    public async getLobbyData(payload: any) {
         const token = getCookie("token");
-        const response = await fetch(`/api/get`, {
+        const response = await fetch(`/api/get?` + this.convertPayloadFromObject(payload), {
             headers: { Authorization: `Bearer ${token}` }
         });
         return response.json();
+    }
+
+    private convertPayloadFromObject(payload: any) {
+        return new URLSearchParams(payload).toString();
     }
 
     public async joinLobby(lobbyId: string, lobbyCode?: string) {
