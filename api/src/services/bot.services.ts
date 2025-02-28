@@ -20,7 +20,6 @@ export default class Bot {
     }
 
     getRobotName(difficulty: 'EASY' | 'MEDIUM' | 'HARD', number: number) {
-        console.log(difficulty, number);
         const name = this.rummyBotNames[difficulty].first[number];
         return `${name}`;
     }

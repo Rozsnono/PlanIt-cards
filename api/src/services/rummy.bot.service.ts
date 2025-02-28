@@ -23,7 +23,6 @@ export class RummyBot {
     }
 
     public play(): any {
-        console.log(this.playerCards.length)
         this.playerCards.push(this.validator.drawCard(1)[0] as any);
 
         const melds = this.searchForMelds();
@@ -33,7 +32,6 @@ export class RummyBot {
             this.playerCards = this.playerCards.filter(card => !melds.map((meld: any) => meld.cards).flat().includes(card));
             this.searchForPuttableCards();
         }
-        console.log(this.playerCards)
         if (this.playerCards.length > 0) {
             this.droppedCards.push({ droppedBy: this.name, card: this.playerCards.pop()! });
         } else {

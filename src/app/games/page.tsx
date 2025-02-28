@@ -71,7 +71,6 @@ export default function Games() {
         if (urlParams.get('noBots')) f.noBots = urlParams.get('noBots') === 'true';
         if (urlParams.get('numberOfPlayers')) f.numberOfPlayers = parseInt(urlParams.get('numberOfPlayers') as string);
         if (urlParams.get('robotsDifficulty')) f.robotsDifficulty = urlParams.get('robotsDifficulty');
-        console.log(f);
         return f;
     }
 
@@ -218,7 +217,7 @@ function SideBarContent({ onClose }: Readonly<{ onClose?: () => void }>) {
 
         try {
             const result = await lobbyService.createLobby(form);
-            // router.push(`/games/${result._id}`);
+            router.push(`/games/${result._id}`);
         } catch (error) {
             console.error("Error creating lobby:", error);
         }

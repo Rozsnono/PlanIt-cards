@@ -24,7 +24,6 @@ export class GameChecker {
         if (this.intervals[gameId]) { return; }
         this.intervals[gameId] = setInterval(() => {
             if (this.lastTimes[gameId] === undefined) { }
-            console.log(new Date().getTime() - this.lastTimes[gameId]);
             if (new Date().getTime() - this.lastTimes[gameId] >= this.time * 1000) {
                 this.stopInterval(gameId);
                 this.forceNextTurn(gameId);
@@ -74,16 +73,7 @@ export class GameChecker {
             return;
         }
 
-        let nextPlayer = this.nextPlayer(lobby.users.map(id => { return id.toString() }), game.currentPlayer.playerId.toString(), lobby.bots && lobby.bots.map((bot: any) => { return bot._id }));
-
-        if (nextPlayer.includes("bot")) {
-            const { game: gameStat, nextPlayer: nextP } = await this.playWithBots(game, lobby as any, nextPlayer);
-            game.droppedCards = gameStat.droppedCards;
-            game.playedCards = gameStat.playedCards;
-            game.playerCards = gameStat.playerCards;
-            game.drawedCard.lastDrawedBy = nextPlayer;
-            nextPlayer = nextP;
-        }
+        const nextPlayer = this.nextPlayer(lobby.users.map(id => { return id.toString() }), game.currentPlayer.playerId.toString(), lobby.bots && lobby.bots.map((bot: any) => { return bot._id }));
 
         game.currentPlayer = { playerId: nextPlayer, time: new Date().getTime() };
 
@@ -102,25 +92,24 @@ export class GameChecker {
         return users[users.indexOf(current) + 1 === users.length ? 0 : users.indexOf(current) + 1];
     }
 
-    public playWithBots = async (game: any, lobby: Ilobby, nextPlayer: string) => {
+    private getNextPlayer(players: string[], currentPlayer: string) {
+        return players[(players.indexOf(currentPlayer) + 1) % players.length];
+    }
+
+    public playWithBots = async (game: any, lobby: Ilobby, currentPlayer: string) => {
         console.log("Bot playing!")
-        const bot = new RummyBot(nextPlayer, 'easy', game.playerCards[nextPlayer], game.droppedCards, game.playedCards, game.shuffledCards);
+        const bot = new RummyBot(currentPlayer, 'easy', game.playerCards[currentPlayer], game.droppedCards, game.playedCards, game.shuffledCards);
         const { droppedCards, playedCards, playerCards } = bot.play();
-        game.playerCards[nextPlayer] = playerCards;
+        game.playerCards[currentPlayer] = playerCards;
         game.playedCards = playedCards;
         game.droppedCards = droppedCards;
-        game.drawedCard.lastDrawedBy = nextPlayer;
+        game.drawedCard.lastDrawedBy = currentPlayer;
         await this.wait(Math.random() * 6000);
+        const players = lobby.users.map(u => u._id).concat(lobby.bots.map(bot => bot._id)).map(id => id.toString());
+        currentPlayer = this.getNextPlayer(players, currentPlayer);
+        game.currentPlayer = { playerId: currentPlayer, time: new Date().getTime() };
         console.log("Bot played!")
         await this.game.replaceOne({ _id: game._id }, game, { runValidators: true });
-        await new Promise(resolve => setTimeout(resolve, Math.random() * 3000));
-        nextPlayer = this.nextPlayer(lobby.users.map(id => { return id.toString() }), nextPlayer, lobby.bots);
-        if (nextPlayer.includes("bot")) {
-            const { game: gameStat, nextPlayer: nextP } = await this.playWithBots(game, lobby, nextPlayer);
-            game = gameStat;
-            nextPlayer = nextP;
-        }
-        return { game, nextPlayer };
     }
 
 }   

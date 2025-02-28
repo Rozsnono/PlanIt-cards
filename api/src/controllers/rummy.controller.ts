@@ -9,9 +9,6 @@ import { Cards } from "../cards/cards";
 import mongoose from "mongoose";
 import { ERROR } from "../enums/error.enum";
 import GameHistoryService from "../services/history.services";
-import { RummyBot } from "../services/rummy.bot.service";
-import { Ilobby } from "../interfaces/interface";
-import { GameChecker } from "../services/game.service";
 
 
 export default class RummyController implements Controller {
@@ -82,7 +79,7 @@ export default class RummyController implements Controller {
         // set the game state
         body["shuffledCards"] = dealer.shuffleDeck();
         // deal the cards
-        body["playerCards"] = dealer.dealCards(lobby?.users.concat(lobby?.bots.map((bot: any) => {return bot._id}) as any), 14);
+        body["playerCards"] = dealer.dealCards(lobby?.users.concat(lobby?.bots.map((bot: any) => { return bot._id }) as any), 14);
         body["currentPlayer"] = { playerId: lobby?.users[0], time: new Date().getTime() };
         body["drawedCard"] = { lastDrawedBy: lobby?.users[0] };
         body["_id"] = new mongoose.Types.ObjectId();
@@ -134,23 +131,11 @@ export default class RummyController implements Controller {
             return;
         }
 
-        let nextPlayer = this.nextPlayer(lobby.users.map(id => { return id.toString() }), game.currentPlayer.playerId.toString(), lobby.bots && lobby.bots.map((bot: any) => bot._id.toString()));
-
-        if (nextPlayer.includes("bot")) {
-            const { game: gameStat, nextPlayer: nextP } = await new GameChecker().playWithBots(game, lobby as any, nextPlayer);
-            game.droppedCards = gameStat.droppedCards;
-            game.playedCards = gameStat.playedCards;
-            game.playerCards = gameStat.playerCards;
-            game.drawedCard.lastDrawedBy = nextPlayer;
-            nextPlayer = nextP;
-        }
+        const nextPlayer = this.nextPlayer(lobby.users.map(id => { return id.toString() }), game.currentPlayer.playerId.toString(), lobby.bots && lobby.bots.map((bot: any) => bot._id.toString()));
 
         game.currentPlayer = { playerId: nextPlayer, time: new Date().getTime() };
         await this.game.replaceOne({ _id: gameId }, game, { runValidators: true });
-        this.gameHistoryService.saveHistory(playerId, gameId);
-
-
-
+        await this.gameHistoryService.saveHistory(playerId, gameId)
         res.send({ message: "Next turn!" });
     };
 
@@ -195,35 +180,7 @@ export default class RummyController implements Controller {
             return;
         }
 
-        let nextPlayer = this.nextPlayer(lobby.users.map(id => { return id.toString() }), game.currentPlayer.playerId.toString(), lobby.bots && lobby.bots.map((bot: any) => bot._id.toString()));
-        // while (nextPlayer.includes("bot")) {
-        //     const easyBot = new EasyRummyBot(nextPlayer);
-        //     game.playerCards[nextPlayer] = game.playerCards[nextPlayer].concat(dealer.drawCard(1));
-        //     const { discard, melds, hand } = easyBot.playTurn({ hand: game.playerCards[nextPlayer], discardPile: game.droppedCards, melds: game.playedCards });
-        //     if (dealer.isValidToNext(game.playedCards, nextPlayer)) {
-        //         game.playerCards[nextPlayer] = hand;
-        //         if (game.playedCards.length > 0) {
-        //             game.playedCards.concat(melds);
-        //         } else {
-        //             game.playedCards = melds
-        //         }
-        //     }
-        //     game.droppedCards.push(discard);
-        //     nextPlayer = this.nextPlayer(lobby.users.map(id => { return id.toString() }), nextPlayer, lobby.bots);
-        //     await this.game.replaceOne({ _id: gameId }, game, { runValidators: true });
-        //     await new Promise(resolve => setTimeout(resolve, Math.random() * 3));
-        // }
-
-        if (nextPlayer.includes("bot")) {
-            const { game: gameStat, nextPlayer: nextP } = await new GameChecker().playWithBots(game, lobby as any, nextPlayer);
-            game.droppedCards = gameStat.droppedCards;
-            game.playedCards = gameStat.playedCards;
-            game.playerCards = gameStat.playerCards;
-            game.drawedCard.lastDrawedBy = nextPlayer;
-            nextPlayer = nextP;
-        }
-
-
+        const nextPlayer = this.nextPlayer(lobby.users.map(id => { return id.toString() }), game.currentPlayer.playerId.toString(), lobby.bots && lobby.bots.map((bot: any) => bot._id.toString()));
         game.currentPlayer = { playerId: nextPlayer, time: new Date().getTime() };
 
         await this.game.replaceOne({ _id: gameId }, game, { runValidators: true });

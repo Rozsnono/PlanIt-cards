@@ -71,7 +71,6 @@ export default class LobbyController implements Controller {
         body["_id"] = new mongoose.Types.ObjectId();
         body["users"] = [new mongoose.Types.ObjectId(userid)];
         body["createdBy"] = new mongoose.Types.ObjectId(userid);
-        console.log(body)
         body["bots"] = (body.settings.fillWithRobots ? Array.from({ length: body.settings.numberOfRobots }, (_, i) => { return { name: new Bot().getRobotName(body.settings.robotsDifficulty, i), _id: 'bot' + i } }) : []);
         const newLobby = new this.lobby(body);
         await newLobby.save();

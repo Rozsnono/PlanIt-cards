@@ -11,7 +11,7 @@ import { Icard, Igame, Ilobby } from "@/interfaces/interface";
 import { GameService } from "@/services/game.service";
 import { Timer } from "@/services/timer.service";
 import Image from "next/image"
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import React from "react";
 import { useContext, useEffect, useState } from "react";
 
@@ -21,6 +21,8 @@ const timerClass = new Timer();
 export default function Game() {
 
     const lobby_id = useParams().lobby_id;
+    const game_id = useParams().game_id;
+    const router = useRouter();
 
     const { settings } = useContext(SettingsContext);
     const [sortType, setSortType] = useState<"num" | "abc" | "">("");
@@ -36,8 +38,13 @@ export default function Game() {
         });
 
         socket.addEventListener('message', (event) => {
-            const { playerCards, lobby, game } = gameService.getDataFromWebsocket(JSON.parse(event.data), socket, { _id: lobby_id, player_id: user!._id }) ?? {};
+            const { playerCards, lobby, game, game_over } = gameService.getDataFromWebsocket(JSON.parse(event.data), socket, { _id: lobby_id, player_id: user!._id }) ?? {};
             console.log("Data from websocket");
+            if(game_over){
+                router.push(`/games/${lobby_id}/${game_id}/end`);
+                console.log("Game Over");
+                socket.close();
+            }
             if (playerCards) {
                 setPlayerCards(playerCards);
             }

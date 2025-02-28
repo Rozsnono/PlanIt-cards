@@ -21,7 +21,7 @@ export default class GameController implements Controller {
         });
 
         // API route to get a game
-        this.router.get("/get/:id", hasAuth([Auth["WATCH.GAME"]]), (req, res, next) => {
+        this.router.get("/game/get/:lobby_id/:id", hasAuth([Auth["WATCH.GAME"]]), (req, res, next) => {
             this.getGame(req, res).catch(next);
         });
 
@@ -48,12 +48,18 @@ export default class GameController implements Controller {
 
     private getGame = async (req: Request, res: Response) => {
         const id = req.params.id;
+        const lobby_id = req.params.lobby_id;
+        const lobby = await this.lobby.findOne({ _id: lobby_id }).populate("users", "firstName lastName rank customId _id");
+        if (!lobby) {
+            res.status(404).send({ error: ERROR.LOBBY_NOT_FOUND });
+            return;
+        }
         const game = await this.game.findOne({ _id: id });
         if (!game) {
             res.status(404).send({ error: ERROR.GAME_NOT_FOUND });
             return;
         }
-        res.send(game);
+        res.send({ lobby, game });
     };
 
 }

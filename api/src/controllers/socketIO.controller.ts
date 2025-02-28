@@ -23,6 +23,9 @@ export default class SocketIO {
                     if (inGame) {
                         const obj: any = inGame.toObject();
                         const playerCard = obj.playerCards[identifier.player_id];
+                        if (Object.values(obj.playerCards).find((array: any) => array.length === 0)) {
+                            ws.send(JSON.stringify({ game_over: true }));
+                        }
                         ws.send(JSON.stringify({
                             lobby: inLobby,
                             game: { ...obj, playerCards: Object.keys(obj.playerCards).map((key) => { return { [key]: obj.playerCards[key].length } }) },
@@ -56,13 +59,22 @@ export default class SocketIO {
             try {
                 this.gameChecker.startInterval(change.fullDocument._id);
                 this.gameChecker.lastTimes[change.fullDocument._id] = change.fullDocument.currentPlayer.time;
-            } catch {}
-            
-            this.wss.clients.forEach((client) => {
+            } catch { }
+
+            this.wss.clients.forEach(async (client) =>  {
                 if (client.readyState === WebSocket.OPEN) {
                     console.log('Game Change Stream:');
-                    
-                    client.send(JSON.stringify({ refresh: true }));
+                    if (Object.values(change.fullDocument.playerCards).find((array: any) => array.length === 0)) {
+                        client.send(JSON.stringify({ game_over: true }));
+                    } else if (change.fullDocument.currentPlayer && change.fullDocument.currentPlayer.playerId.includes('bot')) {
+                        const lobby = await this.lobby.findOne({ game_id: change.fullDocument._id });
+                        const currentPlayer = change.fullDocument.currentPlayer.playerId;
+                        new GameChecker().playWithBots(change.fullDocument, lobby as any, currentPlayer);
+                        client.send(JSON.stringify({ refresh: true }));
+                    } else {
+                        client.send(JSON.stringify({ refresh: true }));
+                    }
+
                 }
             });
         });

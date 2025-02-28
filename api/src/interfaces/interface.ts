@@ -1,4 +1,4 @@
-export interface Icard{
+export interface Icard {
     name: string;
     rank: number;
     suit: string;
@@ -15,7 +15,7 @@ export interface Iplayer {
     email: string;
     rank: number;
     numberOfGames: {
-        [date: string]: {wins: number, losses: number};
+        [date: string]: { wins: number, losses: number };
     };
     friends: string[];
     peddingFriends: string[] | number;
@@ -46,7 +46,7 @@ export interface Ilobby {
     chat: Imessage[];
     game_id?: string;
     createdBy: string;
-    bots: string[];
+    bots: { _id: string, name: string }[];
 }
 
 export interface Imessage {
@@ -60,7 +60,7 @@ export interface Igame {
     _id: string;
     shuffledCards: Icard[];
     currentPlayer: string;
-    playerCards: {[player_id: string]: Icard[]};
+    playerCards: { [player_id: string]: Icard[] };
     playedCards: Icard[][];
     droppedCards: Icard[];
 }

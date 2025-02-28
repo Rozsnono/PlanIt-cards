@@ -17,10 +17,10 @@ export default class GameHistoryService {
 
         const game = await this.game.findOne({ _id: game_id });
         if(!game) return { error: ERROR.GAME_NOT_FOUND };
-        const player = await this.user.findOne({ customId: player_id });
+        const player = await this.user.findOne({ _id: player_id });
         if(!player) return { error: ERROR.USER_NOT_FOUND };
 
-        const hasHistory = player.gameHistory.find((history) => history.toString() === game_id);
+        const hasHistory = player.gameHistory.find((history) => history.toString() === game_id.toString());
         if (!hasHistory) {
             player.gameHistory.push(new mongoose.Types.ObjectId(game_id));
             player.numberOfGames++;
@@ -30,11 +30,12 @@ export default class GameHistoryService {
                 gameId: game_id,
                 turns: {
                     1: {
-                        playerCards: game.playerCards[player_id].map((card: any) => {return card.name}),
+                        playerCards: game.playerCards[player_id],
                         playedCards: game.playedCards,
                         droppedCards: game.droppedCards
                     }
-                }
+                },
+                _id: new mongoose.Types.ObjectId()
             };
 
             await this.gameHistory.create(gameHistory);
@@ -48,8 +49,8 @@ export default class GameHistoryService {
         }
 
         gameHistory.turns = {...gameHistory.turns, 
-            [gameHistory.turns.length + 1]: {
-                playerCards: game.playerCards[player_id].map((card: any) => {return card.name}),
+            [Object.keys(gameHistory.turns).length + 1]: {
+                playerCards: game.playerCards[player_id],
                 playedCards: game.playedCards,
                 droppedCards: game.droppedCards
             }

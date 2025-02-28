@@ -24,10 +24,11 @@ export default function LobbyId() {
 
     useEffect(() => {
         const socket = lobbyService.connectWebSocket(lobby_id as string, user!._id, (data: any) => {
+            console.log(data);
             if (data.game) {
-                router.push(`/games/${lobby_id}/${data.game_id}/${data.lobby.settings.cardType.toLocaleLowerCase()}`);
+                router.push(`/games/${lobby_id}/${data.lobby.game_id}/${data.lobby.settings.cardType.toLocaleLowerCase()}`);
             } else if (data.game_id) {
-                router.push(`/games/${lobby_id}/${data.game_id}/${data.settings.cardType.toLocaleLowerCase()}`);
+                router.push(`/games/${lobby_id}/${data.lobby.game_id}/${data.settings.cardType.toLocaleLowerCase()}`);
             } else if (data.error) {
                 lobbyService.joinLobby(lobby_id as string).then((data: any) => {
                     if (data.error) {

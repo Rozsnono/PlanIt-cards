@@ -3,8 +3,20 @@ import { Icard, Igame, Ilobby } from "@/interfaces/interface";
 
 export class GameService {
     private type: string = "rummy";
-    constructor(type: "rummy") {
+    constructor(type: "rummy"|"uno"|'') {
         this.type = type;
+    }
+
+    async getGame(lobby_id: string|any, gameId: string|any) {
+        const response = await fetch(`/api/game/get/${lobby_id}/${gameId}`, {
+            method: "GET",
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${getCookie("token")}`
+            }
+        });
+
+        return await response.json();
     }
 
     async startGame(lobbyId: string) {
@@ -69,10 +81,13 @@ export class GameService {
         return res;
     }
 
-    public getDataFromWebsocket(object: any, socket: any, data: object): { lobby: any, game: any, playerCards: any } | null {
+    public getDataFromWebsocket(object: any, socket: any, data: object): { lobby: any, game: any, playerCards: any, game_over?: boolean } | null {
         if (object.refresh) {
             socket.send(JSON.stringify(data));
             return null;
+        }
+        if(object.game_over){
+            return { game_over: true } as any;
         }
         if (!object.lobby) return null;
         return { lobby: object.lobby, game: object.game, playerCards: object.playerCard };
