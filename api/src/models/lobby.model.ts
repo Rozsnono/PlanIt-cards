@@ -69,6 +69,7 @@ const lobbySchema = new Schema(
         },
         game_id: {
             type: Schema.Types.Mixed,
+            ref: "game",
             nullable: true,
         },
         createdAt: {

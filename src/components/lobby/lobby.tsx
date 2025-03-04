@@ -8,7 +8,7 @@ import React from "react";
 import { useRouter } from "next/navigation";
 import LobbyService from "@/services/lobby.service";
 
-export default function LobbyCard({ lobbyDatas, lobbyNumber }: { lobbyDatas: Ilobby, lobbyNumber: number }) {
+export default function LobbyCard({ lobbyDatas, lobbyNumber, isAdmin }: { lobbyDatas: Ilobby, lobbyNumber: number, isAdmin?: boolean }) {
 
     const { user } = useContext(UserContext);
     const lobbyService = new LobbyService();
@@ -44,6 +44,16 @@ export default function LobbyCard({ lobbyDatas, lobbyNumber }: { lobbyDatas: Ilo
     }
 
     function Button({ lobbyDatas }: { lobbyDatas: any }) {
+
+        if (isAdmin) {
+            return (
+                <div className="bg-blue-500 text-white p-2 px-2 rounded-md hover:bg-blue-400 flex items-center gap-1">
+                    <Icon name="pen"></Icon>
+                    Edit
+                </div>
+            )
+        }
+
         if (lobbyDatas.settings.privateLobby && !lobbyDatas.users.find((u: any) => u._id === user?._id)) {
             return (
                 <form onSubmit={joinLobbyByCode} className="flex items-center gap-1">

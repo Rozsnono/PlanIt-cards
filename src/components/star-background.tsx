@@ -6,16 +6,18 @@ export default function StarBackground() {
     const [stars, setStars] = React.useState<Array<number>>([]);
     const [shootingStar, setShootingStar] = React.useState<Array<number>>([]);
     useEffect(() => {
-        setStars(Array.from({ length: 500 }, (_, i) => i + 1));
-        setShootingStar(Array.from({ length: 10 }, (_, i) => i + 1));
+        setTimeout(() => {
+            setStars(Array.from({ length: 500 }, (_, i) => i + 1));
+            setShootingStar(Array.from({ length: 10 }, (_, i) => i + 1));
+        }, 10);
     }, []);
 
     function randomPositionForStars(index: number) {
         const size = (Math.random() * 10) % 9 == 0 ? 12 : Math.random() * 4;
 
         const colors = ['#96aad4', '#d3dae9', '#dadfe8', '#eaecf0', '#f7eed3', '#f7dbb4', '#f5ba9e']
-
-        return { left: `${Math.random() * 100}%`, top: `${Math.random() * 100}%`, animationDelay: `${Math.random() * 5}s`, width: `${size}px`, height: `${size}px`, background: colors[Math.floor(Math.random() * colors.length)] };
+        const { left, top } = { left: (Math.random() * 100).toFixed(0), top: (Math.random() * 100).toFixed(0) };
+        return { left: `${left}%`, top: `${top}%`, animationDelay: `${Math.random() * 5}s`, width: `${size}px`, height: `${size}px`, background: colors[Math.floor(Math.random() * colors.length)] };
     }
 
 

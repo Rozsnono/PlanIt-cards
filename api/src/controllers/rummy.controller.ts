@@ -87,6 +87,7 @@ export default class RummyController implements Controller {
         await newGame.save();
         lobby.game_id = newGame._id;
         await lobby.save();
+        await this.gameHistoryService.saveHistory(playerId, lobby.game_id)
         res.send({ message: "Game started!", game_id: newGame._id });
     };
 
@@ -123,7 +124,7 @@ export default class RummyController implements Controller {
         if (!dealer.isValidToNext(game.playedCards, playerId)) {
             const { cardsToReturn, playedCardsToReturn } = dealer.cardsToReturn(game.playedCards, playerId);
             game.playerCards[playerId] = game.playerCards[playerId].concat(cardsToReturn);
-            game.playerCards[playerId].push(game.droppedCards[game.droppedCards.length - 1]);
+            game.playerCards[playerId].push(game.droppedCards[game.droppedCards.length - 1].card);
             game.playedCards = playedCardsToReturn;
             game.droppedCards.shift();
             await this.game.replaceOne({ _id: gameId }, game, { runValidators: true });

@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import getCardUrl from "@/contexts/cards.context";
 import Icon from "@/assets/icons";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useQuery } from "react-query";
 import { GameService } from "@/services/game.service";
 import Loader from "@/components/loader.component";
@@ -15,12 +15,15 @@ export default function End() {
     const lobby_id = useParams().lobby_id;
     const game_id = useParams().game_id;
 
+    const router = useRouter();
+
     const gameSerivce = new GameService('');
     const data = useQuery('game', async () => { return gameSerivce.getGame(lobby_id, game_id?.toString()) });
 
     function getPosition(allCards: any, id: string) {
         const positions = Object.values(allCards).map((cards: any) => { return cards.reduce((sum: any, obj: any) => { return sum + obj.value }, 0) });
-        const sorted = positions.sort((a: any, b: any) => b + a);
+        const sorted = positions.sort((a: any, b: any) => a - b);
+        if(sorted[0] !== 0) router.back();
         switch (sorted.indexOf(allCards[id].reduce((sum: any, obj: any) => { return sum + obj.value }, 0))) {
             case 0:
                 return "1:st";
@@ -33,19 +36,28 @@ export default function End() {
         }
     }
 
+    async function returnToLobby(){
+        await gameSerivce.deleteGame(lobby_id as string);
+        router.push('/games/' + lobby_id);
+    }
+
     return (
         <main className="w-full bg-[#3f3f46c0] rounded-md p-3 min-h-screen text-zinc-200 relative gap-2">
-            <div className="flex justify-between items-center">
+            <div className="flex justify-between items-center pb-1">
                 <div className="text-xl p-2 flex gap-2 items-center">
                     <Icon name="card" stroke></Icon>
                     Statistics
                 </div>
-                <div>
-                    <div className="flex gap-2 relative">
-                        <Link href={'/games/' + lobby_id} className="text-zinc-200 p-2 px-4 rounded-md hover:bg-zinc-800 focus:bg-zinc-800 flex items-center gap-1">
-                            <Icon name="join"></Icon>
-                            Return to lobby
-                        </Link>
+                <div className="flex gap-2 relative">
+                    <Link href={`/games/${lobby_id}/${game_id}/replay`} className="text-zinc-200 p-2 px-4 rounded-md hover:bg-red-700 focus:bg-zinc-800 flex items-center gap-1 ">
+                        <Icon name="watch"></Icon>
+                        Watch replay
+                    </Link>
+                </div>
+                <div className="flex gap-2 relative">
+                    <div onClick={returnToLobby} className="text-zinc-200 p-2 px-4 rounded-md hover:bg-zinc-800 focus:bg-zinc-800 flex items-center gap-1 cursor-pointer">
+                        <Icon name="join"></Icon>
+                        Return to lobby
                     </div>
                 </div>
             </div>
@@ -107,12 +119,11 @@ function Players({ playerInfo, cards, place }: { playerInfo: any, cards: any, pl
                             {getRankName(playerInfo.rank).title}
                         </h2>
                         <div className="flex gap-1 items-center">
-                            <div className="text-lg font-thin">{playerInfo.rank}</div>
-                            <div className="text-lg font-bold">+ 50</div>
+                            <div className="text-lg font-bold">+ 20</div>
                         </div>
                         <div className="flex gap-2 flex-wrap font-thin relative w-full">
                             <div className="rounded-full h-2 w-full bg-gray-500 absolute"></div>
-                            <div style={{ width: `${getCurrentRank(playerInfo.rank + 50)}%` }} className="rounded-full h-2 bg-green-400 z-50"></div>
+                            <div style={{ width: `${getCurrentRank(playerInfo.rank)}%` }} className="rounded-full h-2 bg-green-400 z-50"></div>
                         </div>
                     </div>
 
@@ -121,7 +132,7 @@ function Players({ playerInfo, cards, place }: { playerInfo: any, cards: any, pl
 
             <div className="flex w-full relative">
                 {
-                    cards.map((card, index) => (
+                    cards.map((card: any, index: number) => (
                         <div key={index} className="w-10 bg-zinc-700 rounded-md flex justify-center items-center">
                             <Image src={"/assets/cards/" + getCardUrl(card.name)} width={100} height={100} alt={card.name}></Image>
                         </div>

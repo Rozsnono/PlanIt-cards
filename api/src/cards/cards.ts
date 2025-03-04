@@ -353,4 +353,8 @@ export class Cards {
         return rummy;
     }
 
+    public getCardValueByName(name: string) {
+        return this.getRummyCards().find((card) => card.name === name.toUpperCase());
+    }
+
 }

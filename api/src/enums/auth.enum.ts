@@ -16,5 +16,5 @@ export enum Auth {
     "PLAYER.UPDATE" = "PLAYER.UPDATE",
     "PLAYER.DELETE" = "PLAYER.DELETE",
     "PLAYER.GET.ALL" = "PLAYER.GET.ALL",
-
+    "ADMIN" = "ADMIN"
 }

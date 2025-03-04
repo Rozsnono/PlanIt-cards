@@ -65,6 +65,11 @@ export const userSchema = new Schema(
             readonly: true,
             default: {}
         },
+        achievements: {
+            type: Array<string>(),
+            readonly: true,
+            default: []
+        },
         createdAt: {
             type: Date,
             default: Date.now,

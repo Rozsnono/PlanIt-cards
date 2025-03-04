@@ -1,12 +1,18 @@
 import { Icard } from "../interfaces/interface";
 import { RummyDealer } from "./dealer.services";
 
+const ThinkTimeByDifficulty = {
+    'easy': { min: 5, max: 10 },
+    'medium': { min: 10, max: 30 },
+    'hard': { min: 15, max: 60 }
+}
+
 export class RummyBot {
     static Difficulty = {
         EASY: 'easy',
     };
 
-    difficulty: string;
+    difficulty: "easy" | "medium" | "hard" = "easy";
     name = 'RummyBot';
     validator: RummyDealer;
     playerCards: Icard[] = [];
@@ -15,11 +21,15 @@ export class RummyBot {
 
     constructor(name: string, difficulty: string, playerCards: Icard[], droppedCards: Icard[], playedCards: any, cards: Icard[]) {
         this.name = name;
-        this.difficulty = difficulty;
+        this.difficulty = difficulty as any;
         this.validator = new RummyDealer(cards as any);
         this.playerCards = playerCards;
         this.droppedCards = droppedCards;
         this.playedCards = playedCards;
+    }
+
+    public get thinkingTime(): number {
+        return Math.floor(Math.random() * (ThinkTimeByDifficulty[this.difficulty].max - ThinkTimeByDifficulty[this.difficulty].min + 1) + ThinkTimeByDifficulty[this.difficulty].min) * 1000;
     }
 
     public play(): any {
@@ -28,9 +38,11 @@ export class RummyBot {
         const melds = this.searchForMelds();
 
         if (melds.length > 0) {
-            this.playedCards.concat(melds);
+            melds.forEach((meld: any) => {
+                this.playedCards.push(meld);
+            });
             this.playerCards = this.playerCards.filter(card => !melds.map((meld: any) => meld.cards).flat().includes(card));
-            this.searchForPuttableCards();
+            // this.searchForPuttableCards();
         }
         if (this.playerCards.length > 0) {
             this.droppedCards.push({ droppedBy: this.name, card: this.playerCards.pop()! });
@@ -43,13 +55,16 @@ export class RummyBot {
 
     private searchForMelds(): any {
         const melds = [];
-        
+
         const sequence = this.hasSequence();
         const set = this.hasSet();
         let values = 0;
         sequence.forEach(card => values += card.value);
         set.forEach(card => values += card.value);
-        if (values < 51) {
+        if (values >= 51) {
+            if(sequence.length > 0){
+                melds.push({ playedBy: this.name, cards: sequence });
+            }
             melds.push({ playedBy: this.name, cards: sequence });
             melds.push({ playedBy: this.name, cards: set });
         }
@@ -58,27 +73,30 @@ export class RummyBot {
     }
 
     private hasSequence(): Icard[] | [] {
-        const groupBySuit = this.playerCards.reduce((acc: any, card: Icard) => {
-            if (!acc[card.suit]) {
-                acc[card.suit] = [];
+
+        const suits = ["S", "H", "D", "C"];
+
+        this.playerCards.sort((a, b) => {
+            if (suits.indexOf(a.suit) !== suits.indexOf(b.suit)) {
+                return suits.indexOf(a.suit) - suits.indexOf(b.suit);
             }
-            acc[card.suit].push(card);
-            return acc;
-        }, {});
+            return a.rank - b.rank;
+        });
         const sequence: Icard[] = [];
         const hasJoker = this.playerCards.filter(card => card.isJoker);
-        Object.values(groupBySuit).forEach((cards: any) => {
-            const sortedCards = cards.sort((a: any, b: any) => a.rank - b.rank);
-            for (let i = 0; i < sortedCards.length - 1; i++) {
-                if (sortedCards[i].rank + 1 === sortedCards[i + 1].rank) {
-                    sequence.push(sortedCards[i]);
-                }
-                else if (hasJoker.length > 0) {
-                    sequence.push(hasJoker.pop()!);
-                }
+        for (let i = 0; i < this.playerCards.length - 1; i++) {
+            const card = this.playerCards[i];
+            const nextCard = this.playerCards[i + 1];
+            const prevCard = this.playerCards[i - 1] || { rank: 0 };
+            if (card.rank + 1 === nextCard.rank) {
+                sequence.push(card);
+            } else if (card.rank - 1 === prevCard.rank) {
+                sequence.push(card);
             }
-        });
-
+            else if (hasJoker.length > 0) {
+                sequence.push(hasJoker.pop()!);
+            }
+        }
         if (sequence.length < 3) {
             return [];
         }
@@ -87,12 +105,30 @@ export class RummyBot {
     }
 
     private hasSet(): Icard[] {
-        const sortedCards = this.playerCards.sort((a, b) => { const suit = a.suit.localeCompare(b.suit); return suit === 0 ? a.rank - b.rank : suit; });
-        const hasJoker = sortedCards.filter(card => card.isJoker);
+
+        const suits = ["S", "H", "D", "C"];
+
+        this.playerCards.sort((a, b) => {
+            if (a.rank !== b.rank) {
+                return a.rank - b.rank;
+            }
+            return suits.indexOf(a.suit) - suits.indexOf(b.suit);
+        });
+
+        const hasJoker = this.playerCards.filter(card => card.isJoker);
         const set: Icard[] = [];
-        for (let i = 0; i < sortedCards.length - 1; i++) {
-            if (sortedCards[i].rank === sortedCards[i + 1].rank) {
-                set.push(sortedCards[i]);
+        for (let i = 0; i < this.playerCards.length - 1; i++) {
+            const card = this.playerCards[i];
+            const nextCard = this.playerCards[i + 1];
+            const prevCard = this.playerCards[i - 1] || { rank: 0 };
+            if (card.rank === nextCard.rank && card.suit !== nextCard.suit) {
+                if(set.length == 0){
+                    set.push(card);
+                }else if(set.length > 0 && set[0].rank == card.rank){
+                    set.push(card);
+                }
+            } else if (card.rank === prevCard.rank && card.suit !== prevCard.suit && (set.length > 0 && set[0].rank == card.rank)) {
+                set.push(card);
             }
             else if (hasJoker.length > 0) {
                 set.push(hasJoker.pop()!);

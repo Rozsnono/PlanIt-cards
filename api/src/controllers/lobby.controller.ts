@@ -57,6 +57,15 @@ export default class LobbyController implements Controller {
             this.muteUser(req, res).catch(next);
         });
 
+        this.router.get("/lobby/get/all", hasAuth([Auth["ADMIN"]]), (req, res, next) => {
+            this.getAllLobby(req, res).catch(next);
+        });
+
+    }
+
+    private getAllLobby = async (req: Request, res: Response) => {
+        const lobbies = await this.lobby.find().populate("users", "customId username rank").populate("game_id");
+        res.send(lobbies);
     }
 
     private createLobby = async (req: Request, res: Response) => {

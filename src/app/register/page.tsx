@@ -1,9 +1,12 @@
 "use client";
 import Icon from "@/assets/icons"
+import { UserContext } from "@/contexts/user.context";
+import { getUser } from "@/functions/user.function";
 import { AuthService } from "@/services/auth.service";
 import Image from "next/image"
 import Link from "next/link"
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useContext, useState } from "react";
 
 
 export default function RegisterPage() {
@@ -12,7 +15,11 @@ export default function RegisterPage() {
     const [loading, setLoading] = useState<boolean>(false);
 
     const authService = new AuthService();
-    
+
+    const { setUser } = useContext(UserContext);
+
+    const router = useRouter();
+
     async function formAction(e: any) {
 
         e.preventDefault();
@@ -37,7 +44,7 @@ export default function RegisterPage() {
             email: email,
             password: password
         }
-        
+
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         authService.Register(body).then((data) => {
             if (data.error) {
@@ -45,6 +52,9 @@ export default function RegisterPage() {
                 setLoading(false);
                 return;
             }
+            setUser(getUser());
+            router.replace('/');
+            router.refresh();
         })
     }
 
@@ -81,11 +91,11 @@ export default function RegisterPage() {
                 {error && <div className="text-red-500 text-center">{error}</div>}
 
                 <div className="flex items-center justify-center">
-                        <button type="submit" disabled={loading} className="flex justify-center items-center gap-2 bg-green-700 hover:bg-green-800 text-zinc-200 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 w-1/2 disabled:bg-green-900 disabled:text-zinc-400">
-                            { loading && <span className="animate-spin"><Icon name="loader" size={18}></Icon></span> }
-                            Register
-                        </button>
-                    </div>
+                    <button type="submit" disabled={loading} className="flex justify-center items-center gap-2 bg-green-700 hover:bg-green-800 text-zinc-200 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 w-1/2 disabled:bg-green-900 disabled:text-zinc-400">
+                        {loading && <span className="animate-spin"><Icon name="loader" size={18}></Icon></span>}
+                        Register
+                    </button>
+                </div>
 
                 <div className="flex gap-2 items-center justify-center w-full opacity-50">
                     <button type="button" className="text-zinc-300 hover:bg-zinc-600 rounded-full p-1" ><Icon name="google" size={18}></Icon></button>

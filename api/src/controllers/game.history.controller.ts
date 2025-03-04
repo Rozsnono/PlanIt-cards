@@ -19,6 +19,10 @@ export default class GameHistoryController implements Controller {
             this.getHistory(req, res).catch(next);
         });
 
+        this.router.get("/game_history/:id", hasAuth([Auth["RUMMY.PLAY"]]), (req, res, next) => {
+            this.getHistoryByUser(req, res).catch(next);
+        });
+
     }
 
     private getHistory = async (req: Request, res: Response) => {
@@ -46,6 +50,30 @@ export default class GameHistoryController implements Controller {
             return;
         }
 
-        res.send(gameHistory.turns);
+        res.send(gameHistory);
     };
+
+    private getHistoryByUser = async (req: Request, res: Response) => {
+        const player_id = req.params.id;
+
+        const player = await this.user.findOne({ customId: player_id });
+
+        if (!player) {
+            res.status(404).send({ message: "Player not found!" });
+            return;
+        }
+
+        const gameHistory = await this.gameHistory.find({ gameId: { $in: player.gameHistory } });
+        if (!gameHistory) {
+            res.status(404).send({ message: "Game history not found!" });
+            return;
+        }
+        res.send(gameHistory);
+    }
+
+    private getPosition(allCards: any, id: string) {
+        const positions = Object.values(allCards).map((cards: any) => { return cards.reduce((sum: any, obj: any) => { return sum + obj.value }, 0) });
+        const sorted = positions.sort((a: any, b: any) => b + a);
+        return sorted.indexOf(allCards[id].reduce((sum: any, obj: any) => { return sum + obj.value }, 0)) + 1;
+    }
 }

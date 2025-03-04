@@ -2,7 +2,7 @@
 import Icon from "@/assets/icons";
 import Chart from "@/components/chart";
 import { getColorByInitials, getUserInitials } from "@/functions/user.function";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useQuery } from "react-query";
 import Image from "next/image";
 import { getCurrentRank, getRankName } from "@/interfaces/rank.enum";
@@ -11,6 +11,8 @@ import React, { useContext } from "react";
 import { achievements } from "@/interfaces/achievement.enum";
 import ProfileService from "@/services/profile.service";
 import { UserContext } from "@/contexts/user.context";
+import { GameHistoryService } from "@/services/game.history.service";
+import Link from "next/link";
 
 export default function ProfilePage() {
 
@@ -20,12 +22,15 @@ export default function ProfilePage() {
 
     const { user } = useContext(UserContext);
     const profileService = new ProfileService();
+    const gameHistoryService = new GameHistoryService();
 
     function getPlayer() {
         return profileService.getProfileData(player_id as string).then(res => res.json());
     }
 
     const player = useQuery("player", getPlayer, { enabled: !!player_id, refetchOnWindowFocus: false });
+
+    const GameHistory = useQuery("gameHistory", async () => { return gameHistoryService.getGameHistoryByUser(player_id as string) }, { enabled: !!player_id, refetchOnWindowFocus: false });
 
 
     if (player.isLoading || player!.data.length == 0) return <div>Loading...</div>
@@ -36,10 +41,11 @@ export default function ProfilePage() {
                     <Chart data={{ wins: 1111, loses: 230 }}></Chart>
                 </div>
                 <div className="w-full gap-2 flex flex-col h-full">
-                    <GameReplays pos={1} type="RUMMY" date="2024.12.25-17:00"></GameReplays>
-                    <GameReplays pos={3} type="RUMMY" date="2024.12.23-17:00"></GameReplays>
-                    <GameReplays pos={2} type="RUMMY" date="2024.12.25-12:00"></GameReplays>
-                    <GameReplays pos={4} type="RUMMY" date="2024.12.25-11:00"></GameReplays>
+                    {!GameHistory.isLoading && GameHistory.data && GameHistory.data.map((game: any, i: number) => {
+                        return (
+                            <GameReplays link={`/games/${game.lobbyId}/${game.gameId}/replay`} key={i} pos={game.position || 0} type={game.type} date={game.date}></GameReplays>
+                        )
+                    })}
                 </div>
                 <Pagination total={1} page={page} setPage={setPage}></Pagination>
             </main>
@@ -77,7 +83,7 @@ export default function ProfilePage() {
                     <h1>Achievements</h1>
                     <div className="grid 2xl:grid-cols-9 xl:grid-cols-6 grid-cols-4 gap-2 max-h-[40vh] overflow-y-auto">
                         {
-                            achievements.map((achievement, i) => {
+                            player.data.achievements.map((achievement: any, i: number) => {
                                 return (
                                     <Achievements key={i} imageSrc={achievement.image} name={achievement.name} description={achievement.description}></Achievements>
                                 )
@@ -100,7 +106,7 @@ export default function ProfilePage() {
     )
 }
 
-function GameReplays({ pos, type, date }: { pos: number, type: string, date: string }) {
+function GameReplays({ pos, type, date, link }: { pos: number, type: string, date: string, link: string }) {
     function getGameTypeImage() {
         switch (type) {
             case "UNO":
@@ -122,7 +128,9 @@ function GameReplays({ pos, type, date }: { pos: number, type: string, date: str
             </div>
             <div className="flex flex-col gap-3 items-center justify-center">
                 <div>
-                    <button className="flex justify-center items-center gap-1 bg-green-700 text-white p-2 px-2 rounded-xl justify-center hover:bg-green-600 flex items-center gap-1 duration-200"><Icon name="watch"></Icon>Watch</button>
+                    <Link href={link}>
+                        <button className="flex justify-center items-center gap-1 bg-green-700 text-white p-2 px-2 rounded-xl justify-center hover:bg-green-600 flex items-center gap-1 duration-200"><Icon name="watch"></Icon>Watch</button>
+                    </Link>
                 </div>
                 <div className="flex gap-1 justify-between items-end select-none">
                     <div className="font-thin text-xs">{new Date(date).toLocaleTimeString()}</div>

@@ -4,6 +4,8 @@ import gameModel from '../models/game.model';
 import mongoose from 'mongoose';
 import { ERROR } from '../enums/error.enum';
 import { GameChecker } from '../services/game.service';
+import GameHistoryService from '../services/history.services';
+import { Ilobby } from '../interfaces/interface';
 
 export default class SocketIO {
     private wss = new WebSocketServer({ port: 8080 });
@@ -35,7 +37,7 @@ export default class SocketIO {
                         ws.send(JSON.stringify(inLobby));
                     }
                 } else {
-                    ws.send(JSON.stringify({ error: ERROR.NOT_IN_LOBBY }));
+                    ws.send(JSON.stringify({ status: ERROR.NOT_IN_LOBBY }));
 
                 }
             });
@@ -48,6 +50,7 @@ export default class SocketIO {
     }
 
     private gameChecker = new GameChecker();
+    private gameHistory = new GameHistoryService();
 
     public async monitorCollectionChanges() {
 
@@ -55,17 +58,25 @@ export default class SocketIO {
 
         const watching = this.game.watch([], options);
 
-        watching.on('change', (change) => {
+        watching.on('change', async (change) => {
             try {
                 this.gameChecker.startInterval(change.fullDocument._id);
                 this.gameChecker.lastTimes[change.fullDocument._id] = change.fullDocument.currentPlayer.time;
+                if (Object.values(change.fullDocument.playerCards).find((array: any) => array.length === 0)) {
+                    const lobby = await this.lobby.findOne({ game_id: change.fullDocument._id });
+                    if(lobby){
+                        this.gameChecker.setRankByPosition(lobby! as any);
+                        this.gameHistory.savePosition(lobby!._id.toString(), change.fullDocument._id);
+                    }
+                }
             } catch { }
 
-            this.wss.clients.forEach(async (client) =>  {
+            this.wss.clients.forEach(async (client) => {
                 if (client.readyState === WebSocket.OPEN) {
                     console.log('Game Change Stream:');
                     if (Object.values(change.fullDocument.playerCards).find((array: any) => array.length === 0)) {
                         client.send(JSON.stringify({ game_over: true }));
+
                     } else if (change.fullDocument.currentPlayer && change.fullDocument.currentPlayer.playerId.includes('bot')) {
                         const lobby = await this.lobby.findOne({ game_id: change.fullDocument._id });
                         const currentPlayer = change.fullDocument.currentPlayer.playerId;

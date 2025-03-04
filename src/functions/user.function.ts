@@ -30,6 +30,11 @@ export function getUserInitials(firstName?: string, lastName?: string) {
     return firstName[0] + lastName[0];
 }
 
+export function getUserInitialsByName(name: string) {
+    const [firstName, lastName] = name.split(" ");
+    return getUserInitials(firstName, lastName);
+}
+
 export function getColorByInitials(initials: string) {
     const colors = [
         "#FF5733", "#33FF57", "#3357FF", "#FF33A8", "#A833FF", "#33FFF5", "#F5FF33", "#FF8C33",

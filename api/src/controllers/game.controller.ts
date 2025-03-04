@@ -5,6 +5,7 @@ import { Auth } from "../enums/auth.enum";
 import gameModel from "../models/game.model";
 import lobbyModel from "../models/lobby.model";
 import { ERROR } from "../enums/error.enum";
+import { Cards } from "../cards/cards";
 
 
 export default class GameController implements Controller {
@@ -25,7 +26,80 @@ export default class GameController implements Controller {
             this.getGame(req, res).catch(next);
         });
 
+        // API route to get the value of a card
+        this.router.get("/card/value/:name", hasAuth([Auth["ADMIN"]]), (req, res, next) => {
+            this.getCardValue(req, res).catch(next);
+        });
+
+        // API route to modify a game
+        this.router.put("/modify/:id", hasAuth([Auth["ADMIN"]]), (req, res, next) => {
+            this.modifyGame(req, res).catch(next);
+        });
+
+        // API route to delete game
+        this.router.delete("/delete/game/:id", hasAuth([Auth["ADMIN"]]), (req, res, next) => {
+            this.deleteGame(req, res).catch(next);
+        });
+
+        this.router.put("/next/game/:id", hasAuth([Auth["ADMIN"]]), (req, res, next) => {
+            this.nextAdminGame(req, res).catch(next);
+        });
+
     }
+
+    private nextAdminGame = async (req: Request, res: Response) => {
+        const id = req.params.id;
+        const body = req.body;
+        const game = await this.game.findOne({ _id: id });
+        if (!game) {
+            res.status(404).send({ error: ERROR.GAME_NOT_FOUND });
+            return;
+        }
+        game.currentPlayer = {
+            playerId: body.playerId,
+            time: new Date().getTime()
+        }
+        await this.game.updateOne({
+            _id: id
+        }, game, { runValidators: true });
+        res.send({ message: "Next player set!" });
+    };
+
+    private deleteGame = async (req: Request, res: Response) => {
+        const id = req.params.id;
+        const lobbies = await this.lobby.findOne({ _id: id });
+        if (!lobbies) {
+            res.status(404).send({ error: ERROR.GAME_NOT_FOUND });
+            return;
+        }
+        delete lobbies.game_id;
+        await this.lobby.updateOne({ _id: id }, lobbies, { runValidators: false });
+        await this.game.deleteOne({ _id: lobbies.game_id });
+        res.send({ message: "Game deleted!" });
+    }
+
+    private modifyGame = async (req: Request, res: Response) => {
+        const id = req.params.id;
+        const body = req.body;
+        const game = await this.game.findOne({ _id: id });
+        if (!game) {
+            res.status(404).send({ error: ERROR.GAME_NOT_FOUND });
+            return;
+        }
+        await this.game.updateOne({ _id: id }, body, { runValidators: true });
+        res.send({ message: "Game modified!" });
+    }
+
+    private getCardValue = async (req: Request, res: Response) => {
+        const name = req.params.name;
+
+        const card = new Cards().getCardValueByName(name);
+        if (!card) {
+            res.status(404).send({ error: ERROR.CARD_NOT_FOUND });
+            return;
+        }
+        res.send({ value: card });
+    };
 
     private endGame = async (req: Request, res: Response) => {
         const lobbyId = req.params.lobbyId;

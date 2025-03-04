@@ -1,8 +1,8 @@
-export default function Icon({ name, size = 18, stroke }: { name: string, size?: number, stroke?: boolean }) {
+export default function Icon({ name, size = 18, stroke, strokeWidth = 2 }: { name: string, size?: number, stroke?: boolean, strokeWidth?: number }) {
 
     if (stroke) {
         return (
-            <svg width={size} height={size} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <svg width={size} height={size} fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 {getIcon(name)}
             </svg>
         );
@@ -353,6 +353,44 @@ function getIcon(name: string) {
             )
         }
 
+        case "card-c": {
+            return (
+                <>
+                    <path d="M12 11a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z"></path>
+                    <path d="M11 13a2 2 0 1 1-4 0 2 2 0 0 1 4 0Z"></path>
+                    <path d="M15 15a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z"></path>
+                    <path fillRule="evenodd" d="M3 4a3 3 0 0 1 3-3h12a3 3 0 0 1 3 3v16a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V4Zm3-1h12a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z" clipRule="evenodd"></path>
+                </>
+            )
+        }
+
+        case "card-d": {
+            return (
+                <>
+                    <path d="M12 7.758 7.759 12 12 16.242 16.242 12 12 7.757Z"></path>
+                    <path fillRule="evenodd" d="M3 4a3 3 0 0 1 3-3h12a3 3 0 0 1 3 3v16a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V4Zm3-1h12a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z" clipRule="evenodd"></path>
+                </>
+            )
+        }
+
+        case "card-h": {
+            return (
+                <>
+                    <path d="M9.146 12.29a2 2 0 0 1 2.829-2.83l.025.026.025-.025a2 2 0 0 1 2.828 2.828l-2.828 2.829-.025-.026-.025.026-2.829-2.829Z"></path>
+                    <path fillRule="evenodd" d="M3 4a3 3 0 0 1 3-3h12a3 3 0 0 1 3 3v16a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V4Zm3-1h12a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z" clipRule="evenodd"></path>
+                </>
+            )
+        }
+
+        case "card-s": {
+            return (
+                <>
+                    <path d="M9.146 11.704a2 2 0 0 0 2.829 2.828l.025-.025.025.025a2 2 0 1 0 2.828-2.829l-2.828-2.828L12 8.9l-.025-.025-2.829 2.829Z"></path>
+                    <path fillRule="evenodd" d="M3 20a3 3 0 0 0 3 3h12a3 3 0 0 0 3-3V4a3 3 0 0 0-3-3H6a3 3 0 0 0-3 3v16Zm3 1h12a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1Z" clipRule="evenodd"></path>
+                </>
+            )
+        }
+
         case "robot": {
             return (
                 <>
@@ -380,6 +418,17 @@ function getIcon(name: string) {
                     <path d="M5.11 18.89c-.863-.862-.291-2.671-.732-3.73C3.938 14.1 2.25 13.171 2.25 12c0-1.172 1.669-2.063 2.128-3.16.46-1.096-.131-2.868.731-3.73.863-.863 2.672-.291 3.732-.732C9.9 3.938 10.828 2.25 12 2.25c1.172 0 2.063 1.669 3.16 2.128 1.096.46 2.868-.131 3.73.731.863.863.291 2.672.732 3.732.44 1.059 2.128 1.987 2.128 3.159 0 1.172-1.669 2.063-2.128 3.16-.46 1.096.131 2.868-.731 3.73-.863.863-2.672.291-3.732.732-1.059.44-1.987 2.128-3.159 2.128-1.172 0-2.063-1.669-3.16-2.128-1.096-.46-2.868.131-3.73-.731Z"></path>
                     <path fill="currentColor" stroke="none" d="M12 18a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z"></path>
                     <path d="M12 12.75a2.625 2.625 0 1 0-2.625-2.625"></path>
+                </>
+            )
+        }
+
+        case "admin": {
+            return (
+                <>
+                    <path d="M16 15.62a1.12 1.12 0 1 0 0-2.24 1.12 1.12 0 0 0 0 2.24Z"></path>
+                    <path fillRule="evenodd" d="M16 16.5c-.73 0-2.19.36-2.24 1.08.5.71 1.32 1.17 2.24 1.17.92 0 1.74-.46 2.24-1.17-.05-.72-1.51-1.08-2.24-1.08Z" clipRule="evenodd"></path>
+                    <path fillRule="evenodd" d="M17 10.09V5.27L9.5 2 2 5.27v4.91c0 4.54 3.2 8.79 7.5 9.82.55-.13 1.08-.32 1.6-.55A5.973 5.973 0 0 0 16 22c3.31 0 6-2.69 6-6 0-2.97-2.16-5.43-5-5.91ZM10 16c0 .56.08 1.11.23 1.62-.24.11-.48.22-.73.3-3.17-1-5.5-4.24-5.5-7.74v-3.6l5.5-2.4 5.5 2.4v3.51c-2.84.48-5 2.94-5 5.91Zm6 4c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4Z" clipRule="evenodd"></path>
+
                 </>
             )
         }

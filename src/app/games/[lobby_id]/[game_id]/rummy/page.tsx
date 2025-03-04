@@ -40,7 +40,7 @@ export default function Game() {
         socket.addEventListener('message', (event) => {
             const { playerCards, lobby, game, game_over } = gameService.getDataFromWebsocket(JSON.parse(event.data), socket, { _id: lobby_id, player_id: user!._id }) ?? {};
             console.log("Data from websocket");
-            if(game_over){
+            if (game_over) {
                 router.push(`/games/${lobby_id}/${game_id}/end`);
                 console.log("Game Over");
                 socket.close();
@@ -53,7 +53,6 @@ export default function Game() {
             }
             if (game) {
                 setGame(game);
-                console.log(game);
                 if (game.currentPlayer == user?._id) {
                     timerClass.start();
                 }
@@ -145,7 +144,9 @@ export default function Game() {
 
     useEffect(() => {
         const interval = setInterval(() => {
-            setTimer(parseInt(((new Date().getTime() - game.currentPlayer.time) / 1000).toFixed(0)));
+            try {
+                setTimer(parseInt(((new Date().getTime() - game.currentPlayer.time) / 1000).toFixed(0)));
+            } catch {}
         }, 1000);
         return () => clearInterval(interval);
     }, [game]);
@@ -176,7 +177,7 @@ export default function Game() {
                 <div className="flex justify-center items-center w-full h-full absolute py-8">
                     <div className="border border-[#cccccc10] rounded-md w-2/3 h-2/3 flex flex-wrap gap-10 z-50 p-1" onDrop={playCards} onDragOver={overDrag} >
                         {
-                            game.playedCards && game.playedCards.map((e: { playedBy: string, cards: Icard[] }, i: number) => {
+                            game.playedCards.length > 0 && game.playedCards.map((e: { playedBy: string, cards: Icard[] }, i: number) => {
                                 return (
                                     <div key={i} className={`flex gap-1 h-min group`}>
                                         {
@@ -224,8 +225,18 @@ export default function Game() {
                             return (
                                 <div key={j} className="w-16 h-16 relative group cursor-pointer">
 
-                                    <div style={{ color: getColorByInitials(getUserInitials(user.firstName, user.lastName)).text, backgroundColor: getColorByInitials(getUserInitials(user.firstName, user.lastName)).background }} className="w-16 h-16 rounded-full flex text-zinc-300 items-center justify-center">
+                                    <div style={{ color: getColorByInitials(getUserInitials(user.firstName, user.lastName)).text, backgroundColor: getColorByInitials(getUserInitials(user.firstName, user.lastName)).background }} className="w-16 h-16 rounded-full flex text-zinc-300 items-center justify-center relative">
                                         {getUserInitials(user.firstName, user.lastName)}
+                                        {game.currentPlayer.playerId === user._id &&
+                                            <div className="absolute -top-6 w-full flex justify-center">
+                                                <div className="-rotate-[16deg] animate-pulse">
+                                                    <Icon name="card-d" size={24}></Icon>
+                                                </div>
+                                                <div className="rotate-[16deg] animate-pulse">
+                                                    <Icon name="card-d" size={24}></Icon>
+                                                </div>
+                                            </div>
+                                        }
                                     </div>
                                     <div>
                                         <p className="text-zinc-300 text-center">{user.firstName}</p>
@@ -248,8 +259,18 @@ export default function Game() {
                             return (
                                 <div key={j} className="w-16 h-16 relative group cursor-pointer">
 
-                                    <div className="w-16 h-16 rounded-full flex text-zinc-300 items-center justify-center bg-zinc-500 border">
-                                        <StrokeIcon name="robot" size={32}></StrokeIcon>
+                                    <div className="w-16 h-16 rounded-full flex text-zinc-300 items-center justify-center bg-zinc-500 border relative">
+                                        <Icon name="robot" size={32} stroke></Icon>
+                                        {game.currentPlayer.playerId === bot._id &&
+                                            <div className="absolute -top-6 w-full flex justify-center">
+                                                <div className="-rotate-[16deg] animate-pulse">
+                                                    <Icon name="card-d" size={24}></Icon>
+                                                </div>
+                                                <div className="rotate-[16deg] animate-pulse">
+                                                    <Icon name="card-d" size={24}></Icon>
+                                                </div>
+                                            </div>
+                                        }
                                     </div>
                                     <div>
                                         <p className="text-zinc-300 text-center">{bot.name}</p>
@@ -269,8 +290,18 @@ export default function Game() {
                             return (
                                 <div key={j} className="w-16 h-16 relative group cursor-pointer">
 
-                                    <div style={{ color: getColorByInitials(getUserInitials(user.firstName, user.lastName)).text, backgroundColor: getColorByInitials(getUserInitials(user.firstName, user.lastName)).background }} className="w-16 h-16 rounded-full flex text-zinc-300 items-center justify-center">
+                                    <div style={{ color: getColorByInitials(getUserInitials(user.firstName, user.lastName)).text, backgroundColor: getColorByInitials(getUserInitials(user.firstName, user.lastName)).background }} className="w-16 h-16 rounded-full flex text-zinc-300 items-center justify-center relative">
                                         {getUserInitials(user.firstName, user.lastName)}
+                                        {game.currentPlayer.playerId === user._id &&
+                                            <div className="absolute -top-6 w-full flex justify-center">
+                                                <div className="-rotate-[16deg] animate-pulse">
+                                                    <Icon name="card-d" size={24}></Icon>
+                                                </div>
+                                                <div className="rotate-[16deg] animate-pulse">
+                                                    <Icon name="card-d" size={24}></Icon>
+                                                </div>
+                                            </div>
+                                        }
                                     </div>
                                     <div>
                                         <p className="text-zinc-300 text-center">{user.firstName}</p>
@@ -291,10 +322,20 @@ export default function Game() {
                     {
                         lobby?.bots.filter((u, i) => { return i % 2 === 0 }).map((bot, j) => {
                             return (
-                                <div key={j} className="w-16 h-16 relative group">
+                                <div key={j} className="w-16 h-16 relative group cursor-pointer">
 
-                                    <div className="w-16 h-16 rounded-full flex text-zinc-300 items-center justify-center bg-zinc-500 border">
-                                        <StrokeIcon name="robot" size={32}></StrokeIcon>
+                                    <div className="w-16 h-16 rounded-full flex text-zinc-300 items-center justify-center bg-zinc-500 border relative">
+                                        <Icon name="robot" size={32} stroke></Icon>
+                                        {game.currentPlayer.playerId === bot._id &&
+                                            <div className="absolute -top-6 w-full flex justify-center">
+                                                <div className="-rotate-[16deg] animate-pulse">
+                                                    <Icon name="card-d" size={24}></Icon>
+                                                </div>
+                                                <div className="rotate-[16deg] animate-pulse">
+                                                    <Icon name="card-d" size={24}></Icon>
+                                                </div>
+                                            </div>
+                                        }
                                     </div>
                                     <div>
                                         <p className="text-zinc-300 text-center">{bot.name}</p>
@@ -347,7 +388,7 @@ export default function Game() {
                     }
 
                     {
-                       nextTurnLoader &&
+                        nextTurnLoader &&
                         <div onClick={nextTurn} key={timer} className={`absolute right-10 h-[5rem] w-[5rem] justify-center items-center flex rounded-full border-2 border-lime-300 bottom-4`}
                             style={{ background: `conic-gradient(#bef264 ${360 - ((0) * 360 / 180)}deg, transparent 0deg)` }}
                         >

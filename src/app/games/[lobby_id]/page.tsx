@@ -24,18 +24,17 @@ export default function LobbyId() {
 
     useEffect(() => {
         const socket = lobbyService.connectWebSocket(lobby_id as string, user!._id, (data: any) => {
-            console.log(data);
             if (data.game) {
                 router.push(`/games/${lobby_id}/${data.lobby.game_id}/${data.lobby.settings.cardType.toLocaleLowerCase()}`);
             } else if (data.game_id) {
                 router.push(`/games/${lobby_id}/${data.lobby.game_id}/${data.settings.cardType.toLocaleLowerCase()}`);
-            } else if (data.error) {
-                lobbyService.joinLobby(lobby_id as string).then((data: any) => {
-                    if (data.error) {
+            } else if (data.status) {
+                lobbyService.joinLobby(lobby_id as string).then((data2: any) => {
+                    if (data2.error) {
                         router.replace("/games");
                     }
-                    setLobby(data);
-                    setForm(data.settings);
+                    setLobby(data2);
+                    setForm(data2.settings);
                 });
             } else {
                 setLobby(data);
@@ -56,16 +55,15 @@ export default function LobbyId() {
         lobbyService.sendChatMessage(lobby_id as string, user!.username, chat);
     }
 
-    function startLobbyGame() {
-        gameService.startGame(lobby_id as string);
-    }
-
-    function setFormData(obj: any) {
-        setForm((prev:any) => ({ ...prev, ...obj }));
+    async function startLobbyGame() {
+        const res = await gameService.startGame(lobby_id as string);
+        if (res.error) {
+            console.error(res.error);
+        }
+        router.push(`/games/${lobby_id}/${res.game_id}/${lobby!.settings.cardType.toLocaleLowerCase()}`);
     }
 
     function saveEdit(form: any) {
-        console.log(form);
         lobbyService.editLobby(lobby_id as string, form);
     }
 
@@ -165,7 +163,7 @@ export default function LobbyId() {
                     {
                         lobby.createdBy === user!._id &&
                         <div className="flex flex-col w-1/2 justify-end">
-                            <button onClick={startLobbyGame} className="bg-blue-600 w-full rounded-lg p-2 px-5 text-zinc-200 font-bold hover:bg-blue-500 duration-200 focus:ring-2 ">Start</button>
+                            <button disabled={lobby.users.length + lobby.bots.length < lobby.settings.numberOfPlayers} onClick={startLobbyGame} className="bg-blue-600 w-full rounded-lg p-2 px-5 text-zinc-200 font-bold hover:bg-blue-500 duration-200 focus:ring-2 disabled:bg-blue-800 disabled:text-zinc-400 disabled:cursor-not-allowed">Start</button>
                         </div>
                     }
 

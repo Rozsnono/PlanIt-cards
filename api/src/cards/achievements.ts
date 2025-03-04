@@ -4,8 +4,9 @@ export const achievements = [
         "image": "/assets/achievements/MG.png",
         "name": "Master of Groups",
         "description": "Win the game by only laying down sets (same value achievements of different suits).",
-        "check": function (playedCards: any[][]) {
+        "check": function (playedCards: any[][], numberOfRounds?: number) {
             let isMaster = true;
+            if(!playedCards.length) return false;
             playedCards.forEach((cards) => {
                 if (cards.length) {
                     const values = cards.map((card) => card.value);
@@ -23,7 +24,7 @@ export const achievements = [
         "image": "/assets/achievements/SR.png",
         "name": "Speed Runner",
         "description": "Finish the game in three rounds or less!",
-        "check": function (numberOfRounds: number) {
+        "check": function (playedCards: any[][], numberOfRounds: number) {
             return numberOfRounds <= 3;
         }
     },
@@ -32,8 +33,9 @@ export const achievements = [
         "image": "/assets/achievements/SL.png",
         "name": "Master of Sequences",
         "description": "Win the game by only laying down sequences (same suit achievements of consecutive values).",
-        "check": function (playedCards: any[][]) {
+        "check": function (playedCards: any[][], numberOfRounds?: number) {
             let isMaster = true;
+            if(!playedCards.length) return false;
             playedCards.forEach((cards) => {
                 if (cards.length) {
                     const values = cards.map((card) => card.value);
@@ -51,7 +53,7 @@ export const achievements = [
         "image": "/assets/achievements/FS.png",
         "name": "First Strike",
         "description": "Lay down a combination on the table in the very first round.",
-        "check": function (playedCards: any) {
+        "check": function (playedCards: any, numberOfRounds?: number) {
             return playedCards.length > 0;
         }
     },
@@ -60,8 +62,9 @@ export const achievements = [
         "image": "/assets/achievements/WJ.png",
         "name": "Without any Joker",
         "description": "Win a game without using any joker.",
-        "check": function (playedCards: any[][]) {
+        "check": function (playedCards: any[][], numberOfRounds?: number) {
             let isWithoutJoker = true;
+            if(!playedCards.length) return false;
             playedCards.forEach((cards) => {
                 if (cards.length) {
                     const joker = cards.find((card) => card.isJoker);

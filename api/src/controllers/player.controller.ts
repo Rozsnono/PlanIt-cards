@@ -4,6 +4,7 @@ import { hasAuth } from "../middleware/middleware";
 import { Auth } from "../enums/auth.enum";
 import userModel from "../models/user.model";
 import { ERROR } from "../enums/error.enum";
+import { achievements } from "../cards/achievements";
 
 
 export default class PlayerController implements Controller {
@@ -30,6 +31,8 @@ export default class PlayerController implements Controller {
             return;
         }
 
+        const achs = achievements.filter((ach) => player.achievements.includes(ach._id));
+
         res.send({
             customId: player.customId,
             firstName: player.firstName,
@@ -41,6 +44,7 @@ export default class PlayerController implements Controller {
             gameHistory: player.gameHistory,
             friends: player.friends,
             numberOfGames: player.numberOfGames,
+            achievements: achs,
         });
     };
 

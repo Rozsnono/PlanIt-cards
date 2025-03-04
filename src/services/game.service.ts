@@ -107,4 +107,16 @@ export class GameService {
         return res;
     }
 
+    public async deleteGame(lobbyId: string){
+        const response = await fetch(`/api/delete/game/${lobbyId}`, {
+            method: "DELETE",
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${getCookie("token")}`
+            }
+        });
+        const res = await response.json();
+        return res;
+    }
+
 }

@@ -3,11 +3,14 @@ import gameModel from "../models/game.model";
 import lobbyModel from "../models/lobby.model";
 import { RummyDealer } from "./dealer.services";
 import { RummyBot } from "./rummy.bot.service";
+import userModel from "../models/user.model";
+import { achievements } from "../cards/achievements";
 
 export class GameChecker {
 
     private lobby = lobbyModel.lobbyModel;
     private game = gameModel.gameModel;
+    private player = userModel.userModel;
     gameHistoryService: any;
 
     public intervals: any = {};
@@ -101,10 +104,13 @@ export class GameChecker {
         const bot = new RummyBot(currentPlayer, 'easy', game.playerCards[currentPlayer], game.droppedCards, game.playedCards, game.shuffledCards);
         const { droppedCards, playedCards, playerCards } = bot.play();
         game.playerCards[currentPlayer] = playerCards;
+        console.log("Bot played cards: ", playedCards);
         game.playedCards = playedCards;
         game.droppedCards = droppedCards;
         game.drawedCard.lastDrawedBy = currentPlayer;
-        await this.wait(Math.random() * 6000);
+        const waitingTime = bot.thinkingTime;
+        console.log("Waiting for " + waitingTime + "ms");
+        await this.wait(waitingTime);
         const players = lobby.users.map(u => u._id).concat(lobby.bots.map(bot => bot._id)).map(id => id.toString());
         currentPlayer = this.getNextPlayer(players, currentPlayer);
         game.currentPlayer = { playerId: currentPlayer, time: new Date().getTime() };
@@ -112,4 +118,47 @@ export class GameChecker {
         await this.game.replaceOne({ _id: game._id }, game, { runValidators: true });
     }
 
+    public setRankByPosition = async (globby: Ilobby) => {
+        const game = await this.game.findOne({ _id: globby.game_id });
+        if (!game) return;
+        const positions = Object.values(game.playerCards).map((cards: any) => { return cards.reduce((sum: any, obj: any) => { return sum + obj.value }, 0) });
+        for (const id of globby.users) {
+            const player = await this.player.findOne({ _id: id });
+            if (!player) return;
+            const body: any = player;
+            const position = Object.keys(game.playerCards).length - positions.indexOf(Math.max(...positions));
+            body.rank += this.calculatePoints(position, Object.keys(game.playerCards).length, 20);
+            if (body.numberOfGames === undefined) body.numberOfGames = {};
+            if (body.numberOfGames[new Date().toISOString()] === undefined) {
+                body.numberOfGames = { ...body.numberOfGames, [new Date().toISOString()]: { wins: 0, losses: 0 } };
+            }
+            if (position === 1) {
+                body.numberOfGames[new Date().toISOString()].wins++;
+            } else {
+                body.numberOfGames[new Date().toISOString()].losses++;
+            }
+            body.achievements = await this.checkAnchievements(player, game);
+            const res = await this.player.replaceOne({ _id: body._id }, body, { runValidators: true });
+            console.log(res.modifiedCount);
+        }
+    }
+
+    private async checkAnchievements(player: any, game: any) {
+        const playerAchievements = player.achievements || [];
+        for (const achievement of achievements) {
+            const playerCards = game.playedCards.filter((cards: any) => cards.cards.find((card: any) => card.playedBy === player._id));
+            if (achievement.check(playerCards, Math.floor(game.droppedCards.length / Object.keys(game.playerCards).length)) && !playerAchievements.includes(achievement._id)) {
+                playerAchievements.push(achievement._id);
+            }
+        }
+        return playerAchievements;
+    }
+
+    private calculatePoints(rank: number, totalPlayers: number, maxPoints: number) {
+        if (rank < 1 || rank > totalPlayers) {
+            return 0;
+        }
+        const step = maxPoints / (totalPlayers - 1);
+        return Math.max(0, Math.round(maxPoints - (rank - 1) * step));
+    }
 }   
