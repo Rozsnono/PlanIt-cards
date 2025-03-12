@@ -9,7 +9,7 @@ import SocketIO from "./controllers/socketIO.controller";
 import userModel from "./models/user.model";
 import lobbyModel from "./models/lobby.model";
 
-const { MONGO_URL = "mongodb+srv://admin:admin@planit-card.0lrdm.mongodb.net/?retryWrites=true&w=majority&appName=Planit-card" } = process.env;
+const { MONGO_URL = "mongodb+srv://admin:admin@planit-card.0lrdm.mongodb.net/planitdb?retryWrites=true&w=majority&appName=Planit-card" } = process.env;
 
 
 
