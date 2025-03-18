@@ -89,7 +89,7 @@ export default class LobbyController implements Controller {
     private getLobby = async (req: Request, res: Response) => {
         const query = req.query;
         const filter: any = {};
-        const paging: { page: number, limit: number } = { page: 1, limit: 16 };
+        const paging: { page: number, limit: number } = { page: 1, limit: 14 };
         if (query.cardType) {
             filter["settings.cardType"] = query.cardType;
         }
@@ -109,14 +109,14 @@ export default class LobbyController implements Controller {
             filter["settings.numberOfPlayers"] = parseInt(query.numberOfPlayers.toString());
         }
         if (query.page) {
-            paging.page = parseInt(query.page.toString());
+            paging.page = parseInt(query.page.toString()) || 1;
         }
         if (query.limit) {
-            paging.limit = parseInt(query.limit.toString());
+            paging.limit = parseInt(query.limit.toString()) || 14;
         }
-        const lobbies = await this.lobby.find(filter).limit(paging.limit).skip((paging.page-1) * paging.limit).populate("users", "customId username rank");
+        const lobbies = await this.lobby.find(filter).limit(paging.limit * paging.page).populate("users", "customId username rank");
         const lobbyCount = await this.lobby.countDocuments();
-        res.send({ total: parseInt(((lobbyCount / paging.limit) + 1).toFixed(0)), data: lobbies });
+        res.send({ total: parseInt(((lobbyCount / paging.limit)).toFixed(0)), data: lobbies });
     };
 
     private chatLobby = async (req: Request, res: Response) => {

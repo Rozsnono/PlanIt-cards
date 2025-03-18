@@ -35,8 +35,8 @@ export default function ProfilePage() {
 
     if (player.isLoading || player!.data.length == 0) return <div>Loading...</div>
     return (
-        <main className="flex gap-2">
-            <main className="w-full flex flex-col gap-3 items-center justify-start max-h-screen">
+        <main className="flex gap-2 p-4 h-full">
+            <main className="w-full flex flex-col gap-3 items-center justify-start border-2 rounded-lg border-zinc-500">
                 <div className="h-fit w-full">
                     <Chart data={{ wins: 1111, loses: 230 }}></Chart>
                 </div>
@@ -49,7 +49,7 @@ export default function ProfilePage() {
                 </div>
                 <Pagination total={1} page={page} setPage={setPage}></Pagination>
             </main>
-            <main className="lg:w-1/2 w-full bg-[#3f3f46c0] rounded-md p-3 min-h-screen text-zinc-200">
+            <main className="lg:w-1/2 w-full bg-zinc-800 rounded-md p-3 h-full text-zinc-200">
                 <div className="flex gap-2 p-6">
                     <div style={{ backgroundColor: getColorByInitials(getUserInitials()).background, color: getColorByInitials(getUserInitials()).text }} className="min-w-32 min-h-32 bg-red-600 rounded-full flex items-center justify-center text-4xl">{getUserInitials()}</div>
                     <div className="flex flex-col justify-center gap-3">

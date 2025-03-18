@@ -1,7 +1,6 @@
 "use client";
 import Icon from "@/assets/icons";
 import Loader from "@/components/loader.component";
-import getCardUrl from "@/contexts/cards.context"
 import { UserContext } from "@/contexts/user.context";
 import { getColorByInitials, getUserInitialsByName } from "@/functions/user.function";
 import { Icard } from "@/interfaces/interface";
@@ -11,6 +10,7 @@ import { useParams } from "next/navigation";
 import React from "react";
 import { useContext, useState } from "react";
 import { useQuery } from "react-query";
+import CardsUrls from "@/contexts/cards.context";
 
 export default function Game() {
 
@@ -41,7 +41,7 @@ export default function Game() {
                                             e.cards.map((card: Icard, j: number) => {
                                                 return (
                                                     <div key={j} className="w-8 h-16 relative group cursor-pointer overflow-visible">
-                                                        <Image className={`card-animation w-16 max-w-16 rounded-md border border-transparent ${e.playedBy === user?._id ? ' group-hover:border-green-500' : ""} `} key={j} src={"/assets/cards/" + getCardUrl(card.name)} width={70} height={60} alt={getCardUrl(card.name)}></Image>
+                                                        <Image className={`card-animation w-16 max-w-16 rounded-md border border-transparent ${e.playedBy === user?._id ? ' group-hover:border-green-500' : ""} `} key={j} src={"/assets/cards/rummy/" + new CardsUrls().getCardUrl(card.name)} width={70} height={60} alt={new CardsUrls().getCardUrl(card.name)}></Image>
                                                         {j === 0 && <div className="opacity-0 group-hover:opacity-100 absolute group-hover:bottom-[-3.6rem] bottom-0 left-0 w-16 z-[-1] duration-200">{e.playedBy}</div>}
                                                     </div>
                                                 )
@@ -57,8 +57,8 @@ export default function Game() {
                 <div className="flex gap-10  w-full absolute top-2 p-2 justify-center">
                     <div className="flex relative cursor-pointer">
                         <div className="2xl:w-[5rem] lg:w-[4.7rem] md:w-[3.7rem] 2xl:h-[7.6rem] lg:h-[7rem] md:h-[6rem] border border-zinc-400 rounded-md"></div>
-                        <Image className="absolute top-1 left-1" draggable={false} src={"/assets/cards/gray_back.png"} width={140} height={100} alt="card"></Image>
-                        <Image draggable={false} className="absolute border-2 border-transparent hover:border-green-500 rounded-lg" src={"/assets/cards/gray_back.png"} width={140} height={110} alt="card"></Image>
+                        <Image className="absolute top-1 left-1" draggable={false} src={"/assets/cards/rummy/gray_back.png"} width={140} height={100} alt="card"></Image>
+                        <Image draggable={false} className="absolute border-2 border-transparent hover:border-green-500 rounded-lg" src={"/assets/cards/rummy/gray_back.png"} width={140} height={110} alt="card"></Image>
                     </div>
 
                     <div className="flex relative">
@@ -66,11 +66,11 @@ export default function Game() {
 
                         {
                             gameHistory.data.turns[turn].droppedCards.length > 1 &&
-                            <Image className="absolute left-1 top-1 rotate-1" draggable={false} src={"/assets/cards/" + getCardUrl(gameHistory.data.turns[turn].droppedCards[gameHistory.data.turns[turn].droppedCards.length - 2].card.name)} width={140} height={100} alt="card"></Image>
+                            <Image className="absolute left-1 top-1 rotate-1" draggable={false} src={"/assets/cards/rummy/" + new CardsUrls().getCardUrl(gameHistory.data.turns[turn].droppedCards[gameHistory.data.turns[turn].droppedCards.length - 2].card.name)} width={140} height={100} alt="card"></Image>
                         }
                         {
                             gameHistory.data.turns[turn].droppedCards.length > 0 &&
-                            <Image className="absolute right-1 bottom-1 rotate-12 border border-transparent hover:border-green-300 rounded-lg cursor-pointer" src={"/assets/cards/" + getCardUrl(gameHistory.data.turns[turn].droppedCards[gameHistory.data.turns[turn].droppedCards.length - 1].card.name)} width={140} height={100} alt="card"></Image>
+                            <Image className="absolute right-1 bottom-1 rotate-12 border border-transparent hover:border-green-300 rounded-lg cursor-pointer" src={"/assets/cards/rummy/" + new CardsUrls().getCardUrl(gameHistory.data.turns[turn].droppedCards[gameHistory.data.turns[turn].droppedCards.length - 1].card.name)} width={140} height={100} alt="card"></Image>
                         }
                     </div>
                 </div>
@@ -151,7 +151,7 @@ export default function Game() {
                             return (
                                 <React.Fragment key={i}>
                                     <div draggable className={`cursor-pointer w-12 overflow-visible hover:cursor-grab group rounded-lg duration-200`}>
-                                        <Image className="border-2 border-transparent group-hover:border-green-400 rounded-lg" style={{ width: "6rem", maxWidth: "6rem" }} loading="eager" src={"/assets/cards/" + getCardUrl(card.name)} width={100} height={100} alt={getCardUrl(card.name)}></Image>
+                                        <Image className="border-2 border-transparent group-hover:border-green-400 rounded-lg" style={{ width: "6rem", maxWidth: "6rem" }} loading="eager" src={"/assets/cards/rummy/" + new CardsUrls().getCardUrl(card.name)} width={100} height={100} alt={new CardsUrls().getCardUrl(card.name)}></Image>
                                     </div>
                                 </React.Fragment>
                             )

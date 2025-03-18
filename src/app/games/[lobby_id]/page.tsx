@@ -56,7 +56,8 @@ export default function LobbyId() {
     }
 
     async function startLobbyGame() {
-        const res = await gameService.startGame(lobby_id as string);
+        const type: 'rummy' | 'uno' = lobby!.settings.cardType.toLowerCase() as 'rummy' | 'uno';
+        const res = await new GameService(type).startGame(lobby_id as string);
         if (res.error) {
             console.error(res.error);
         }
@@ -87,13 +88,85 @@ export default function LobbyId() {
     }
 
 
-    function removePlayer(index: number) {
-        lobby!.users.splice(index, 1);
+    function removePlayer(id: string) {
     }
 
     return (
-        <main className="flex gap-2 lg:flex-row md:flex-col flex-col">
-            <main className="w-full min-h-screen bg-[#3f3f46c0] rounded-md flex flex-col p-3 gap-2">
+        <main className="flex gap-2 lg:flex-row md:flex-col flex-col p-2 h-full">
+            <main className="w-full border-2 border-zinc-600 rounded-md flex p-3 gap-2 h-full">
+
+                <div className="w-full h-full flex relative flex-col gap-2">
+                    {
+                        new Array(lobby.settings.numberOfPlayers).fill(0).map((_, i) => {
+                            if (i % 2 == 1) return null
+                            if (i < lobby.users.length) {
+                                return (
+                                    <PlayerCard key={i} playerData={lobby.users[i]} createdBy={lobby.createdBy} currentPlayer={user!._id} removePlayer={removePlayer} mutePlayer={() => { }}></PlayerCard>
+                                )
+                            } else if (i - lobby.users.length < lobby.bots.length) {
+                                return (
+                                    <PlayerCard bot key={i} playerData={{ username: lobby.bots[i - lobby.users.length].name, rank: '????' }} createdBy={lobby.createdBy} currentPlayer={user!._id} removePlayer={removePlayer} mutePlayer={() => { }}></PlayerCard>
+                                );
+                            }
+                            return (
+                                <PlayerCard key={i} loading></PlayerCard>
+                            );
+                        })
+
+                    }
+
+                </div>
+                <div className="w-full h-full flex relative">
+                    {/* {
+                        lobby.createdBy === user!._id &&
+                        <div className="flex flex-col w-1/2 justify-end">
+                            <button disabled={lobby.users.length + lobby.bots.length < lobby.settings.numberOfPlayers} onClick={startLobbyGame} className="bg-blue-600 w-full rounded-lg p-2 px-5 text-zinc-200 font-bold hover:bg-blue-500 duration-200 focus:ring-2 disabled:bg-blue-800 disabled:text-zinc-400 disabled:cursor-not-allowed">Start</button>
+                        </div>
+                    } */}
+
+                    <div className="flex relative flex-col w-full bg-zinc-800 rounded-md h-full p-2">
+                        <div className="h-full w-full border border-zinc-600 rounded-md flex flex-col gap-1 text-zinc-300 p-2 overflow-auto">
+
+                            {
+                                lobby.chat.map((message, i) => (
+                                    <div key={i} className="flex gap-2">
+                                        <span className="text-zinc-500 w-[4rem]">{message.sender}:</span>
+                                        <span className="w-full">{message.message}</span>
+                                    </div>
+                                ))
+                            }
+                        </div>
+                        <form onSubmit={sendChat} className="w-full pt-3 flex gap-2">
+                            <input type="text" id="chat" className="bg-zinc-700 border border-zinc-900 text-gray-200 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" placeholder="Aa" />
+                            <button type="submit" className="bg-zinc-500 text-white p-1 px-2 rounded-md hover:bg-zinc-400 flex items-center ">
+                                <Icon name="send"></Icon>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                <div className="w-full h-full flex relative flex-col gap-2">
+                    {
+                        new Array(lobby.settings.numberOfPlayers).fill(0).map((_, i) => {
+                            if (i % 2 == 0) return null
+                            if (i < lobby.users.length) {
+                                return (
+                                    <PlayerCard key={i} playerData={lobby.users[i]} createdBy={lobby.createdBy} currentPlayer={user!._id} removePlayer={removePlayer} mutePlayer={() => { }}></PlayerCard>
+                                )
+                            } else if (i - lobby.users.length < lobby.bots.length) {
+                                return (
+                                    <PlayerCard bot key={i} playerData={{ username: lobby.bots[i - lobby.users.length].name, rank: '????' }} createdBy={lobby.createdBy} currentPlayer={user!._id} removePlayer={removePlayer} mutePlayer={() => { }}></PlayerCard>
+                                );
+                            }
+                            return (
+                                <PlayerCard key={i} loading></PlayerCard>
+                            );
+                        })
+
+                    }
+
+                </div>
+            </main>
+            {/* <main className="w-full min-h-screen bg-[#3f3f46c0] rounded-md flex flex-col p-3 gap-2">
 
                 <div className="w-full h-full flex relative bg-zinc-700 h-1/2 rounded-lg overflow-hidden justify-center items-center text-zinc-400">
 
@@ -189,11 +262,84 @@ export default function LobbyId() {
                 </div>
 
 
-            </main>
-            <main className="lg:w-1/2 w-full min-h-screen bg-[#3f3f46c0] rounded-md flex flex-col p-3 text-zinc-300">
+            </main> */}
+            <main className="lg:w-1/3 w-full h-full bg-zinc-800 rounded-md flex flex-col p-3 text-zinc-300">
 
                 <LobbySettings cancel={cancelEdit} getForm={form} save={saveEdit} canEdit title="Lobby settings"></LobbySettings>
+
+                {
+                    lobby.createdBy === user!._id &&
+                    <div className="flex flex-col w-1/2 justify-end mx-auto">
+                        <button disabled={lobby.users.length + lobby.bots.length < lobby.settings.numberOfPlayers} onClick={startLobbyGame} className="bg-blue-600 w-full rounded-lg p-2 px-5 text-zinc-200 font-bold hover:bg-blue-500 duration-200 focus:ring-2 disabled:bg-blue-800 disabled:text-zinc-400 disabled:cursor-not-allowed">Start</button>
+                    </div>
+                }
             </main>
+        </main>
+    )
+}
+
+function PlayerCard({ playerData, loading, bot, createdBy, removePlayer, mutePlayer, currentPlayer }: { playerData?: any, loading?: boolean, bot?: boolean, createdBy?: string, removePlayer?: (id: string) => void, mutePlayer?: (id: string) => void, currentPlayer?: string }) {
+    if (loading) {
+        return (
+            <main className="w-full bg-zinc-800 rounded-lg p-3 flex gap-2 min-h-12 select-none">
+                <div className={`relative bg-zinc-500 text-zinc-800 flex items-center justify-center border-2 border-zinc-800 rounded-full w-16 h-16 animate-pulse`}>
+                </div>
+                <div className="flex flex-col justify-center gap-2">
+                    <div className="text-zinc-300 text-lg bg-zinc-600 animate-pulse rounded-lg w-32 h-3"></div>
+                    <div className="text-zinc-300 text-lg bg-zinc-600 animate-pulse rounded-lg w-24 h-2"></div>
+                </div>
+            </main>
+        )
+    }
+
+    if (bot) {
+        return (
+            <main className="w-full bg-zinc-800 rounded-lg p-3 flex gap-2 border-2 border-zinc-800 select-none">
+                <div className={`relative bg-zinc-400 text-zinc-700 flex items-center justify-center border-2 border-zinc-700 rounded-full w-16 h-16 duration-200`}>
+                    <StrokeIcon name="robot" size={40} />
+                </div>
+                <div className="flex flex-col justify-center">
+                    <div className="text-zinc-300 text-lg">{playerData.username}</div>
+                    <div className="text-zinc-400 text-sm">{playerData.rank}</div>
+                </div>
+            </main>
+        )
+    }
+    return (
+        <main className={"w-full bg-zinc-800 rounded-lg p-3 flex gap-2 justify-between " + (currentPlayer === playerData._id ? 'border-2 border-zinc-500 ' : 'border-2 border-zinc-800')}>
+            <div className="flex gap-2">
+                <div className={`relative ${currentPlayer === playerData._id ? 'bg-zinc-300' : 'bg-zinc-400'} text-zinc-700 flex items-center justify-center border-2 border-zinc-700 rounded-full w-16 h-16 duration-200`}>
+                    <Icon name="user" size={40} />
+                </div>
+                <div className="flex flex-col justify-center">
+                    <div className="text-zinc-300 text-lg">{playerData.username}</div>
+                    <div className="text-zinc-400 text-sm">{playerData.rank}</div>
+                </div>
+            </div>
+            {
+                currentPlayer !== playerData._id &&
+                <div className="flex gap-2">
+
+                    {
+                        playerData._id === createdBy &&
+                        <div onClick={() => { mutePlayer!(playerData._id) }} className="p-2 rounded-full bg-gray-500 hover:bg-gray-400 w-fit h-fit cursor-pointer">
+                            <Icon name="unmute" />
+                        </div>
+                    }
+                    <div className="p-2 rounded-full bg-blue-500 hover:bg-blue-400 w-fit h-fit cursor-pointer">
+                        <Icon name="add-friend" />
+                    </div>
+                    <Link href={`/profile/${playerData.customId}`} className="p-2 rounded-full bg-sky-500 hover:bg-sky-400 w-fit h-fit">
+                        <Icon name="info" />
+                    </Link>
+                    {
+                        playerData._id === createdBy &&
+                        <div onClick={() => { removePlayer!(playerData._id) }} className="p-2 rounded-full bg-red-500 hover:bg-red-400 w-fit h-fit cursor-pointer">
+                            <Icon name="close" />
+                        </div>
+                    }
+                </div>
+            }
         </main>
     )
 }

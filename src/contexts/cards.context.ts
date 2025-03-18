@@ -1,14 +1,23 @@
-export default function getCardUrl(card: string) {
-    // if(card === "rj" || card === "bj"){
-    //     return `${CardNames[card]}.png`;
-    // }
 
-    // const letters: string[] = card.split('');
-    // if (parseInt(letters[0])) {
-    //     return `${letters[0]}_of_${CardNames[letters[1]]}.png`;
-    // }
+export default class CardsUrls {
+    public getCardUrl(card: string) {
+        return `${card.toUpperCase()}.png`;
+    }
 
-    // return `${CardNames[letters[0]]}_of_${CardNames[letters[1]]}.png`;
+    public getUnoCardUrl(card: string) {
+        const { v, s } = {v: card[0].toUpperCase(), s: card.slice(1).toUpperCase()};
+        switch (s) {
+            case 'R':
+                return `Red_${v}.png`;
+            case 'G':
+                return `Green_${v}.png`;
+            case 'B':
+                return `Blue_${v}.png`;
+            case 'Y':
+                return `Yellow_${v}.png`;
+            default:
+                return `${v}${s}.png`;
+        }
+    }
 
-    return `${card.toUpperCase()}.png`;
 }

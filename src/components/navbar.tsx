@@ -11,7 +11,7 @@ import { Iplayer } from '@/interfaces/interface';
 import { useRouter } from 'next/navigation';
 import SettingsModal from './settings/settings.modal';
 
-export default function Navbar() {
+export default function Navbar({ clear }: { clear?: boolean }) {
 
     const { user } = useContext(UserContext);
     const { isOpen, setOpen } = useContext(MenuContext);
@@ -25,33 +25,78 @@ export default function Navbar() {
     }, [user]);
 
     if (!userState) return (
-        <main className="fixed top-0 left-0 w-screen bg-zinc-900 border-b border-zinc-400 z-50 select-none z-[100] max-h-[4.2rem]" >
-            <div className="flex justify-between items-center p-4 pe-8 ps-4">
-                <div className="flex items-center justify-center gap-4 text-zinc-100 max-h-[4.2rem]">
-                    <div className='cursor-pointer' onClick={() => { setOpen(!isOpen) }}>
-                        <Icon name='menu' size={24}></Icon>
-                    </div>
 
-                    <Image src={"/assets/logo.png"} alt='Logo' width={120} height={100}></Image>
+        <main className="fixed top-3 left-0 w-screen z-[100] max-h-[4.2rem] flex justify-center">
+            <main className="w-3/4 rounded-xl bg-zinc-900 border-2 border-zinc-600 z-50 select-none z-[100] max-h-[4.2rem]" >
+                <div className="flex justify-between items-center p-4 pe-8 ps-4">
+                    <div className="flex items-center justify-center gap-4 text-zinc-100 max-h-[4.2rem]">
+                        <Image src={"/assets/logo.png"} alt='Logo' width={120} height={100}></Image>
+                    </div>
+                    <Menus user={null} isLogged={!!user}></Menus>
+                    <div className='w-48 h-8 rounded-lg bg-zinc-800 animate-pulse'></div>
                 </div>
-                <div className='w-48 h-8 rounded-lg bg-zinc-800 animate-pulse'></div>
-            </div>
+            </main>
         </main>
     );
 
-    return (
-        <main className="fixed top-0 left-0 w-screen bg-zinc-900 border-b border-zinc-400 z-50 select-none z-[100] max-h-[4.2rem]" >
-            <div className="flex justify-between items-center p-4 pe-8 ps-4">
-                <div className="flex items-center justify-center gap-4 text-zinc-100 max-h-[4.2rem]">
-                    <div className='cursor-pointer' onClick={() => { setOpen(!isOpen) }}>
-                        <Icon name='menu' size={24}></Icon>
+    if (clear) {
+        return (
+            <main className='fixed top-4 left-4 z-[100] opacity-70'>
+                <div className='w-16 h-16 bg-zinc-900 rounded-full flex justify-center items-center group relative'>
+                    <div className='w-full h-full bg-zinc-900 z-50 p-2 rounded-full flex items-center justify-center border-2 border-zinc-600 '>
+                        <Image src={"/assets/icon.png"} alt='Logo' width={120} height={100}></Image>
                     </div>
 
-                    <Image src={"/assets/logo.png"} alt='Logo' width={120} height={100}></Image>
+                    <Link href={"/"}>
+                        <div className='absolute text-zinc-400 hover:text-white bottom-2 group-hover:-bottom-[2rem] left-3 w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center duration-200 cursor-pointer'>
+                            <Icon name='home' size={16}></Icon>
+                        </div>
+                    </Link>
+
+                    <Link href={"/observatory"}>
+                        <div className='absolute text-zinc-400 hover:text-white bottom-2 group-hover:-bottom-[4.1rem] left-3 w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center duration-200 cursor-pointer'>
+                            <Icon name='star' stroke size={16}></Icon>
+                        </div>
+                    </Link>
+
+                    <Link href={"/games"}>
+                        <div className='absolute text-zinc-400 hover:text-white bottom-2 group-hover:-bottom-[6.2rem] left-3 w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center duration-200 cursor-pointer'>
+                            <Icon name='game' stroke size={16}></Icon>
+                        </div>
+                    </Link>
+
+                    {
+                        user!.auth.includes("ADMIN") &&
+                        <Link href={"/admin"}>
+                            <div className='absolute text-zinc-400 hover:text-white bottom-2 group-hover:-bottom-[8.3rem] left-3 w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center duration-200 cursor-pointer'>
+                                <Icon name='admin' size={16}></Icon>
+                            </div>
+                        </Link>
+                    }
+
+
                 </div>
-                <UserHeader isLogged={!!user} user={user!}></UserHeader>
-            </div>
-        </main>
+            </main>
+        )
+    }
+
+    return (
+
+        <React.Fragment>
+
+            <main className="fixed top-3 left-0 w-screen z-[100] max-h-[4.2rem] flex justify-center">
+                <main className="w-3/4 rounded-xl bg-zinc-900 border-2 border-zinc-600 z-50 select-none z-[100] max-h-[4.2rem] relative" >
+                    <div className="flex justify-between items-center p-4 pe-8 ps-4">
+                        <div className="flex items-center justify-center gap-4 text-zinc-100 max-h-[4.2rem]">
+                            <Image src={"/assets/logo.png"} alt='Logo' width={120} height={100}></Image>
+                        </div>
+                        <Menus user={user!} isLogged={!!user}></Menus>
+                        <UserHeader isLogged={!!user} user={user!}></UserHeader>
+                    </div>
+                </main>
+            </main>
+        </React.Fragment>
+
     )
 }
 
@@ -105,7 +150,7 @@ function UserHeader({ isLogged, user }: { isLogged: boolean, user: Iplayer }) {
                             }
                         </button>
                     </Link>
-                    <button onClick={()=>{setSettingsOpen(true)}} className="bg-zinc-700 hover:bg-zinc-600 text-zinc-400 w-full rounded-lg p-2 more-modal-input text-left flex gap-1 items-center"> <Icon name="settings" size={16}></Icon> Settings</button>
+                    <button onClick={() => { setSettingsOpen(true) }} className="bg-zinc-700 hover:bg-zinc-600 text-zinc-400 w-full rounded-lg p-2 more-modal-input text-left flex gap-1 items-center"> <Icon name="settings" size={16}></Icon> Settings</button>
                 </div>
                 <button onClick={LogOut} className="text-zinc-300 bg-zinc-900 hover:bg-zinc-950 rounded-lg flex items-center gap-1 p-2" ><Icon name="sign-out" size={16}></Icon> Sign out</button>
             </modal.FilterModal>
@@ -113,6 +158,50 @@ function UserHeader({ isLogged, user }: { isLogged: boolean, user: Iplayer }) {
 
             <SettingsModal isOpen={settingsOpen} onClose={() => { setSettingsOpen(false) }}>
             </SettingsModal>
+        </React.Fragment>
+    )
+}
+
+
+function Menus({ isLogged, user }: { isLogged: boolean, user: any }) {
+    if (!isLogged) {
+        return null;
+    }
+
+    return (
+        <React.Fragment>
+            <div className="flex items-center gap-4 mr-4">
+                <Link href={"/"}>
+                    <div className="text-zinc-300 text-md hover:text-white hover:font-bold duration-200 flex items-center gap-1 hover:gap-2">
+                        <Icon name="home"></Icon>
+                        Home
+                    </div>
+                </Link>
+                <Link href={"/observatory"}>
+                    <div className="text-zinc-300 text-md hover:text-white hover:font-bold duration-200 flex items-center gap-1 hover:gap-2">
+                        <Icon name="star" stroke></Icon>
+                        Observatory
+                    </div>
+                </Link>
+                <Link href={"/games"}>
+                    <div className="text-zinc-300 text-md hover:text-white hover:font-bold duration-200 flex items-center gap-1 hover:gap-2">
+                        <Icon name="game" stroke></Icon>
+                        Games
+                    </div>
+                </Link>
+
+                {
+                    user &&
+                    user!.auth.includes("ADMIN") &&
+                    <Link href={"/admin"}>
+                        <div className="text-zinc-300 text-md hover:text-white hover:font-bold duration-200 flex items-center gap-1 hover:gap-2">
+                            <Icon name="admin"></Icon>
+                            Admin
+                        </div>
+                    </Link>
+                }
+
+            </div>
         </React.Fragment>
     )
 }

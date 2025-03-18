@@ -7,7 +7,9 @@ const UnoRank = {
     16: "Skip",
     15: "Reverse",
     20: "Wild",
-    24: "Wild Draw Four",
+    21: "Wild",
+    23: "Wild Draw Four",
+    24: "Wild Draw Four"
 }
 
 export default class CardDealer {
@@ -81,6 +83,18 @@ export default class CardDealer {
 export class UnoDealer extends CardDealer {
     constructor(cards: Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number, value: number }>) {
         super(cards);
+    }
+
+    public validateDrop(droppedCards: Array<{ name: string; rank: number; suit: string; isJoker?: boolean; pack: number; value: number; }>, droppedCard: { name: string; rank: number; suit: string; isJoker?: boolean; pack: number; }): boolean {
+        if (droppedCards.length === 0) {
+            return true;
+        }
+        if (droppedCard.isJoker) {
+            return true;
+        }
+        const isSameRank = droppedCards[droppedCards.length - 1].rank === droppedCard.rank;
+        const isSameSuit = droppedCards[droppedCards.length - 1].suit === droppedCard.suit;
+        return isSameRank || isSameSuit;
     }
 }
 

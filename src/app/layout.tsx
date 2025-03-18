@@ -23,7 +23,6 @@ export default function RootLayout({
   return (
     <html lang="en">
       <Providers>
-        <div className="fixed top-0 left-0 w-screen h-screen bg-zinc-800 z-[1000] opacity-0 hidden"></div>
         {children}
       </Providers>
     </html>

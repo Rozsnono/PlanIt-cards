@@ -97,7 +97,7 @@ export default function LobbySettings({ getForm, save, canEdit, title, cancel, o
                     </div>
 
                     <div className="flex gap-2 px-4 mb-3 justify-center" >
-                        <button onClick={() => { save(form) }} className="bg-green-700 text-white p-2 px-5 rounded-md hover:bg-green-600 flex items-center gap-1">
+                        <button onClick={() => { save(form) }} className="bg-sky-700 text-white p-2 px-5 rounded-md hover:bg-sky-600 flex items-center gap-1">
                             <Icon name="join"></Icon>
                             Create
                         </button>

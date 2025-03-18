@@ -93,7 +93,7 @@ export default function LobbyCard({ lobbyDatas, lobbyNumber, isAdmin }: { lobbyD
     }
 
     return (
-        <main className="flex gap-2">
+        <main className="flex gap-2 ">
             <main className={`w-full rounded-md p-3 text-zinc-200 gap-3 flex flex-col ${getCardStyleByType()}`}>
                 <div className="flex justify-between">
                     <div className="font-bold">Lobby {lobbyNumber}</div>
@@ -105,10 +105,10 @@ export default function LobbyCard({ lobbyDatas, lobbyNumber, isAdmin }: { lobbyD
 
                 <hr />
 
-                <div className="grid grid-cols-4 gap-4 w-full justify-center h-full">
+                <div className="flex flex-col gap-4 w-full justify-start  h-full">
                     {
                         lobbyDatas.users?.map(player => (
-                            <div key={player.username} className={`flex flex-col gap-1 items-center h-14 w-full mx-auto border ${player._id === user?._id ? "border-green-500 " : "border-zinc-500 "} rounded-md`}>
+                            <div key={player.username} className={`flex justify-between gap-1 p-2 items-center w-full mx-auto border ${player._id === user?._id ? "border-green-500 " : "border-zinc-500 "} rounded-md`}>
                                 <div className="">{player.username}</div>
                                 <div className="text-md">{player.rank}</div>
                             </div>
@@ -117,7 +117,7 @@ export default function LobbyCard({ lobbyDatas, lobbyNumber, isAdmin }: { lobbyD
 
                     {
                         lobbyDatas.bots?.map(bot => (
-                            <div key={bot._id} className="flex flex-col gap-1 items-center h-14 w-full mx-auto border border-zinc-500 rounded-md">
+                            <div key={bot._id} className="flex justify-between gap-1 p-2 items-center w-full mx-auto border border-zinc-500 rounded-md">
                                 <div className="">{bot.name}</div>
                                 <div className="text-md">Bot</div>
                             </div>
@@ -127,7 +127,7 @@ export default function LobbyCard({ lobbyDatas, lobbyNumber, isAdmin }: { lobbyD
                     {
                         !lobbyDatas.game_id || !(lobbyDatas.users?.length && lobbyDatas.users?.length + (lobbyDatas.bots?.length || 0) >= lobbyDatas.settings.numberOfPlayers) ?
                             new Array(lobbyDatas.settings.numberOfPlayers - (lobbyDatas.users?.length + (lobbyDatas.bots?.length || 0) || 0)).fill(0).map((_, i) => (
-                                <div key={i} className="flex flex-col gap-1 h-14 w-full justify-center items-center bg-zinc-700 p-2 rounded-lg animate-pulse mx-auto">
+                                <div key={i} className="flex gap-1 w-full justify-center items-center bg-zinc-700 p-2 rounded-lg animate-pulse mx-auto">
                                 </div>
                             )) : null
                     }

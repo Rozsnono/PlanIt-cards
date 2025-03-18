@@ -2,7 +2,6 @@
 import Icon, { StrokeIcon } from "@/assets/icons";
 import ErrorModal from "@/components/error.modal";
 import Loader from "@/components/loader.component";
-import getCardUrl from "@/contexts/cards.context"
 import { SettingsContext } from "@/contexts/settings.context";
 import { UserContext } from "@/contexts/user.context";
 import { dropCard, placeCardToIndex, playCard, sortRummyCards } from "@/functions/card.function";
@@ -14,6 +13,7 @@ import Image from "next/image"
 import { useParams, useRouter } from "next/navigation";
 import React from "react";
 import { useContext, useEffect, useState } from "react";
+import CardsUrls from "@/contexts/cards.context";
 
 const gameService = new GameService("rummy");
 const timerClass = new Timer();
@@ -168,7 +168,7 @@ export default function Game() {
     if (!game) return <Loader></Loader>
 
     return (
-        <main className="flex bg-[#3f3f46c0] w-full min-h-screen rounded-md p-3 relative">
+        <main className="flex w-full h-full rounded-md p-3 relative">
 
             <main className="bg-green-800 rounded-md w-full relative flex justify-center items-center">
                 {
@@ -184,7 +184,7 @@ export default function Game() {
                                             e.cards.map((card: Icard, j: number) => {
                                                 return (
                                                     <div onDrop={() => { cardPlacingDrop(e) }} key={j} className="w-8 h-16 relative group cursor-pointer overflow-visible">
-                                                        <Image className={`card-animation w-16 max-w-16 rounded-md border border-transparent ${e.playedBy === user?._id ? ' group-hover:border-green-500' : ""} `} key={j} src={"/assets/cards/" + getCardUrl(card.name)} width={70} height={60} alt={getCardUrl(card.name)}></Image>
+                                                        <Image className={`card-animation w-16 max-w-16 rounded-md border border-transparent ${e.playedBy === user?._id ? ' group-hover:border-green-500' : ""} `} key={j} src={"/assets/cards/rummy/" + new CardsUrls().getCardUrl(card.name)} width={70} height={60} alt={new CardsUrls().getCardUrl(card.name)}></Image>
                                                         {j === 0 && <div className="opacity-0 group-hover:opacity-100 absolute group-hover:bottom-[-3.6rem] bottom-0 left-0 w-16 z-[-1] duration-200">{lobby?.users.find(user => user._id === e.playedBy)?.firstName || e.playedBy}</div>}
                                                     </div>
                                                 )
@@ -200,8 +200,8 @@ export default function Game() {
                 <div className="flex gap-10  w-full absolute top-2 p-2 justify-center">
                     <div className="flex relative cursor-pointer">
                         <div className="2xl:w-[5rem] lg:w-[4.7rem] md:w-[3.7rem] 2xl:h-[7.6rem] lg:h-[7rem] md:h-[6rem] border border-zinc-400 rounded-md"></div>
-                        <Image className="absolute top-1 left-1" draggable={false} src={"/assets/cards/gray_back.png"} width={140} height={100} alt="card"></Image>
-                        <Image onClick={drawingCard} draggable={false} className="absolute border-2 border-transparent hover:border-green-500 rounded-lg" src={"/assets/cards/gray_back.png"} width={140} height={110} alt="card"></Image>
+                        <Image className="absolute top-1 left-1" draggable={false} src={"/assets/cards/rummy/gray_back.png"} width={140} height={100} alt="card"></Image>
+                        <Image onClick={drawingCard} draggable={false} className="absolute border-2 border-transparent hover:border-green-500 rounded-lg" src={"/assets/cards/rummy/gray_back.png"} width={140} height={110} alt="card"></Image>
                     </div>
 
                     <div className="flex relative" onDragOver={overDrag} onDrop={cardDropped} >
@@ -209,11 +209,11 @@ export default function Game() {
 
                         {
                             game.droppedCards.length > 1 &&
-                            <Image className="absolute left-1 top-1 rotate-1" draggable={false} src={"/assets/cards/" + getCardUrl(game.droppedCards[game.droppedCards.length - 2].card.name)} width={140} height={100} alt="card"></Image>
+                            <Image className="absolute left-1 top-1 rotate-1" draggable={false} src={"/assets/cards/rummy/" + new CardsUrls().getCardUrl(game.droppedCards[game.droppedCards.length - 2].card.name)} width={140} height={100} alt="card"></Image>
                         }
                         {
                             game.droppedCards.length > 0 &&
-                            <Image className="absolute right-1 bottom-1 rotate-12 border border-transparent hover:border-green-300 rounded-lg cursor-pointer" src={"/assets/cards/" + getCardUrl(game.droppedCards[game.droppedCards.length - 1].card.name)} width={140} height={100} alt="card"></Image>
+                            <Image className="absolute right-1 bottom-1 rotate-12 border border-transparent hover:border-green-300 rounded-lg cursor-pointer" src={"/assets/cards/rummy/" + new CardsUrls().getCardUrl(game.droppedCards[game.droppedCards.length - 1].card.name)} width={140} height={100} alt="card"></Image>
                         }
                     </div>
                 </div>
@@ -354,11 +354,11 @@ export default function Game() {
                             return (
                                 <React.Fragment key={i}>
                                     <div draggable onClick={() => { selectCard(card) }} className={`cursor-pointer w-12 overflow-visible hover:cursor-grab group rounded-lg duration-200 ${checkIfCardIsSelected(card) ? 'border-green-400 translate-y-[-1rem]' : ''} ${draggedCard && JSON.stringify(draggedCard) === JSON.stringify(card) ? 'opacity-10' : ''}`}>
-                                        <Image onDragEnter={(e) => { onDragEnter(e, i) }} className="border-2 border-transparent group-hover:border-green-400 rounded-lg" style={{ width: "6rem", maxWidth: "6rem" }} loading="eager" onDragEnd={() => { setDraggedCard(null) }} onDragStart={() => { startDrag(card) }} onDrop={() => { dropDrag(i) }} onDragOver={overDrag} src={"/assets/cards/" + getCardUrl(card.name)} width={100} height={100} alt={getCardUrl(card.name)}></Image>
+                                        <Image onDragEnter={(e) => { onDragEnter(e, i) }} className="border-2 border-transparent group-hover:border-green-400 rounded-lg" style={{ width: "6rem", maxWidth: "6rem" }} loading="eager" onDragEnd={() => { setDraggedCard(null) }} onDragStart={() => { startDrag(card) }} onDrop={() => { dropDrag(i) }} onDragOver={overDrag} src={"/assets/cards/rummy/" + new CardsUrls().getCardUrl(card.name)} width={100} height={100} alt={new CardsUrls().getCardUrl(card.name)}></Image>
                                     </div>
                                     <div onDragOver={overDrag} className={`${draggedCard && JSON.stringify(draggedCard) !== JSON.stringify(card) && dragEnter === i ? "w-[5.8rem]" : "w-0"} bg-[#00000040] rounded-lg duration-100`}>
                                         {draggedCard &&
-                                            <Image className="opacity-75" loading="eager" onDrop={() => { dropDrag(i) }} onDragOver={overDrag} src={"/assets/cards/" + getCardUrl(draggedCard.name)} width={100} height={100} alt={getCardUrl(draggedCard.name)}></Image>
+                                            <Image className="opacity-75" loading="eager" onDrop={() => { dropDrag(i) }} onDragOver={overDrag} src={"/assets/cards/rummy/" + new CardsUrls().getCardUrl(draggedCard.name)} width={100} height={100} alt={new CardsUrls().getCardUrl(draggedCard.name)}></Image>
                                         }
                                     </div>
                                 </React.Fragment>

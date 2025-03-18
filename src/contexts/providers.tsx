@@ -1,14 +1,14 @@
 "use client";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { CSSProperties, useState } from "react";
 import { QueryClient, QueryClientProvider } from "react-query";
 import { MenuContext } from "./menu.context";
 import StarBackground from "@/components/star-background";
 import Navbar from "@/components/navbar";
-import Sidebar from "@/components/sidebar";
 import { Iplayer } from "@/interfaces/interface";
 import { getUser } from "@/functions/user.function";
 import { UserContext } from "./user.context";
+import Icon from "@/assets/icons";
 
 export function Providers({ children }: { children: React.ReactNode }) {
     const [isOpen, setOpen] = useState(true);
@@ -17,6 +17,15 @@ export function Providers({ children }: { children: React.ReactNode }) {
     const path = usePathname();
     const queryClient = new QueryClient();
 
+    function getStyle(): CSSProperties | undefined {
+        if (path.includes('observatory') || path.includes('login') || path.includes('register')) {
+            return {}
+        }
+        if (path === "/" || path.includes('rummy') || path.includes('uno')) {
+            return { backgroundColor: '#3f3f46a0' }
+        }
+        return { backgroundColor: '#3f3f46a0', paddingTop: "5.5rem" }
+    }
 
 
     return (
@@ -25,16 +34,29 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
                 <QueryClientProvider client={queryClient}>
 
-                    <body className={`bg-zinc-800 pt-20 pr-4 ${!isOpen ? 'pl-4' : 'pl-52'} duration-200 relative`}>
+                    <body className={`bg-zinc-800 duration-200 relative h-screen`}>
                         <StarBackground></StarBackground>
+                        {(!path.includes('login') && !path.includes('register') && !path.includes('rummy') && !path.includes('uno')) && <Navbar></Navbar>}
+                        {(path.includes('rummy') || path.includes('uno')) && <Navbar clear></Navbar>}
                         {
-                            !['register', 'login'].find(item => { return path.includes(item) }) &&
-                            <>
-                                <Navbar></Navbar>
-                                <Sidebar></Sidebar>
-                            </>
+                            (path.includes('games')) &&
+                            <div className="fixed left-4 bottom-4 z-50">
+                                <button className="bg-zinc-600 text-zinc-100 p-2 px-2 rounded-full hover:bg-zinc-500 w-12 h-12 duration-200 flex items-center justify-center relative group">
+                                    <div className="flex items-center justify-center z-50">
+                                        <Icon name="info" />
+                                    </div>
+
+                                    <div className="absolute h-full top-0 flex items-center">
+                                        <div className="bg-zinc-500 text-sm text-zinc-100 p-1 px-2 rounded-lg duration-200 flex items-center justify-center text-sm group-hover:translate-x-2/3 translate-x-1/4 opacity-0 group-hover:opacity-100">
+                                            Need&nbsp;some&nbsp;help?
+                                        </div>
+                                    </div>
+                                </button>
+                            </div>
                         }
-                        {children}
+                        <main style={getStyle()} className={`h-full`}>
+                            {children}
+                        </main>
                     </body>
                 </QueryClientProvider>
             </UserContext.Provider>

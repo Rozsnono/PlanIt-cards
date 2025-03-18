@@ -28,8 +28,8 @@ export default function ProfilePage() {
 
     if (player.isLoading || player!.data.length == 0) return <div>Loading...</div>
     return (
-        <main className="flex gap-2 flex-row-reverse">
-            <main className="w-full flex flex-col gap-3 p-3 items-center justify-start max-h-screen">
+        <main className="flex gap-2 flex-row-reverse h-full px-4 pb-4">
+            <main className="w-full flex flex-col gap-3 p-3 items-center justify-start h-full border-2 border-zinc-800 rounded-lg">
                 <div className="h-fit w-full flex items-center text-zinc-100 p-3 ">
                     <h1>Friends requests</h1>
                 </div>
@@ -38,7 +38,7 @@ export default function ProfilePage() {
                 </div>
                 <Pagination total={1} page={page} setPage={setPage}></Pagination>
             </main>
-            <main className="w-full bg-[#3f3f46c0] rounded-md p-3 min-h-screen text-zinc-200">
+            <main className="w-full bg-zinc-800 rounded-md p-3 h-full text-zinc-200">
                 <div className="flex gap-3 p-3 flex-col">
                     <h1>Your friends</h1>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2">

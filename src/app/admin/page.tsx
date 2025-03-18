@@ -9,8 +9,8 @@ import React from "react";
 import { useContext, useState } from "react";
 import { useQuery } from "react-query";
 import Image from "next/image";
-import getCardUrl from "@/contexts/cards.context";
 import Icon from "@/assets/icons";
+import CardsUrls from "@/contexts/cards.context";
 
 export default function AdminPage() {
     const { user } = useContext(UserContext);
@@ -54,8 +54,8 @@ export default function AdminPage() {
     }
 
     return (
-        <main className="flex gap-2">
-            <main className="w-full bg-[#3f3f46c0] rounded-md p-3 min-h-screen text-zinc-200 relative flex gap-2 overflow-y-auto">
+        <main className="flex gap-2 h-full">
+            <main className="w-full rounded-md p-3 h-full text-zinc-200 relative flex gap-2 overflow-y-auto">
                 <div className="w-1/4 flex flex-col gap-2">
                     {data.isLoading && <Loader></Loader>}
                     {data.isError && <div>Error</div>}
@@ -85,7 +85,7 @@ export default function AdminPage() {
                                             {cards.map((card: any, i: number) => (
                                                 <React.Fragment key={i}>
                                                     <div onClick={() => { removeCard(Object.keys(selectedGame.game_id.playerCards)[index], index, card) }} className={`cursor-pointer w-12 overflow-visible hover:cursor-pointer group rounded-lg duration-200`}>
-                                                        <Image className="border-2 border-transparent group-hover:border-green-400 rounded-lg" style={{ width: "3rem", maxWidth: "3rem" }} loading="eager" src={"/assets/cards/" + getCardUrl(card.name)} width={100} height={100} alt={getCardUrl(card.name)}></Image>
+                                                        <Image className="border-2 border-transparent group-hover:border-green-400 rounded-lg" style={{ width: "3rem", maxWidth: "3rem" }} loading="eager" src={"/assets/cards/rummy" + new CardsUrls().getCardUrl(card.name)} width={100} height={100} alt={new CardsUrls().getCardUrl(card.name)}></Image>
                                                     </div>
                                                 </React.Fragment>
                                             ))}
@@ -95,7 +95,7 @@ export default function AdminPage() {
                                                 {
                                                     cardName[index] && cardName[index].length > 1 &&
                                                     <div className={`cursor-pointer w-12 overflow-visible hover:cursor-pointer group rounded-lg duration-200`}>
-                                                        <Image className="border-2 border-transparent group-hover:border-green-400 rounded-lg" style={{ width: "3rem", maxWidth: "3rem" }} loading="eager" src={"/assets/cards/" + getCardUrl(cardName[index])} width={100} height={100} alt={getCardUrl(cardName[index])}></Image>
+                                                        <Image className="border-2 border-transparent group-hover:border-green-400 rounded-lg" style={{ width: "3rem", maxWidth: "3rem" }} loading="eager" src={"/assets/cards/rummy/" + new CardsUrls().getCardUrl(cardName[index])} width={100} height={100} alt={new CardsUrls().getCardUrl(cardName[index])}></Image>
                                                     </div>
                                                 }
                                             </div>

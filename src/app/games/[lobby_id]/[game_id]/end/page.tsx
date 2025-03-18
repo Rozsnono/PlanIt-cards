@@ -3,12 +3,12 @@ import { getColorByInitials, getUserInitials } from "@/functions/user.function";
 import { getCurrentRank, getRankName } from "@/interfaces/rank.enum";
 import Link from "next/link";
 import Image from "next/image";
-import getCardUrl from "@/contexts/cards.context";
 import Icon from "@/assets/icons";
 import { useParams, useRouter } from "next/navigation";
 import { useQuery } from "react-query";
 import { GameService } from "@/services/game.service";
 import Loader from "@/components/loader.component";
+import CardsUrls from "@/contexts/cards.context";
 
 export default function End() {
 
@@ -134,7 +134,7 @@ function Players({ playerInfo, cards, place }: { playerInfo: any, cards: any, pl
                 {
                     cards.map((card: any, index: number) => (
                         <div key={index} className="w-10 bg-zinc-700 rounded-md flex justify-center items-center">
-                            <Image src={"/assets/cards/" + getCardUrl(card.name)} width={100} height={100} alt={card.name}></Image>
+                            <Image src={"/assets/cards/rummy/" + new CardsUrls().getCardUrl(card.name)} width={100} height={100} alt={card.name}></Image>
                         </div>
                     ))
                 }
