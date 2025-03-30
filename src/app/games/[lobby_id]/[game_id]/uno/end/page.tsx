@@ -23,7 +23,7 @@ export default function End() {
     function getPosition(allCards: any, id: string) {
         const positions = Object.values(allCards).map((cards: any) => { return cards.reduce((sum: any, obj: any) => { return sum + obj.value }, 0) });
         const sorted = positions.sort((a: any, b: any) => a - b);
-        if (sorted[0] !== 0) router.back();
+        if(sorted[0] !== 0) router.back();
         switch (sorted.indexOf(allCards[id].reduce((sum: any, obj: any) => { return sum + obj.value }, 0))) {
             case 0:
                 return "1:st";
@@ -36,7 +36,7 @@ export default function End() {
         }
     }
 
-    async function returnToLobby() {
+    async function returnToLobby(){
         await gameSerivce.deleteGame(lobby_id as string);
         router.push('/games/' + lobby_id);
     }
@@ -49,7 +49,7 @@ export default function End() {
                     Statistics
                 </div>
                 <div className="flex gap-2 relative">
-                    <Link href={`/games/${lobby_id}/${game_id}/replay`} className="text-zinc-200 p-2 px-4 rounded-md hover:bg-red-700 focus:bg-zinc-800 flex items-center gap-1 ">
+                    <Link href={`/games/${lobby_id}/${game_id}/uno/replay`} className="text-zinc-200 p-2 px-4 rounded-md hover:bg-red-700 focus:bg-zinc-800 flex items-center gap-1 ">
                         <Icon name="watch"></Icon>
                         Watch replay
                     </Link>

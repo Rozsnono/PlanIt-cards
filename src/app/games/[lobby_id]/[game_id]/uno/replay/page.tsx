@@ -11,6 +11,7 @@ import React from "react";
 import { useContext, useState } from "react";
 import { useQuery } from "react-query";
 import CardsUrls from "@/contexts/cards.context";
+import ErrorPage from "@/components/error";
 
 export default function Game() {
 
@@ -25,7 +26,9 @@ export default function Game() {
 
     if (gameHistory.isLoading) return <Loader></Loader>;
     if (gameHistory.isError) return null;
-
+    if (gameHistory.data === null) return null;
+    if (gameHistory.data === undefined) return null;
+    if (gameHistory.data.error) return <ErrorPage></ErrorPage>;
 
     return (
         <main className="flex bg-[#3f3f46c0] w-full min-h-screen rounded-md p-3 relative select-none">

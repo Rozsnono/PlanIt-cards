@@ -28,7 +28,7 @@ export default function AdminPage() {
 
     async function addCard(user: any, index: number) {
         const selected = selectedGame;
-        const res = await adminService.CardValueByName(cardName[index]);
+        const res = await adminService.CardValueByName(cardName[index], selected.settings.cardType);
         if (!res) return;
         selected.game_id.playerCards[user].push(res.value);
         setSelectedGame((prev: any) => ({ ...prev, game_id: { ...prev.game_id, playerCards: selected.game_id.playerCards } }));
@@ -60,7 +60,7 @@ export default function AdminPage() {
                     {data.isLoading && <Loader></Loader>}
                     {data.isError && <div>Error</div>}
                     {data.isSuccess && !data.isLoading && !data.isError && data.data && data.data.map((l: any, index: number) => (
-                        <span key={index} className="cursor-pointer" onClick={() => setSelectedGame(l)}>
+                        <span key={index} className="cursor-pointer" onClick={() => { setSelectedGame(l); console.log(l) }}>
                             <LobbyCard lobbyDatas={l as any} lobbyNumber={index} isAdmin></LobbyCard>
                         </span>
                     ))}
@@ -73,7 +73,7 @@ export default function AdminPage() {
                                 selectedGame.game_id && selectedGame.game_id.playerCards &&
                                 Object.values(selectedGame.game_id.playerCards).map((cards: any, index: number) => (
                                     <div key={index} className="flex gap-2">
-                                        <div onClick={()=>{setNextTurn(Object.keys(selectedGame.game_id.playerCards)[index])}} className="w-1/6 overflow-x-auto flex items-center justify-center gap-1 cursor-pointer bg-zinc-700 text-gray-200 text-sm rounded-lg p-2 hover:bg-zinc-600">
+                                        <div onClick={() => { setNextTurn(Object.keys(selectedGame.game_id.playerCards)[index]) }} className="w-1/6 overflow-x-auto flex items-center justify-center gap-1 cursor-pointer bg-zinc-700 text-gray-200 text-sm rounded-lg p-2 hover:bg-zinc-600">
                                             {
                                                 selectedGame.game_id.currentPlayer && selectedGame.game_id.currentPlayer.playerId === Object.keys(selectedGame.game_id.playerCards)[index] &&
                                                 <div className="bg-green-400 text-zinc-800 p-1 rounded-lg"></div>
@@ -85,7 +85,7 @@ export default function AdminPage() {
                                             {cards.map((card: any, i: number) => (
                                                 <React.Fragment key={i}>
                                                     <div onClick={() => { removeCard(Object.keys(selectedGame.game_id.playerCards)[index], index, card) }} className={`cursor-pointer w-12 overflow-visible hover:cursor-pointer group rounded-lg duration-200`}>
-                                                        <Image className="border-2 border-transparent group-hover:border-green-400 rounded-lg" style={{ width: "3rem", maxWidth: "3rem" }} loading="eager" src={"/assets/cards/rummy" + new CardsUrls().getCardUrl(card.name)} width={100} height={100} alt={new CardsUrls().getCardUrl(card.name)}></Image>
+                                                        <Image className="border-2 border-transparent group-hover:border-green-400 rounded-lg" style={{ width: "3rem", maxWidth: "3rem" }} loading="eager" src={"/assets/cards/" + selectedGame.settings.cardType + '/' + (selectedGame.settings.cardType.toLowerCase() === 'rummy' ? new CardsUrls().getCardUrl(card.name) : new CardsUrls().getUnoCardUrl(card.name))} width={100} height={100} alt={new CardsUrls().getCardUrl(card.name)}></Image>
                                                     </div>
                                                 </React.Fragment>
                                             ))}
@@ -95,7 +95,7 @@ export default function AdminPage() {
                                                 {
                                                     cardName[index] && cardName[index].length > 1 &&
                                                     <div className={`cursor-pointer w-12 overflow-visible hover:cursor-pointer group rounded-lg duration-200`}>
-                                                        <Image className="border-2 border-transparent group-hover:border-green-400 rounded-lg" style={{ width: "3rem", maxWidth: "3rem" }} loading="eager" src={"/assets/cards/rummy/" + new CardsUrls().getCardUrl(cardName[index])} width={100} height={100} alt={new CardsUrls().getCardUrl(cardName[index])}></Image>
+                                                        <Image className="border-2 border-transparent group-hover:border-green-400 rounded-lg" style={{ width: "3rem", maxWidth: "3rem" }} loading="eager" src={"/assets/cards/" + selectedGame.settings.cardType + '/' + (selectedGame.settings.cardType.toLowerCase() === 'rummy' ? new CardsUrls().getCardUrl(cardName[index]) : new CardsUrls().getUnoCardUrl(cardName[index]))} width={100} height={100} alt={new CardsUrls().getCardUrl(cardName[index])}></Image>
                                                     </div>
                                                 }
                                             </div>

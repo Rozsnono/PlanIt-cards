@@ -27,7 +27,12 @@ const gameSchema = new Schema(
             readonly: true
         },
         droppedCards: {
-            type: Array,
+            type: [
+                {
+                    droppedBy: { type: String },
+                    card: { type: Object },
+                }
+            ],
             default: [],
             readonly: true
         },

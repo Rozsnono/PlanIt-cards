@@ -9,17 +9,24 @@ import { Ilobby } from '../interfaces/interface';
 
 export default class SocketIO {
     private wss = new WebSocketServer({ port: 8080 });
+    private wssTables = new WebSocketServer({ port: 8081 });
     private lobby = lobbyModel.lobbyModel;
     private game = gameModel.gameModel;
 
     constructor() {
 
+        this.wssConnectionStart();
+        this.wssTableConntectionStart();
+
+    }
+
+    private async wssConnectionStart() {
         this.wss.on('connection', (ws: WebSocket) => {
 
             // Handle WebSocket message received from client
             ws.on('message', async (id: string) => {
                 const identifier = JSON.parse(id);
-                const inLobby = await this.lobby.findOne({ $and: [{ _id: new mongoose.Types.ObjectId(identifier._id) }, { users: new mongoose.Types.ObjectId(identifier.player_id) }] }).populate("users", 'firstName lastName email username customId rank').exec();
+                const inLobby = await this.lobby.findOne({ $and: [{ _id: new mongoose.Types.ObjectId(identifier._id) }, { users: new mongoose.Types.ObjectId(identifier.player_id) }] }).populate("users", 'firstName lastName email username customId rank settings').exec();
                 if (inLobby) {
                     const inGame = await this.game.findOne({ _id: inLobby.game_id });
                     if (inGame) {
@@ -30,7 +37,7 @@ export default class SocketIO {
                         }
                         ws.send(JSON.stringify({
                             lobby: inLobby,
-                            game: { ...obj, playerCards: Object.keys(obj.playerCards).map((key) => { return { [key]: obj.playerCards[key].length } }) },
+                            game: { ...obj, playerCards: inLobby.settings!.cardType === 'SOLITAIRE' ? obj.playerCards : Object.keys(obj.playerCards).map((key) => { return { [key]: obj.playerCards[key].length } }) },
                             playerCard: playerCard
                         }));
                     } else {
@@ -49,6 +56,56 @@ export default class SocketIO {
         });
     }
 
+    private async wssTableConntectionStart() {
+        this.wssTables.on('connection', async (ws: WebSocket) => {
+
+            ws.send(JSON.stringify(await this.getLobbies));
+
+
+            // Handle WebSocket message received from client
+            ws.on('message', async (query: string) => {
+                ws.send(JSON.stringify(await this.getLobbies(JSON.parse(query))));
+            });
+
+            // Handle WebSocket close event
+            ws.on('close', () => {
+                console.log('Client disconnected');
+            });
+        });
+    }
+
+    private async getLobbies(query: any | null) {
+        const filter: any = {};
+        const paging: { page: number, limit: number } = { page: 1, limit: 14 };
+        if (query.cardType) {
+            filter["settings.cardType"] = query.cardType;
+        }
+        if (query.unranked === "true") {
+            filter["settings.unranked"] = true;
+        }
+        if (query.noPrivateLobby === "true") {
+            filter["settings.privateLobby"] = false;
+        }
+        if (query.noBots === "true") {
+            filter["settings.fillWithRobots"] = false;
+        }
+        if (query.robotsDifficulty) {
+            filter["settings.robotsDifficulty"] = parseInt(query.robotsDifficulty.toString());
+        }
+        if (query.numberOfPlayers) {
+            filter["settings.numberOfPlayers"] = parseInt(query.numberOfPlayers.toString());
+        }
+        if (query.page) {
+            paging.page = parseInt(query.page.toString()) || 1;
+        }
+        if (query.limit) {
+            paging.limit = parseInt(query.limit.toString()) || 14;
+        }
+        const lobbies = await this.lobby.find(filter).limit(paging.limit * paging.page).populate("users", "customId username rank settings");
+        const lobbyCount = await this.lobby.countDocuments();
+        return { total: parseInt(((lobbyCount / paging.limit)).toFixed(0)), data: lobbies }
+    }
+
     private gameChecker = new GameChecker();
     private gameHistory = new GameHistoryService();
 
@@ -64,27 +121,47 @@ export default class SocketIO {
                 this.gameChecker.lastTimes[change.fullDocument._id] = change.fullDocument.currentPlayer.time;
                 if (Object.values(change.fullDocument.playerCards).find((array: any) => array.length === 0)) {
                     const lobby = await this.lobby.findOne({ game_id: change.fullDocument._id });
-                    if(lobby){
-                        this.gameChecker.setRankByPosition(lobby! as any);
-                        this.gameHistory.savePosition(lobby!._id.toString(), change.fullDocument._id);
+                    if (lobby) {
+                        switch (lobby.settings?.cardType) {
+                            case "UNO":
+                                this.gameChecker.stopInterval(change.fullDocument._id);
+                                this.gameChecker.setRankByPositionUno(lobby! as any); 
+                                this.gameHistory.savePosition(lobby!._id.toString(), change.fullDocument._id);
+                                break;
+                            case "RUMMY":
+                                this.gameChecker.stopInterval(change.fullDocument._id);
+                                this.gameChecker.setRankByPosition(lobby! as any);
+                                this.gameHistory.savePosition(lobby!._id.toString(), change.fullDocument._id);
+                                break;
+                            default:
+                                this.gameChecker.stopInterval(change.fullDocument._id);
+                                break;
+                        }
+
                     }
                 }
             } catch { }
 
             this.wss.clients.forEach(async (client) => {
                 if (client.readyState === WebSocket.OPEN) {
-                    console.log('Game Change Stream:');
-                    if (Object.values(change.fullDocument.playerCards).find((array: any) => array.length === 0)) {
-                        client.send(JSON.stringify({ game_over: true }));
+                    console.log(change.fullDocument.currentPlayer);
+                    try {
+                        if (Object.values(change.fullDocument.playerCards).find((array: any) => array.length === 0)) {
+                            client.send(JSON.stringify({ game_over: true }));
 
-                    } else if (change.fullDocument.currentPlayer && change.fullDocument.currentPlayer.playerId.includes('bot')) {
-                        const lobby = await this.lobby.findOne({ game_id: change.fullDocument._id });
-                        const currentPlayer = change.fullDocument.currentPlayer.playerId;
-                        new GameChecker().playWithBots(change.fullDocument, lobby as any, currentPlayer);
-                        client.send(JSON.stringify({ refresh: true }));
-                    } else {
+                        } else if (change.fullDocument.currentPlayer && change.fullDocument.currentPlayer.playerId.includes('bot')) {
+                            const lobby = await this.lobby.findOne({ game_id: change.fullDocument._id });
+                            const currentPlayer = change.fullDocument.currentPlayer.playerId;
+                            if (lobby?.settings?.cardType === "UNO") new GameChecker().playWithBotsUno(change.fullDocument, lobby as any, currentPlayer);
+                            else if (lobby?.settings?.cardType === "RUMMY") new GameChecker().playWithBots(change.fullDocument, lobby as any, currentPlayer);
+                            client.send(JSON.stringify({ refresh: true }));
+                        } else {
+                            client.send(JSON.stringify({ refresh: true }));
+                        }
+                    } catch {
                         client.send(JSON.stringify({ refresh: true }));
                     }
+
 
                 }
             });
@@ -95,7 +172,7 @@ export default class SocketIO {
         chatWatching.on('change', async (change) => {
 
             try {
-                const lobby = await this.lobby.findOne({ _id: change.fullDocument._id }).populate("users", 'firstName lastName email username customId rank').exec();
+                const lobby = await this.lobby.findOne({ _id: change.fullDocument._id }).populate("users", 'firstName lastName email username customId rank settings').exec();
 
                 this.wss.clients.forEach((client) => {
                     if (client.readyState === 1) {
@@ -109,6 +186,16 @@ export default class SocketIO {
                     }
                 });
             }
+        });
+
+        const lobbyWatching = this.lobby.watch([], options);
+
+        lobbyWatching.on('change', async () => {
+            this.wssTables.clients.forEach((client) => {
+                if (client.readyState === 1) {
+                    client.send(JSON.stringify({ refresh: true }));
+                }
+            });
         });
 
         watching.on('error', (error) => {

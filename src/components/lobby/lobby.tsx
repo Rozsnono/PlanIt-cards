@@ -20,18 +20,19 @@ export default function LobbyCard({ lobbyDatas, lobbyNumber, isAdmin }: { lobbyD
                 return "/assets/images/uno.png";
             case "RUMMY":
                 return "/assets/images/rummy.png";
+            case "SOLITAIRE":
+                return "/assets/images/rummy.png";
         }
     }
 
     function getCardStyleByType() {
         switch (lobbyDatas.settings.cardType) {
             case "UNO":
-                return "border border-red-600 bg-zinc-800";
+                return "ring ring-red-600 bg-zinc-800";
             case "RUMMY":
-                if (lobbyDatas.settings.robberRummy) {
-                    return "border border-zinc-500 bg-zinc-900";
-                }
-                return "bg-zinc-800";
+                return "ring ring-zinc-400 bg-zinc-800";
+            case "SOLITAIRE":
+                return "bg-zinc-800 ring ring-sky-600 ";
         }
     }
 
@@ -94,7 +95,7 @@ export default function LobbyCard({ lobbyDatas, lobbyNumber, isAdmin }: { lobbyD
 
     return (
         <main className="flex gap-2 ">
-            <main className={`w-full rounded-md p-3 text-zinc-200 gap-3 flex flex-col ${getCardStyleByType()}`}>
+            <main className={`w-full rounded-md p-3 text-zinc-200 gap-3 flex flex-col ${getCardStyleByType()} max-h-96`}>
                 <div className="flex justify-between">
                     <div className="font-bold">Lobby {lobbyNumber}</div>
                     <div className="tracking-widest flex gap-3">
@@ -105,7 +106,7 @@ export default function LobbyCard({ lobbyDatas, lobbyNumber, isAdmin }: { lobbyD
 
                 <hr />
 
-                <div className="flex flex-col gap-4 w-full justify-start  h-full">
+                <div className="flex flex-col gap-4 w-full justify-start h-full overflow-y-auto mt-2">
                     {
                         lobbyDatas.users?.map(player => (
                             <div key={player.username} className={`flex justify-between gap-1 p-2 items-center w-full mx-auto border ${player._id === user?._id ? "border-green-500 " : "border-zinc-500 "} rounded-md`}>

@@ -3,11 +3,11 @@ import { Icard, Igame, Ilobby } from "@/interfaces/interface";
 
 export class GameService {
     private type: string = "rummy";
-    constructor(type: "rummy"|"uno"|'') {
+    constructor(type: "rummy" | "uno" | '' | 'solitaire') {
         this.type = type;
     }
 
-    async getGame(lobby_id: string|any, gameId: string|any) {
+    async getGame(lobby_id: string | any, gameId: string | any) {
         const response = await fetch(`/api/game/get/${lobby_id}/${gameId}`, {
             method: "GET",
             headers: {
@@ -86,14 +86,14 @@ export class GameService {
             socket.send(JSON.stringify(data));
             return null;
         }
-        if(object.game_over){
+        if (object.game_over) {
             return { game_over: true } as any;
         }
         if (!object.lobby) return null;
         return { lobby: object.lobby, game: object.game, playerCards: object.playerCard };
     }
 
-    public async putCard(lobbyId: string, body: { playedCards: {playedBy: string, cards: Icard[]}, placeCard: Icard}){
+    public async putCard(lobbyId: string, body: { playedCards: { playedBy: string, cards: Icard[] }, placeCard: Icard }) {
         const response = await fetch(`/api/put/${lobbyId}/${this.type}`, {
             method: "PUT",
             body: JSON.stringify(body),
@@ -102,12 +102,12 @@ export class GameService {
                 Authorization: `Bearer ${getCookie("token")}`
             }
         });
-        
+
         const res = await response.json();
         return res;
     }
 
-    public async deleteGame(lobbyId: string){
+    public async deleteGame(lobbyId: string) {
         const response = await fetch(`/api/delete/game/${lobbyId}`, {
             method: "DELETE",
             headers: {
@@ -119,4 +119,106 @@ export class GameService {
         return res;
     }
 
+}
+
+export class UnoService extends GameService {
+    constructor() {
+        super("uno");
+    }
+
+    async drawCard(lobbyId: string) {
+        const response = await fetch(`/api/draw/${lobbyId}/uno`, {
+            method: "PUT",
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${getCookie("token")}`
+            }
+        });
+
+        return await response.json();
+    }
+
+    async dropCard(lobbyId: string, body: { droppedCard: Icard, color?: string }) {
+        const response = await fetch(`/api/drop/${lobbyId}/uno`, {
+            method: "PUT",
+            body: JSON.stringify(body),
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${getCookie("token")}`
+            }
+        });
+        const res = await response.json();
+        return res;
+    }
+}
+
+export class SolitaireService extends GameService {
+    constructor() {
+        super("solitaire");
+    }
+
+    async drawCard(lobbyId: string) {
+        const response = await fetch(`/api/draw/${lobbyId}/solitaire`, {
+            method: "PUT",
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${getCookie("token")}`
+            }
+        });
+
+        return await response.json();
+    }
+
+    async placeCards(lobbyId: string, body: { placedCards: Icard[], placingCards: Icard[] }) {
+        const response = await fetch(`/api/put/${lobbyId}/solitaire`, {
+            method: "PUT",
+            body: JSON.stringify(body),
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${getCookie("token")}`
+            }
+        });
+        const res = await response.json();
+        return res;
+    }
+
+    async playCard(lobbyId: string, body: { playedCards: Icard[], playingCard: Icard }): Promise<any> {
+        const response = await fetch(`/api/play/${lobbyId}/solitaire`, {
+            method: "PUT",
+            body: JSON.stringify(body),
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${getCookie("token")}`
+            }
+        });
+        const res = await response.json();
+        return res;
+    }
+
+    async restartGame(lobbyId: string, gameId: string) {
+        const response = await fetch(`/api/restart/${lobbyId}/${gameId}/solitaire`, {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${getCookie("token")}`
+            }
+        });
+        const res = await response.json();
+        return res;
+    }
+
+    async playWithPress(lobbyId: string, body: { playedCards: Icard[][], playingCard: Icard }) {
+        const check = body.playedCards.find((cards: Icard[]) => {
+            return cards.find((card: Icard) => {
+                return card.suit === body.playingCard.suit;
+            })
+        })
+
+        console.log("check", check, body.playingCard);
+
+        if (check) {
+            return this.playCard(lobbyId, { playedCards: check, playingCard: body.playingCard });
+        }
+
+    }
 }

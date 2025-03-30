@@ -56,7 +56,7 @@ export default function ProfilePage() {
 function Friends({ playerInfo }: { playerInfo: Iplayer }) {
     return (
         <Link href={`/profile/${playerInfo.customId}`} className="flex gap-2 items-center justify-center flex-col p-3 bg-zinc-700 rounded-md cursor-pointer select-none hover:bg-zinc-600 duration-100">
-            <div style={{ backgroundColor: getColorByInitials(getUserInitials(playerInfo.firstName, playerInfo.lastName)!).background, color: getColorByInitials(getUserInitials(playerInfo.firstName, playerInfo.lastName)!).text }} className={"flex justify-center items-center w-16 h-16 rounded-full text-xl"}>
+            <div style={{ backgroundColor: getColorByInitials(playerInfo).background, color: getColorByInitials(playerInfo).text }} className={"flex justify-center items-center w-16 h-16 rounded-full text-xl"}>
                 {getUserInitials(playerInfo.firstName, playerInfo.lastName)}
             </div>
             <div className="flex flex-col gap-1">
@@ -74,7 +74,7 @@ function FriendRequest({ playerInfo }: { playerInfo: Iplayer }) {
     return (
         <main className="flex gap-2 items-center text-gray-100 justify-between p-3 bg-zinc-700 rounded-md select-none hover:bg-zinc-600 duration-100">
             <Link href={`/profile/${playerInfo.customId}`} className="flex gap-2 items-center">
-                <div style={{ backgroundColor: getColorByInitials(getUserInitials(playerInfo.firstName, playerInfo.lastName)!).background, color: getColorByInitials(getUserInitials(playerInfo.firstName, playerInfo.lastName)!).text }} className={"flex justify-center items-center w-16 h-16 rounded-full text-xl"}>
+                <div style={{ backgroundColor: getColorByInitials(playerInfo).background, color: getColorByInitials(playerInfo).text }} className={"flex justify-center items-center w-16 h-16 rounded-full text-xl"}>
                     {getUserInitials(playerInfo.firstName, playerInfo.lastName)}
                 </div>
                 <div className="flex flex-col gap-1">

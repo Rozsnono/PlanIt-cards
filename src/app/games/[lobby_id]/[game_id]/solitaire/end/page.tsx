@@ -21,9 +21,10 @@ export default function End() {
     const data = useQuery('game', async () => { return gameSerivce.getGame(lobby_id, game_id?.toString()) });
 
     function getPosition(allCards: any, id: string) {
+        return "1:st";
         const positions = Object.values(allCards).map((cards: any) => { return cards.reduce((sum: any, obj: any) => { return sum + obj.value }, 0) });
         const sorted = positions.sort((a: any, b: any) => a - b);
-        if (sorted[0] !== 0) router.back();
+        // if (sorted[0] !== 0) router.back();
         switch (sorted.indexOf(allCards[id].reduce((sum: any, obj: any) => { return sum + obj.value }, 0))) {
             case 0:
                 return "1:st";
@@ -68,7 +69,7 @@ export default function End() {
                 {data.isError && <div>Error</div>}
                 {data.isSuccess && !data.isLoading && !data.isError && data.data && data.data.lobby &&
                     data.data.lobby.users.map((l: any, index: number) => (
-                        <Players place={getPosition(data.data.game.playerCards, l._id)} key={index} playerInfo={{ firstName: l.firstName, lastName: l.lastName, customId: l.customId, rank: l.rank }} cards={data.data.game.playerCards[l._id]}></Players>
+                        <Players place={getPosition(data.data.game.playerCards, l._id)} key={index} playerInfo={l} cards={data.data.game.playerCards[l._id]}></Players>
                     ))
                 }
                 {data.isSuccess && !data.isLoading && !data.isError && data.data && data.data.lobby &&
@@ -82,7 +83,6 @@ export default function End() {
 }
 
 function Players({ playerInfo, cards, place }: { playerInfo: any, cards: any, place: string }) {
-
     return (
         <div className="rounded-lg w-full h-full bg-zinc-800 flex flex-col p-4 justify-between gap-3">
             <div className="flex w-full justify-between">
@@ -128,16 +128,6 @@ function Players({ playerInfo, cards, place }: { playerInfo: any, cards: any, pl
                     </div>
 
                 </div>
-            </div>
-
-            <div className="flex w-full relative">
-                {
-                    cards.map((card: any, index: number) => (
-                        <div key={index} className="w-10 bg-zinc-700 rounded-md flex justify-center items-center">
-                            <Image src={"/assets/cards/rummy/" + new CardsUrls().getCardUrl(card.name)} width={100} height={100} alt={card.name}></Image>
-                        </div>
-                    ))
-                }
             </div>
         </div>
     )

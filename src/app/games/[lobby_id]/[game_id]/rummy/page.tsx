@@ -14,6 +14,7 @@ import { useParams, useRouter } from "next/navigation";
 import React from "react";
 import { useContext, useEffect, useState } from "react";
 import CardsUrls from "@/contexts/cards.context";
+import { IP } from "@/enums/ip.enum";
 
 const gameService = new GameService("rummy");
 const timerClass = new Timer();
@@ -30,7 +31,7 @@ export default function Game() {
     const [playerCards, setPlayerCards] = useState<Icard[]>([]);
 
     useEffect(() => {
-        const socket = new WebSocket("ws://localhost:8080");
+        const socket = new WebSocket(IP.WEBSOCKET);
 
         socket.addEventListener('open', () => {
             console.log('WebSocket is connected');
@@ -41,7 +42,7 @@ export default function Game() {
             const { playerCards, lobby, game, game_over } = gameService.getDataFromWebsocket(JSON.parse(event.data), socket, { _id: lobby_id, player_id: user!._id }) ?? {};
             console.log("Data from websocket");
             if (game_over) {
-                router.push(`/games/${lobby_id}/${game_id}/end`);
+                router.push(`/games/${lobby_id}/${game_id}/rummy/end`);
                 console.log("Game Over");
                 socket.close();
             }
@@ -225,7 +226,7 @@ export default function Game() {
                             return (
                                 <div key={j} className="w-16 h-16 relative group cursor-pointer">
 
-                                    <div style={{ color: getColorByInitials(getUserInitials(user.firstName, user.lastName)).text, backgroundColor: getColorByInitials(getUserInitials(user.firstName, user.lastName)).background }} className="w-16 h-16 rounded-full flex text-zinc-300 items-center justify-center relative">
+                                    <div style={{ color: getColorByInitials(user).text, backgroundColor: getColorByInitials(user).background }} className="w-16 h-16 rounded-full flex text-zinc-300 items-center justify-center relative">
                                         {getUserInitials(user.firstName, user.lastName)}
                                         {game.currentPlayer.playerId === user._id &&
                                             <div className="absolute -top-6 w-full flex justify-center">
@@ -290,7 +291,7 @@ export default function Game() {
                             return (
                                 <div key={j} className="w-16 h-16 relative group cursor-pointer">
 
-                                    <div style={{ color: getColorByInitials(getUserInitials(user.firstName, user.lastName)).text, backgroundColor: getColorByInitials(getUserInitials(user.firstName, user.lastName)).background }} className="w-16 h-16 rounded-full flex text-zinc-300 items-center justify-center relative">
+                                    <div style={{ color: getColorByInitials(user).text, backgroundColor: getColorByInitials(user).background }} className="w-16 h-16 rounded-full flex text-zinc-300 items-center justify-center relative">
                                         {getUserInitials(user.firstName, user.lastName)}
                                         {game.currentPlayer.playerId === user._id &&
                                             <div className="absolute -top-6 w-full flex justify-center">

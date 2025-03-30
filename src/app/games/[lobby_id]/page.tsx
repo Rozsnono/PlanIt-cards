@@ -33,10 +33,12 @@ export default function LobbyId() {
                     if (data2.error) {
                         router.replace("/games");
                     }
+                    console.log(data2);
                     setLobby(data2);
                     setForm(data2.settings);
                 });
             } else {
+                console.log(data);
                 setLobby(data);
                 setForm(data.settings);
             }
@@ -130,7 +132,7 @@ export default function LobbyId() {
                             {
                                 lobby.chat.map((message, i) => (
                                     <div key={i} className="flex gap-2">
-                                        <span className="text-zinc-500 w-[4rem]">{message.sender}:</span>
+                                        <span className="text-zinc-500 w-[6rem]">{message.sender}:</span>
                                         <span className="w-full">{message.message}</span>
                                     </div>
                                 ))
@@ -321,7 +323,7 @@ function PlayerCard({ playerData, loading, bot, createdBy, removePlayer, mutePla
                 <div className="flex gap-2">
 
                     {
-                        playerData._id === createdBy &&
+                        playerData._id !== createdBy &&
                         <div onClick={() => { mutePlayer!(playerData._id) }} className="p-2 rounded-full bg-gray-500 hover:bg-gray-400 w-fit h-fit cursor-pointer">
                             <Icon name="unmute" />
                         </div>
@@ -333,7 +335,7 @@ function PlayerCard({ playerData, loading, bot, createdBy, removePlayer, mutePla
                         <Icon name="info" />
                     </Link>
                     {
-                        playerData._id === createdBy &&
+                        playerData._id !== createdBy &&
                         <div onClick={() => { removePlayer!(playerData._id) }} className="p-2 rounded-full bg-red-500 hover:bg-red-400 w-fit h-fit cursor-pointer">
                             <Icon name="close" />
                         </div>

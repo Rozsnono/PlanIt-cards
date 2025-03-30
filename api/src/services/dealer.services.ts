@@ -167,57 +167,87 @@ export class RummyDealer extends CardDealer {
         return tryWithRanks(deck, false) || tryWithRanks(deck, true);
     }
 
-    public isValidToNext(playedCards: {playedBy: string, cards: any[]}[], playerId: string){
-        if(playedCards.length === 0) return true;
-        if(playedCards.filter(cards => cards.playedBy === playerId).length === 0) return true;
-        if(playedCards.filter(cards => cards.playedBy === playerId).flatMap(obj => obj.cards).reduce((acc, item) => acc + item.value, 0) < 51) return false;
+    public isValidToNext(playedCards: { playedBy: string, cards: any[] }[], playerId: string) {
+        if (playedCards.length === 0) return true;
+        if (playedCards.filter(cards => cards.playedBy === playerId).length === 0) return true;
+        if (playedCards.filter(cards => cards.playedBy === playerId).flatMap(obj => obj.cards).reduce((acc, item) => acc + item.value, 0) < 51) return false;
         return true;
     }
 
-    public cardsToReturn(playedCards: {playedBy: string, cards: any[]}[], playerId: string): any{
+    public cardsToReturn(playedCards: { playedBy: string, cards: any[] }[], playerId: string): any {
         const cards = playedCards.filter(cards => cards.playedBy === playerId);
-        if(!cards) return [];
+        if (!cards) return [];
         const cardsToReturn = cards.flatMap(obj => obj.cards);
         const playedCardsToReturn = playedCards.filter(cards => cards.playedBy !== playerId);
-        return {cardsToReturn, playedCardsToReturn};
+        return { cardsToReturn, playedCardsToReturn };
     }
 
     public rankingMelds(deck: Icard[]): { completedDeck: Icard[] } {
         if (deck.length === 0) return { completedDeck: [] };
-    
+
         const jokers = deck.filter(card => card.isJoker);
         const nonJokers = deck.filter(card => !card.isJoker);
         nonJokers.sort((a, b) => a.rank - b.rank);
-    
+
         if (jokers.length === 0) return { completedDeck: nonJokers };
-    
+
         const completedDeck: Icard[] = [];
-    
+
         for (let i = 0; i < nonJokers.length; i++) {
             completedDeck.push(nonJokers[i]);
-    
+
             if (jokers.length > 0 && i < nonJokers.length - 1) {
                 let currentRank = nonJokers[i].rank;
                 const nextRank = nonJokers[i + 1].rank;
-    
+
                 while (nextRank > currentRank + 1 && jokers.length > 0) {
                     const missingRank = currentRank + 1;
                     const joker = jokers.pop()!;
                     const assignedJoker = { ...joker, rank: missingRank };
-    
+
                     completedDeck.push(assignedJoker);
-    
+
                     currentRank++;
                 }
             }
         }
-    
+
         while (jokers.length > 0) {
             completedDeck.push(jokers.pop()!);
         }
-    
+
         return { completedDeck };
     }
-    
-    
+
+
+}
+
+export class SolitaireDealer extends CardDealer {
+    constructor(cards: Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number, value: number }>) {
+        super(cards);
+    }
+
+    public dealCard(): Array<{ playedBy: string, cards: Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number, value: number }> }> {
+        const playerCards: Array<{ playedBy: string, cards: Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number, value: number }> }> = [];
+        for (let i = 0; i < 7; i++) {
+            const cards = this.deck.splice(0, i + 1);
+            cards[cards.length - 1].isJoker = true;
+            playerCards.push({ playedBy: "user", cards: cards });
+        }
+        return playerCards;
+    }
+
+    public validatePlace(placingCards: Icard[], placedCards: Icard[] ): boolean {
+        if(placedCards.length === 0 && placingCards[0].rank == 13) return true;
+        if(placedCards[placedCards.length - 1].rank - 1 !== placingCards[0].rank) return false;
+        if(placedCards[placedCards.length - 1].suit === placingCards[0].suit) return false;
+        return true;
+    }
+
+    public validatePlay(playingCard: Icard, playedCards: Icard[]): boolean {
+        if(playedCards.length === 0 && playingCard.rank == 1) return true;
+        if(playedCards[playedCards.length - 1].rank + 1 !== playingCard.rank) return false;
+        if(playedCards[playedCards.length - 1].suit !== playingCard.suit) return false;
+        return true;
+    }
 }

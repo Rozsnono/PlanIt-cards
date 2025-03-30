@@ -21,7 +21,7 @@ export default class GameHistoryService {
         if (!game) return { error: ERROR.GAME_NOT_FOUND };
         const player = await this.user.findOne({ _id: player_id });
         if (!player) return { error: ERROR.USER_NOT_FOUND };
-        const lobby = await this.lobby.findOne({ game_id }).populate("users", "customId username");
+        const lobby = await this.lobby.findOne({ game_id }).populate("users", "customId username settings" );
         if (!lobby) return { error: ERROR.LOBBY_NOT_FOUND };
 
         if (player.gameHistory.length >= 8) {

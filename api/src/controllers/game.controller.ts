@@ -27,8 +27,13 @@ export default class GameController implements Controller {
         });
 
         // API route to get the value of a card
-        this.router.get("/card/value/:name", hasAuth([Auth["ADMIN"]]), (req, res, next) => {
+        this.router.get("/card/value/:name/rummy", hasAuth([Auth["ADMIN"]]), (req, res, next) => {
             this.getCardValue(req, res).catch(next);
+        });
+        
+        // API route to get the value of a card
+        this.router.get("/card/value/:name/uno", hasAuth([Auth["ADMIN"]]), (req, res, next) => {
+            this.getCardValueUno(req, res).catch(next);
         });
 
         // API route to modify a game
@@ -101,6 +106,17 @@ export default class GameController implements Controller {
         res.send({ value: card });
     };
 
+    private getCardValueUno = async (req: Request, res: Response) => {
+        const name = req.params.name;
+
+        const card = new Cards().getCardValueByNameUno(name);
+        if (!card) {
+            res.status(404).send({ error: ERROR.CARD_NOT_FOUND });
+            return;
+        }
+        res.send({ value: card });
+    };
+
     private endGame = async (req: Request, res: Response) => {
         const lobbyId = req.params.lobbyId;
         const playerId = await getIDfromToken(req);
@@ -123,7 +139,7 @@ export default class GameController implements Controller {
     private getGame = async (req: Request, res: Response) => {
         const id = req.params.id;
         const lobby_id = req.params.lobby_id;
-        const lobby = await this.lobby.findOne({ _id: lobby_id }).populate("users", "firstName lastName rank customId _id");
+        const lobby = await this.lobby.findOne({ _id: lobby_id }).populate("users", "firstName lastName rank customId _id settings");
         if (!lobby) {
             res.status(404).send({ error: ERROR.LOBBY_NOT_FOUND });
             return;

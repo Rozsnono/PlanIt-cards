@@ -1,3 +1,4 @@
+import { IP } from "@/enums/ip.enum";
 import { getCookie } from "@/functions/user.function";
 import { Ilobby } from "@/interfaces/interface";
 import { error } from "console";
@@ -70,7 +71,7 @@ export default class LobbyService {
     }
 
     public connectWebSocket(lobbyId: string, userId: string, onMessage: (data: any) => void) {
-        const socket = new WebSocket("ws://localhost:8080");
+        const socket = new WebSocket(IP.WEBSOCKET);
 
         socket.addEventListener('open', () => {
             console.log('WebSocket is connected');

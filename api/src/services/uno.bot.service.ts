@@ -18,14 +18,16 @@ export class UnoBot {
     playerCards: Icard[] = [];
     droppedCards: any = [];
     playedCards: { playedBy: string, cards: Icard[] }[] = [];
+    drawedCard: { lastDrawedBy: string };
 
-    constructor(name: string, difficulty: string, playerCards: Icard[], droppedCards: Icard[], playedCards: any, cards: Icard[]) {
+    constructor(name: string, difficulty: string, playerCards: Icard[], droppedCards: Icard[], playedCards: any, cards: Icard[], drawedCard: { lastDrawedBy: string }) {
         this.name = name;
         this.difficulty = difficulty as any;
         this.validator = new UnoDealer(cards as any);
         this.playerCards = playerCards;
         this.droppedCards = droppedCards;
         this.playedCards = playedCards;
+        this.drawedCard = drawedCard;
     }
 
     public get thinkingTime(): number {
@@ -40,13 +42,19 @@ export class UnoBot {
 
         if (!selectedCard) {
             this.playerCards.push(this.validator.drawCard(1)[0] as any);
-            return { droppedCards: this.droppedCards, playedCards: this.playedCards, playerCards: this.playerCards };
+            this.drawedCard.lastDrawedBy = this.name;
+            return { droppedCards: this.droppedCards, playerCards: this.playerCards, drawedCard: this.drawedCard };
+        }
+
+        if(selectedCard.isJoker) {
+            selectedCard.suit = ['R', 'G', 'B', 'Y'][Math.random() * 4 | 0];
+            selectedCard.name = selectedCard.suit + selectedCard.name;
         }
 
         this.droppedCards.push({ droppedBy: this.name, card: selectedCard });
         this.playerCards = this.playerCards.filter(card => card !== selectedCard);
 
-        return { droppedCards: this.droppedCards, playedCards: this.playedCards, playerCards: this.playerCards };
+        return { droppedCards: this.droppedCards, playerCards: this.playerCards, drawedCard: this.drawedCard };
     }
 
     private get dropableCards() {

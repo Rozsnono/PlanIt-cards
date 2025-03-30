@@ -20,6 +20,10 @@ export interface Iplayer {
     friends: string[];
     peddingFriends: string[] | number;
     customId: string;
+    settings: {
+        backgroundColor: string;
+        textColor: string;
+    };
     gameHistory: {
         [date: string]: {
             playerCards: Icard[],
@@ -42,7 +46,7 @@ export interface Ilobby {
         unranked: boolean;
         fillWithRobots: boolean;
         numberOfRobots?: number | null;
-        cardType: "UNO" | "RUMMY";
+        cardType: "UNO" | "RUMMY" | "SOLITAIRE";
     }
     chat: Imessage[];
     game_id?: string;
@@ -61,6 +65,6 @@ export interface Igame {
     shuffledCards: Icard[];
     currentPlayer: string;
     playerCards: {[player_id: string]: Icard[]};
-    playedCards: Icard[][];
-    droppedCards: Icard[];
+    playedCards: {playedBy: string, cards: Icard[]}[];
+    droppedCards: {droppedBy: string, card: Icard}[];
 }

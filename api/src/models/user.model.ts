@@ -87,6 +87,17 @@ export const userSchema = new Schema(
             type: Array<Schema.Types.ObjectId>(),
             default: [],
         },
+        settings: {
+            type: Object,
+            default: {
+                backgroundColor: "#000000",
+                textColor: "#FFFFFF",
+                hasPicture: false,
+                selectedPicture: "default.png",
+                hidden: false,
+                canInvite: true,
+            }
+        },
         isDeleted: {
             type: Boolean,
             default: false,

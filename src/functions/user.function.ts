@@ -35,22 +35,13 @@ export function getUserInitialsByName(name: string) {
     return getUserInitials(firstName, lastName);
 }
 
-export function getColorByInitials(initials: string) {
-    const colors = [
-        "#FF5733", "#33FF57", "#3357FF", "#FF33A8", "#A833FF", "#33FFF5", "#F5FF33", "#FF8C33",
-        "#8C33FF", "#33FF8C", "#FF3333", "#33A8FF", "#A8FF33", "#5733FF", "#FF5733", "#FFAA33",
-        "#33FFAA", "#AA33FF", "#FF3357", "#3357FF", "#FFAA57", "#57FFAA", "#AA57FF", "#33FFA8"
-    ];
-
-    if (!initials || initials.length === 0) return { background: "#CCCCCC", text: "#000000" };
-
-    const normalizedInitials = initials.toUpperCase();
-    const charCodeSum = normalizedInitials.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    const background = colors[charCodeSum % colors.length];
-
-    const text = getContrastColor(background);
-
-    return { background, text };
+export function getColorByInitials(user?: Iplayer | null) {
+    if(!user){
+        const user = getUser();
+        return { background: user!.settings.backgroundColor, text: user!.settings.textColor };
+    }
+    console.log(user)
+    return { background: user.settings.backgroundColor, text: user.settings.textColor };
 }
 
 function getContrastColor(hex: string): string {

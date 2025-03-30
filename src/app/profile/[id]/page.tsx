@@ -13,6 +13,7 @@ import ProfileService from "@/services/profile.service";
 import { UserContext } from "@/contexts/user.context";
 import { GameHistoryService } from "@/services/game.history.service";
 import Link from "next/link";
+import Loader from "@/components/loader.component";
 
 export default function ProfilePage() {
 
@@ -33,12 +34,16 @@ export default function ProfilePage() {
     const GameHistory = useQuery("gameHistory", async () => { return gameHistoryService.getGameHistoryByUser(player_id as string) }, { enabled: !!player_id, refetchOnWindowFocus: false });
 
 
-    if (player.isLoading || player!.data.length == 0) return <div>Loading...</div>
+    if (player.isLoading || player!.data.length == 0) return <Loader></Loader>
+    if(!user) return <div className="text-zinc-400 text-center w-full h-full flex items-center justify-center">Please login to see this page</div>
     return (
         <main className="flex gap-2 p-4 h-full">
             <main className="w-full flex flex-col gap-3 items-center justify-start border-2 rounded-lg border-zinc-500">
-                <div className="h-fit w-full">
-                    <Chart data={{ wins: 1111, loses: 230 }}></Chart>
+                <div className="h-fit w-full p-2">
+                    <Chart data={{ wins: Object.values(player.data.numberOfGames).map((c: any) => c.wins).reduce((acc, num) => acc + num, 0), loses: Object.values(player.data.numberOfGames).map((c: any) => c.losses).reduce((acc, num) => acc + num, 0) }}></Chart>
+                </div>
+                <div className="text-xl p-2 flex gap-2 items-center text-zinc-100">
+                    Replays
                 </div>
                 <div className="w-full gap-2 flex flex-col h-full">
                     {!GameHistory.isLoading && GameHistory.data && GameHistory.data.map((game: any, i: number) => {
@@ -46,12 +51,18 @@ export default function ProfilePage() {
                             <GameReplays link={`/games/${game.lobbyId}/${game.gameId}/replay`} key={i} pos={game.position || 0} type={game.type} date={game.date}></GameReplays>
                         )
                     })}
+                    {
+                        !GameHistory.isLoading && GameHistory.data.length == 0 &&
+                        <div className="text-zinc-400 text-center w-full h-full flex items-center justify-center">
+                            No game history found
+                        </div>
+                    }
                 </div>
                 <Pagination total={1} page={page} setPage={setPage}></Pagination>
             </main>
             <main className="lg:w-1/2 w-full bg-zinc-800 rounded-md p-3 h-full text-zinc-200">
                 <div className="flex gap-2 p-6">
-                    <div style={{ backgroundColor: getColorByInitials(getUserInitials()).background, color: getColorByInitials(getUserInitials()).text }} className="min-w-32 min-h-32 bg-red-600 rounded-full flex items-center justify-center text-4xl">{getUserInitials()}</div>
+                    <div style={{ backgroundColor: getColorByInitials().background, color: getColorByInitials().text }} className="min-w-32 min-h-32 bg-red-600 rounded-full flex items-center justify-center text-4xl">{getUserInitials()}</div>
                     <div className="flex flex-col justify-center gap-3">
                         <div className="text-4xl">{player.data.firstName} {player.data.lastName}</div>
                         {
@@ -59,6 +70,16 @@ export default function ProfilePage() {
                             <button className="text-zinc-300 bg-zinc-900 text-sm w-max hover:bg-zinc-950 rounded-lg flex items-center gap-1 p-2" ><Icon name="pen" size={16}></Icon> Edit profile</button>
                         }
 
+                    </div>
+                </div>
+
+                <div className="flex gap-3 p-3 flex-col">
+                    <h1>Statistics</h1>
+                    <div className="flex gap-2 justify-between items-center font-bold">
+                        <div className="flex items-center gap-1 text-lg">
+                            <Icon name="game" size={24} stroke></Icon>
+                            {Object.values(player.data.numberOfGames).map((c: any) => c.wins).reduce((acc, num) => acc + num, 0) + Object.values(player.data.numberOfGames).map((c: any) => c.losses).reduce((acc, num) => acc + num, 0)} Games
+                        </div>
                     </div>
                 </div>
 
@@ -89,16 +110,35 @@ export default function ProfilePage() {
                                 )
                             })
                         }
+
                     </div>
+                    {
+                        player.data.achievements.length == 0 &&
+                        <div className="text-zinc-400 text-center w-full h-full flex items-center justify-center">
+                            No achievements found
+                        </div>
+                    }
                 </div>
 
 
                 <div className="flex gap-3 p-3 flex-col">
                     <h1>Friends</h1>
                     <div className="flex gap-2 flex-wrap">
-                        <Friends name="user" color="#3030cc"></Friends>
-                        <Friends name="spakhe" color="#ac4507"></Friends>
-                        <Friends name="kajdocsi" color="#a57040"></Friends>
+                        {
+                            player.data.friends.map((friend: any, i: number) => {
+                                return (
+                                    <Link key={i} href={`/profile/${friend.customId}`}>
+                                        <Friends name={friend.username} color={getColorByInitials(friend).background}></Friends>
+                                    </Link>
+                                )
+                            })
+                        }
+                        {
+                            player.data.friends.length == 0 &&
+                            <div className="text-zinc-400 text-center w-full h-full flex items-center justify-center">
+                                No friends found
+                            </div>
+                        }
                     </div>
                 </div>
             </main>

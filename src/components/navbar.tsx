@@ -41,38 +41,47 @@ export default function Navbar({ clear }: { clear?: boolean }) {
 
     if (clear) {
         return (
-            <main className='fixed top-4 left-4 z-[100] opacity-70'>
-                <div className='w-16 h-16 bg-zinc-900 rounded-full flex justify-center items-center group relative'>
-                    <div className='w-full h-full bg-zinc-900 z-50 p-2 rounded-full flex items-center justify-center border-2 border-zinc-600 '>
+            <main className='fixed top-4 left-4 z-[100] opacity-70 '>
+                <div className='w-16 h-16 bg-zinc-900 rounded-full flex flex-col justify-start items-center group relative hover:h-64 duration-200'>
+                    <div className='w-16 h-16 bg-zinc-900 z-50 p-2 rounded-full flex items-center justify-center border-2 border-zinc-600 '>
                         <Image src={"/assets/icon.png"} alt='Logo' width={120} height={100}></Image>
                     </div>
 
-                    <Link href={"/"}>
-                        <div className='absolute text-zinc-400 hover:text-white bottom-2 group-hover:-bottom-[2rem] left-3 w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center duration-200 cursor-pointer'>
-                            <Icon name='home' size={16}></Icon>
-                        </div>
-                    </Link>
+                    <div className='absolute top-2 group-hover:top-[4.5rem] left-0 w-full flex justify-center duration-200 cursor-pointer'>
+                        <Link href={"/"}>
+                            <div className='text-zinc-400 hover:text-white w-14 h-8 rounded-full flex items-center justify-center bg-zinc-800 hover:bg-zinc-600'>
+                                <Icon name='home' size={16}></Icon>
+                            </div>
+                        </Link>
+                    </div>
 
-                    <Link href={"/observatory"}>
-                        <div className='absolute text-zinc-400 hover:text-white bottom-2 group-hover:-bottom-[4.1rem] left-3 w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center duration-200 cursor-pointer'>
-                            <Icon name='star' stroke size={16}></Icon>
-                        </div>
-                    </Link>
+                    <div className='absolute top-2 group-hover:top-[7rem] left-0 w-full flex justify-center duration-200 cursor-pointer'>
+                        <Link href={"/observatory"}>
+                            <div className='text-zinc-400 hover:text-white w-14 h-8 rounded-full bg-zinc-800 hover:bg-zinc-600 flex items-center justify-center '>
+                                <Icon name='star' size={16} stroke></Icon>
+                            </div>
+                        </Link>
+                    </div>
 
-                    <Link href={"/games"}>
-                        <div className='absolute text-zinc-400 hover:text-white bottom-2 group-hover:-bottom-[6.2rem] left-3 w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center duration-200 cursor-pointer'>
-                            <Icon name='game' stroke size={16}></Icon>
-                        </div>
-                    </Link>
+                    <div className='absolute top-2 group-hover:top-[9.5rem] left-0 w-full flex justify-center duration-200 cursor-pointer'>
+                        <Link href={"/games"}>
+                            <div className='text-zinc-400 hover:text-white w-14 h-8 rounded-full bg-zinc-800 hover:bg-zinc-600 flex items-center justify-center '>
+                                <Icon name='game' size={16} stroke></Icon>
+                            </div>
+                        </Link>
+                    </div>
 
                     {
                         user!.auth.includes("ADMIN") &&
-                        <Link href={"/admin"}>
-                            <div className='absolute text-zinc-400 hover:text-white bottom-2 group-hover:-bottom-[8.3rem] left-3 w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center duration-200 cursor-pointer'>
-                                <Icon name='admin' size={16}></Icon>
-                            </div>
-                        </Link>
+                        <div className='absolute top-2 group-hover:top-[12rem] left-0 w-full flex justify-center duration-200 cursor-pointer'>
+                            <Link href={"/admin"}>
+                                <div className='text-zinc-400 hover:text-white w-14 h-8 rounded-full bg-zinc-800 hover:bg-zinc-600 flex items-center justify-center '>
+                                    <Icon name='admin' size={16}></Icon>
+                                </div>
+                            </Link>
+                        </div>
                     }
+
 
 
                 </div>
@@ -85,7 +94,7 @@ export default function Navbar({ clear }: { clear?: boolean }) {
         <React.Fragment>
 
             <main className="fixed top-3 left-0 w-screen z-[100] max-h-[4.2rem] flex justify-center">
-                <main className="w-3/4 rounded-xl bg-zinc-900 border-2 border-zinc-600 z-50 select-none z-[100] max-h-[4.2rem] relative" >
+                <main className="xl:w-3/4 w-[90%] rounded-xl bg-zinc-900 border-2 border-zinc-600 z-50 select-none z-[100] max-h-[4.2rem] relative" >
                     <div className="flex justify-between items-center p-4 pe-8 ps-4">
                         <div className="flex items-center justify-center gap-4 text-zinc-100 max-h-[4.2rem]">
                             <Image src={"/assets/logo.png"} alt='Logo' width={120} height={100}></Image>
@@ -128,7 +137,7 @@ function UserHeader({ isLogged, user }: { isLogged: boolean, user: Iplayer }) {
     return (
         <React.Fragment>
             <button className='more-modal-button bg-transparent border border-transparent flex items-center gap-2 mr-4 group cursor-pointer '>
-                <div style={{ backgroundColor: getColorByInitials(getUserInitials()).background, color: getColorByInitials(getUserInitials()).text }} className='min-h-8 min-w-8 rounded-full flex items-center justify-center bg-red-600 opacity-70 group-hover:opacity-100 text-zinc-100 duration-100 '>
+                <div style={{ backgroundColor: getColorByInitials().background, color: getColorByInitials().text }} className='min-h-8 min-w-8 rounded-full flex items-center justify-center bg-red-600 opacity-70 group-hover:opacity-100 text-zinc-100 duration-100 '>
                     {getUserInitials()}
                 </div>
                 <div className="flex items-center gap-2 text-zinc-300 group-hover:text-white duration-100 cursor-pointer">

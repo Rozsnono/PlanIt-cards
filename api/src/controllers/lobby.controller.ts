@@ -64,7 +64,7 @@ export default class LobbyController implements Controller {
     }
 
     private getAllLobby = async (req: Request, res: Response) => {
-        const lobbies = await this.lobby.find().populate("users", "customId username rank").populate("game_id");
+        const lobbies = await this.lobby.find().populate("users", "customId username rank settings").populate("game_id");
         res.send(lobbies);
     }
 
@@ -114,7 +114,7 @@ export default class LobbyController implements Controller {
         if (query.limit) {
             paging.limit = parseInt(query.limit.toString()) || 14;
         }
-        const lobbies = await this.lobby.find(filter).limit(paging.limit * paging.page).populate("users", "customId username rank");
+        const lobbies = await this.lobby.find(filter).limit(paging.limit * paging.page).populate("users", "customId username rank settings");
         const lobbyCount = await this.lobby.countDocuments();
         res.send({ total: parseInt(((lobbyCount / paging.limit)).toFixed(0)), data: lobbies });
     };
@@ -178,7 +178,7 @@ export default class LobbyController implements Controller {
             await this.leftLobby(req);
             lobby.users.push(new mongoose.Types.ObjectId(userid));
             await this.lobby.replaceOne({ _id: id }, lobby, { runValidators: true });
-            const newLobby = await this.lobby.findOne({ _id: id }).populate("users", "customId username rank");
+            const newLobby = await this.lobby.findOne({ _id: id }).populate("users", "customId username rank settings");
             res.send({ lobby: newLobby });
         } else {
             res.status(400).send({ error: ERROR.AN_ERROR_OCCURRED });

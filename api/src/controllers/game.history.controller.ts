@@ -32,21 +32,21 @@ export default class GameHistoryController implements Controller {
         const game = await this.game.findOne({ _id: game_id });
 
         if (!game) {
-            res.status(404).send({ message: "Game not found!" });
+            res.status(404).send({ error: "Game not found!" });
             return;
         }
 
         const player = await this.user.findOne({ customId: player_id });
 
         if (!player) {
-            res.status(404).send({ message: "Player not found!" });
+            res.status(404).send({ error: "Player not found!" });
             return;
         }
 
         const gameHistory = await this.gameHistory.findOne({ gameId: game_id });
 
         if (!gameHistory) {
-            res.status(404).send({ message: "Game history not found!" });
+            res.status(404).send({ error: "Game history not found!" });
             return;
         }
 
@@ -59,13 +59,13 @@ export default class GameHistoryController implements Controller {
         const player = await this.user.findOne({ customId: player_id });
 
         if (!player) {
-            res.status(404).send({ message: "Player not found!" });
+            res.status(404).send({ error: "Player not found!" });
             return;
         }
 
         const gameHistory = await this.gameHistory.find({ gameId: { $in: player.gameHistory } });
         if (!gameHistory) {
-            res.status(404).send({ message: "Game history not found!" });
+            res.status(404).send({ error: "Game history not found!" });
             return;
         }
         res.send(gameHistory);

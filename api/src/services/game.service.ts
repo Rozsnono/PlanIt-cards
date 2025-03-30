@@ -1,10 +1,11 @@
 import { Ilobby } from "../interfaces/interface";
 import gameModel from "../models/game.model";
 import lobbyModel from "../models/lobby.model";
-import { RummyDealer } from "./dealer.services";
+import { RummyDealer, UnoDealer } from "./dealer.services";
 import { RummyBot } from "./rummy.bot.service";
 import userModel from "../models/user.model";
 import { achievements } from "../cards/achievements";
+import { UnoBot } from "./uno.bot.service";
 
 export class GameChecker {
 
@@ -25,8 +26,10 @@ export class GameChecker {
 
     public startInterval(gameId: string) {
         if (this.intervals[gameId]) { return; }
+        if (this.lastTimes[gameId] === 0) { return; }
         this.intervals[gameId] = setInterval(() => {
             if (this.lastTimes[gameId] === undefined) { }
+            if (this.lastTimes[gameId] === 0) { return; }
             if (new Date().getTime() - this.lastTimes[gameId] >= this.time * 1000) {
                 this.stopInterval(gameId);
                 this.forceNextTurn(gameId);
@@ -118,6 +121,59 @@ export class GameChecker {
         await this.game.replaceOne({ _id: game._id }, game, { runValidators: true });
     }
 
+    public playWithBotsUno = async (game: any, lobby: Ilobby, currentPlayer: string) => {
+        console.log("Bot playing!")
+        const bot = new UnoBot(currentPlayer, 'easy', game.playerCards[currentPlayer], game.droppedCards, game.playedCards, game.shuffledCards, game.drawedCard);
+        const { droppedCards, playerCards, drawedCard } = bot.play();
+        game.playerCards[currentPlayer] = playerCards;
+        game.droppedCards = droppedCards;
+        game.drawedCard = drawedCard;
+        const waitingTime = bot.thinkingTime;
+        console.log("Waiting for " + waitingTime + "ms");
+        await this.wait(waitingTime);
+        const players = lobby.users.map(u => u._id).concat(lobby.bots.map(bot => bot._id)).map(id => id.toString());
+
+        switch (game.droppedCards[game.droppedCards.length - 1].card.rank) {
+            case 15:
+                //Reverse
+                lobby.users = lobby.users.reverse();
+                lobby.bots = lobby.bots.reverse();
+                currentPlayer = this.getNextPlayer(players, currentPlayer);
+                break;
+            case 16:
+                //Skip
+                currentPlayer = this.getNextPlayer(players, currentPlayer);
+                currentPlayer = this.getNextPlayer(players, currentPlayer);
+                break;
+            case 18:
+                //Draw 2
+                currentPlayer = this.getNextPlayer(players, currentPlayer);
+                game.playerCards[currentPlayer] = game.playerCards[currentPlayer].concat(new UnoDealer(game.shuffledCards).drawCard(2));
+                currentPlayer = this.getNextPlayer(players, currentPlayer);
+                break;
+            case 20:
+                //Wild Draw 4
+                currentPlayer = this.getNextPlayer(players, currentPlayer);
+                game.playerCards[currentPlayer] = game.playerCards[currentPlayer].concat(new UnoDealer(game.shuffledCards).drawCard(4));
+                currentPlayer = this.getNextPlayer(players, currentPlayer);
+                break;
+            case 21:
+                //Wild Draw 4
+                currentPlayer = this.getNextPlayer(players, currentPlayer);
+                game.playerCards[currentPlayer] = game.playerCards[currentPlayer].concat(new UnoDealer(game.shuffledCards).drawCard(4));
+                currentPlayer = this.getNextPlayer(players, currentPlayer);
+                break;
+            default:
+                currentPlayer = this.getNextPlayer(players, currentPlayer);
+                break;
+        }
+
+        game.currentPlayer = { playerId: currentPlayer, time: new Date().getTime() };
+        await this.lobby.replaceOne({ _id: lobby._id }, lobby, { runValidators: true });
+        await this.game.replaceOne({ _id: game._id }, game, { runValidators: true });
+        console.log("Bot played!")
+    }
+
     public setRankByPosition = async (globby: Ilobby) => {
         const game = await this.game.findOne({ _id: globby.game_id });
         if (!game) return;
@@ -129,7 +185,7 @@ export class GameChecker {
             const position = Object.keys(game.playerCards).length - positions.indexOf(Math.max(...positions));
             body.rank += this.calculatePoints(position, Object.keys(game.playerCards).length, 20);
             if (body.numberOfGames === undefined) body.numberOfGames = {};
-            if (body.numberOfGames[new Date().toISOString()] === undefined) {
+            if (typeof body.numberOfGames[new Date().toISOString()] === 'undefined') {
                 body.numberOfGames = { ...body.numberOfGames, [new Date().toISOString()]: { wins: 0, losses: 0 } };
             }
             if (position === 1) {
@@ -143,6 +199,52 @@ export class GameChecker {
         }
     }
 
+    public setRankByPositionUno = async (globby: Ilobby) => {
+        const game = await this.game.findOne({ _id: globby.game_id });
+        if (!game) return;
+        const positions = Object.values(game.playerCards).map((cards: any) => { return cards.reduce((sum: any, obj: any) => { return sum + obj.value }, 0) });
+        for (const id of globby.users) {
+            const player = await this.player.findOne({ _id: id });
+            if (!player) return;
+            const body: any = player;
+            const position = Object.keys(game.playerCards).length - positions.indexOf(Math.max(...positions));
+            body.rank += this.calculatePoints(position, Object.keys(game.playerCards).length, 20);
+            if (body.numberOfGames === undefined) body.numberOfGames = {};
+            if (typeof body.numberOfGames[new Date().toISOString()] === 'undefined') {
+                body.numberOfGames = { ...body.numberOfGames, [new Date().toISOString()]: { wins: 0, losses: 0 } };
+            }
+            if (position === 1) {
+                body.numberOfGames[new Date().toISOString()].wins++;
+            } else {
+                body.numberOfGames[new Date().toISOString()].losses++;
+            }
+            const res = await this.player.replaceOne({ _id: body._id }, body, { runValidators: true });
+            console.log(res.modifiedCount);
+        }
+    }
+
+    public setRankInSolitaire = async (globby: Ilobby) => {
+        const game = await this.game.findOne({ _id: globby.game_id });
+        if (!game) return;
+        const id = globby.users[0];
+        const player = await this.player.findOne({ _id: id });
+        if (!player) return;
+        const body: any = player;
+        const position = 1;
+        body.rank += this.calculatePoints(position, Object.keys(game.playerCards).length, 10);
+        if (body.numberOfGames === undefined) body.numberOfGames = {};
+        if (typeof body.numberOfGames[new Date().toISOString()] === 'undefined') {
+            body.numberOfGames = { ...body.numberOfGames, [new Date().toISOString()]: { wins: 0, losses: 0 } };
+        }
+        if (position === 1) {
+            body.numberOfGames[new Date().toISOString()].wins++;
+        } else {
+            body.numberOfGames[new Date().toISOString()].losses++;
+        }
+        const res = await this.player.replaceOne({ _id: body._id }, body, { runValidators: true });
+        console.log(res.modifiedCount);
+    }
+
     private async checkAnchievements(player: any, game: any) {
         const playerAchievements = player.achievements || [];
         for (const achievement of achievements) {
@@ -153,6 +255,7 @@ export class GameChecker {
         }
         return playerAchievements;
     }
+
 
     private calculatePoints(rank: number, totalPlayers: number, maxPoints: number) {
         if (rank < 1 || rank > totalPlayers) {

@@ -13,6 +13,8 @@ import LobbySettings from "@/components/lobby/lobby.settings.component";
 import Pagination from "@/components/pagination";
 import Image from "next/image";
 import React from "react";
+import { WebSocketing } from "@/services/websocket.service";
+import { IP } from "@/enums/ip.enum";
 const lobbyService = new LobbyService();
 
 export default function Games() {
@@ -20,12 +22,47 @@ export default function Games() {
     const [openPrivate, setOpenPrivate] = useState(false);
     const [openFilter, setOpenFilter] = useState(false);
 
-    const data = useQuery("lobbies", () => { return lobbyService.getLobbyData(getFilterFromURL()) }, { refetchOnWindowFocus: true });
+    const [state, setState] = useState({
+        isLoading: true,
+        isError: false,
+        data: {data: [], total: 0},
+    });
+
     const router = useRouter();
 
     const [loading, setLoading] = useState(false);
 
     const [page, setPage] = useState(1);
+
+    useEffect(() => {
+        const socket = new WebSocket(IP.LOBBYSOCKET);
+        setState({ ...state, isLoading: true });
+
+
+        socket.addEventListener('open', () => {
+            console.log('WebSocket is connected');
+            socket.send(JSON.stringify({}));
+            setState({ ...state, isLoading: true });
+
+        });
+
+        socket.addEventListener('message', (event) => {
+            if(JSON.parse(event.data).refresh){
+                socket.send(JSON.stringify({}));
+                setState({ ...state, isLoading: true });   
+            }else{
+                try {
+                    setState({ ...state, data: JSON.parse(event.data), isLoading: false });
+                } catch {
+                    setState({ ...state, isLoading: false });   
+                }
+            }
+        });
+
+        return () => {
+            socket.close();
+        };
+    }, [])
 
 
     function getFilterFromURL() {
@@ -48,7 +85,6 @@ export default function Games() {
         const url = `/games?page=${page}`;
         router.replace(url);
         setTimeout(() => {
-            data.refetch();
             setLoading(false);
         }, 100);
     }
@@ -56,8 +92,8 @@ export default function Games() {
     return (
         <main className="flex gap-2 flex-col h-full p-2">
             <main className="relative w-full h-full grid 2xl:grid-cols-6 xl:grid-cols-4 lg:grid-cols-3 md:grid-cols-2 grid-cols-1 gap-2 p-3 overflow-y-auto">
-                {loading && data.isLoading && <Loading />}
-                {!data.isLoading && !data.isError && data.data.data.map((lobby: Ilobby, index: number) => (
+                {loading && state.isLoading && <Loading />}
+                {!state.isLoading && !state.isError && state.data.data.map((lobby: Ilobby, index: number) => (
                     <React.Fragment key={index}>
                         <LobbyCard lobbyDatas={lobby} lobbyNumber={index + 1} />
                         {((index + 1) % 5 == 0 || (index + 1) % 7 == 0) &&
@@ -67,13 +103,13 @@ export default function Games() {
                         }
                     </React.Fragment>
                 ))}
-                {!data.isLoading && data.isError && <div className="text-center text-zinc-300">Error fetching data</div>}
-                {!data.isLoading && !data.isError && data.data.length === 0 && <div className="text-center text-zinc-300 w-full col-span-12">No lobby found</div>}
+                {!state.isLoading && state.isError && <div className="text-center text-zinc-300">Error fetching data</div>}
+                {!state.isLoading && !state.isError && state.data.data.length === 0 && <div className="text-center text-zinc-300 w-full col-span-12">No lobby found</div>}
             </main>
 
             {
-                !data.isLoading && data.data &&
-                page < data.data.total &&
+                !state.isLoading && state.data &&
+                page < state.data.total &&
                 <main className="w-full flex items-center justify-center">
                     <button onClick={() => { setPageNumber(page + 1) }} className="px-4 p-2 flex items-center justify-center bg-green-700 hover:bg-green-600 rounded-lg text-zinc-100 gap-2">
                         Load more
@@ -127,7 +163,7 @@ export default function Games() {
 
 
             <RightSideBar className="border-sky-600" open={open} onClose={() => setOpen(!open)}>
-                <SideBarContent onClose={() => setOpen(!open)} />
+                <SideBarContent onClose={() => setOpen(!open)} onLoading={setLoading}/>
             </RightSideBar>
 
             <RightSideBar className="border-green-600" open={openPrivate} onClose={() => setOpenPrivate(!openPrivate)}>
@@ -135,7 +171,7 @@ export default function Games() {
             </RightSideBar>
 
             <RightSideBar className="border-zinc-300" open={openFilter} onClose={() => setOpenFilter(!openFilter)}>
-                <FilterSideBarContent onClose={() => { setOpenFilter(!openFilter); data.refetch() }} />
+                <FilterSideBarContent onClose={() => { setOpenFilter(!openFilter); }} />
             </RightSideBar>
         </main>
     );
@@ -143,12 +179,12 @@ export default function Games() {
 
 
 
-function SideBarContent({ onClose }: Readonly<{ onClose?: () => void }>) {
+function SideBarContent({ onClose, onLoading }: Readonly<{ onClose?: () => void, onLoading: (loading: boolean) => void }>) {
 
     const router = useRouter();
 
     async function creatingLobby(form: any) {
-
+        onLoading(true);
         try {
             const result = await lobbyService.createLobby(form);
             router.push(`/games/${result._id}`);

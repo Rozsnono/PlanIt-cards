@@ -322,6 +322,10 @@ export class Cards {
         return this.getUnoCards();
     }
 
+    public get solitaire(): Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number, value: number }>{
+        return this.getSolitaireCards();
+    }
+
     private getUnoCards(): Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number, value: number }>{
         const uno = [];
         const suits = ["R", "G", "B", "Y"];
@@ -344,14 +348,14 @@ export class Cards {
         for (let pack = 0; pack < 2; pack++) {
             for (const suit of suits) {
                 for (const { name, rank } of ranks) {
-                    uno.push({ name: `${name}${suit}`, rank, suit, pack });
+                    uno.push({ name: `${suit}${name}`, rank, suit, pack });
                 }
             }
 
-            uno.push({ name: "WC", rank: 23, isJoker: true, pack, value: 50 });
-            uno.push({ name: "WC", rank: 24, isJoker: true, pack, value: 50 });
             uno.push({ name: "W4", rank: 20, isJoker: true, pack, value: 50 });
             uno.push({ name: "W4", rank: 21, isJoker: true, pack, value: 50 });
+            uno.push({ name: "WC", rank: 23, isJoker: true, pack, value: 50 });
+            uno.push({ name: "WC", rank: 24, isJoker: true, pack, value: 50 });
         }
 
         return uno as any;
@@ -393,6 +397,40 @@ export class Cards {
 
     public getCardValueByName(name: string) {
         return this.getRummyCards().find((card) => card.name === name.toUpperCase());
+    }
+
+    public getCardValueByNameUno(name: string) {
+        return this.getUnoCards().find((card) => card.name === name.toUpperCase());
+    }
+
+    public getSolitaireCards(){
+        const cards = [];
+        const suits = ["S", "H", "D", "C"];
+        const ranks = [
+            { name: "2", rank: 2, value: 2 },
+            { name: "3", rank: 3, value: 3 },
+            { name: "4", rank: 4, value: 4 },
+            { name: "5", rank: 5, value: 5 },
+            { name: "6", rank: 6, value: 6 },
+            { name: "7", rank: 7, value: 7 },
+            { name: "8", rank: 8, value: 8 },
+            { name: "9", rank: 9, value: 9 },
+            { name: "10", rank: 10, value: 10 },
+            { name: "J", rank: 11, value: 10 },
+            { name: "Q", rank: 12, value: 10 },
+            { name: "K", rank: 13, value: 10 },
+            { name: "A", rank: 1, value: 10 }
+        ];
+
+        for (let pack = 1; pack <= 1; pack++) {
+            for (const suit of suits) {
+                for (const { name, rank, value } of ranks) {
+                    cards.push({ name: `${name}${suit}`, rank, suit, pack: pack, value });
+                }
+            }
+        }
+
+        return cards;
     }
 
 }

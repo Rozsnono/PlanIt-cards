@@ -16,8 +16,8 @@ export class AdminService {
     }
 
 
-    public async CardValueByName(name: string) {
-        const response = await fetch(`/api/card/value/${name}`, {
+    public async CardValueByName(name: string, type: 'rummy' | 'uno') {
+        const response = await fetch(`/api/card/value/${name}/${type}`, {
             method: "GET",
             headers: {
                 'Content-Type': 'application/json',
