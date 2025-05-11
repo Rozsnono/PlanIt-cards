@@ -6,19 +6,23 @@ import Image from "next/image";
 import Icon from "@/assets/icons";
 import { useParams, useRouter } from "next/navigation";
 import { useQuery } from "react-query";
-import { GameService } from "@/services/game.service";
+import { GameService, SolitaireService } from "@/services/game.service";
 import Loader from "@/components/loader.component";
 import CardsUrls from "@/contexts/cards.context";
+import { useContext } from "react";
+import { UserContext } from "@/contexts/user.context";
 
 export default function End() {
 
     const lobby_id = useParams().lobby_id;
     const game_id = useParams().game_id;
 
+    const { user } = useContext(UserContext);
+
     const router = useRouter();
 
     const gameSerivce = new GameService('');
-    const data = useQuery('game', async () => { return gameSerivce.getGame(lobby_id, game_id?.toString()) });
+    const data = useQuery('game', async () => { return gameSerivce.getGameHistory(user!.customId.toString(), game_id!.toString()) });
 
     function getPosition(allCards: any, id: string) {
         return "1:st";
@@ -37,44 +41,42 @@ export default function End() {
         }
     }
 
-    async function returnToLobby() {
-        await gameSerivce.deleteGame(lobby_id as string);
-        router.push('/games/' + lobby_id);
+    async function startNewGame() {
+        const gameService = new SolitaireService();
+        gameService.restartGame(lobby_id as string, game_id as string).then(data => {
+            router.replace(`/games/${lobby_id}/${game_id}/solitaire`);
+            router.refresh();
+        });
     }
 
     return (
-        <main className="w-full bg-[#3f3f46c0] rounded-md p-3 min-h-screen text-zinc-200 relative gap-2">
+        <main className="w-full rounded-md p-5 min-h-screen text-zinc-200 relative gap-2">
             <div className="flex justify-between items-center pb-1">
                 <div className="text-xl p-2 flex gap-2 items-center">
                     <Icon name="card" stroke></Icon>
                     Statistics
                 </div>
                 <div className="flex gap-2 relative">
-                    <Link href={`/games/${lobby_id}/${game_id}/replay`} className="text-zinc-200 p-2 px-4 rounded-md hover:bg-red-700 focus:bg-zinc-800 flex items-center gap-1 ">
-                        <Icon name="watch"></Icon>
-                        Watch replay
-                    </Link>
+                    <div onClick={startNewGame} className="text-zinc-200 p-2 px-4 rounded-md hover:bg-red-700 focus:bg-zinc-800 flex items-center gap-1 cursor-pointer">
+                        <Icon name="game" stroke></Icon>
+                        Start new game
+                    </div>
                 </div>
                 <div className="flex gap-2 relative">
-                    <div onClick={returnToLobby} className="text-zinc-200 p-2 px-4 rounded-md hover:bg-zinc-800 focus:bg-zinc-800 flex items-center gap-1 cursor-pointer">
+                    <Link href={"/games"} className="text-zinc-200 p-2 px-4 rounded-md hover:bg-zinc-800 focus:bg-zinc-800 flex items-center gap-1 cursor-pointer">
                         <Icon name="join"></Icon>
-                        Return to lobby
-                    </div>
+                        Return to tables
+                    </Link>
                 </div>
             </div>
             <hr />
-            <div className={`w-full grid gap-2 grid-cols-4 justify-center items-center h-full pt-2`}>
+            <div className={`w-full flex justify-center items-center h-full pt-2`}>
 
                 {data.isLoading && <Loader></Loader>}
                 {data.isError && <div>Error</div>}
-                {data.isSuccess && !data.isLoading && !data.isError && data.data && data.data.lobby &&
-                    data.data.lobby.users.map((l: any, index: number) => (
-                        <Players place={getPosition(data.data.game.playerCards, l._id)} key={index} playerInfo={l} cards={data.data.game.playerCards[l._id]}></Players>
-                    ))
-                }
-                {data.isSuccess && !data.isLoading && !data.isError && data.data && data.data.lobby &&
-                    data.data.lobby.bots.map((l: any, index: number) => (
-                        <Players place={getPosition(data.data.game.playerCards, l._id)} key={index} playerInfo={{ firstName: l.name, lastName: 'Bot', customId: l._id, rank: 'BOT' }} cards={data.data.game.playerCards[l._id]}></Players>
+                {data.isSuccess && !data.isLoading && !data.isError && data.data &&
+                    data.data.players.map((l: any, index: number) => (
+                        <PlayerCard key={index} playerInfo={l} rank={l.rank} gain={data.data.rank.find((c) => Object.keys(c) === l.customId)} pos={data.data.position.find((c) => c.player === l.customId)} ></PlayerCard>
                     ))
                 }
             </div>
@@ -82,9 +84,10 @@ export default function End() {
     )
 }
 
-function Players({ playerInfo, cards, place }: { playerInfo: any, cards: any, place: string }) {
+function PlayerCard({ rank, gain, pos, playerInfo}: { rank: number, gain: number, pos: number, playerInfo: any }) {
+    return( <div></div>)
     return (
-        <div className="rounded-lg w-full h-full bg-zinc-800 flex flex-col p-4 justify-between gap-3">
+        <div className="rounded-lg w-1/3 h-full bg-zinc-800 flex flex-col p-4 justify-between gap-3">
             <div className="flex w-full justify-between">
                 <Link href={`/profile/${playerInfo.customId}`} className="flex gap-2 items-center">
                     <div style={{ backgroundColor: getColorByInitials(playerInfo).background, color: getColorByInitials(playerInfo).text }} className={"flex justify-center items-center w-16 h-16 rounded-full text-xl"}>
@@ -105,8 +108,6 @@ function Players({ playerInfo, cards, place }: { playerInfo: any, cards: any, pl
                     <div className="w-[0.1rem] h-full bg-zinc-600 rounded-lg" />
                     <div className="w-full h-full flex justify-center items-center text-[2rem] font-bold">
                         <div className="flex ">
-                            {place.split(":")[0]}
-                            <span className="font-thin text-md">{place.split(":")[1]}</span>
                         </div>
                     </div>
                 </div>

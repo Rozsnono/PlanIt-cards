@@ -88,6 +88,7 @@ export default class LobbyController implements Controller {
 
     private getLobby = async (req: Request, res: Response) => {
         const query = req.query;
+        const userid = await getIDfromToken(req);
         const filter: any = {};
         const paging: { page: number, limit: number } = { page: 1, limit: 14 };
         if (query.cardType) {
@@ -114,7 +115,8 @@ export default class LobbyController implements Controller {
         if (query.limit) {
             paging.limit = parseInt(query.limit.toString()) || 14;
         }
-        const lobbies = await this.lobby.find(filter).limit(paging.limit * paging.page).populate("users", "customId username rank settings");
+        console.log({ $and: [...filter, { $or: [{ $and: [{ 'settings.cardType': 'SOLITAIRE' }, { createdBy: userid }] }, { 'settings.cardType': { $ne: 'SOLITAIRE' } }] }] })
+        const lobbies = await this.lobby.find({ $and: [...filter, { $or: [{ $and: [{ 'settings.cardType': 'SOLITAIRE' }, { createdBy: userid }] }, { 'settings.cardType': { $ne: 'SOLITAIRE' } }] }] }).limit(paging.limit * paging.page).populate("users", "customId username rank settings");
         const lobbyCount = await this.lobby.countDocuments();
         res.send({ total: parseInt(((lobbyCount / paging.limit)).toFixed(0)), data: lobbies });
     };

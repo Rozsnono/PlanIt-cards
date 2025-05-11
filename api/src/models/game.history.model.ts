@@ -9,11 +9,13 @@ const gameHistorySchema = new Schema(
         },
         gameId: {
             type: Schema.Types.ObjectId,
-            required: true
+            required: true,
+            ref: "game" 
         },
         lobbyId: {
             type: Schema.Types.ObjectId,
-            required: true
+            required: true,
+            ref: "lobby"
         },
         turns: {
             type: Object,
@@ -23,10 +25,18 @@ const gameHistorySchema = new Schema(
         players: {
             type: Array,
             default: [],
-            readonly: true
+            readonly: true,
+            ref: "user"
         },
         position: {
-            type: Number,
+            type: Array,
+            default: null, 
+            nullable: true
+        },
+        rank: {
+            type: Array,
+            default: null,
+            nullable: true
         },
         date: {
             type: Date,

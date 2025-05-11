@@ -177,18 +177,20 @@ export class GameChecker {
     public setRankByPosition = async (globby: Ilobby) => {
         const game = await this.game.findOne({ _id: globby.game_id });
         if (!game) return;
-        const positions = Object.values(game.playerCards).map((cards: any) => { return cards.reduce((sum: any, obj: any) => { return sum + obj.value }, 0) });
+        const positions = this.getPositions(game.playerCards);
         for (const id of globby.users) {
-            const player = await this.player.findOne({ _id: id });
+            const player = await this.player.findOne({ _id: id._id });
             if (!player) return;
             const body: any = player;
-            const position = Object.keys(game.playerCards).length - positions.indexOf(Math.max(...positions));
-            body.rank += this.calculatePoints(position, Object.keys(game.playerCards).length, 20);
+            if (!globby.settings?.unranked) {
+                body.rank += this.calculatePoints(positions, 20);
+            }
             if (body.numberOfGames === undefined) body.numberOfGames = {};
             if (typeof body.numberOfGames[new Date().toISOString()] === 'undefined') {
                 body.numberOfGames = { ...body.numberOfGames, [new Date().toISOString()]: { wins: 0, losses: 0 } };
             }
-            if (position === 1) {
+
+            if (positions.find((pos: any) => pos.player === id._id)!.pos === 1) {
                 body.numberOfGames[new Date().toISOString()].wins++;
             } else {
                 body.numberOfGames[new Date().toISOString()].losses++;
@@ -202,18 +204,20 @@ export class GameChecker {
     public setRankByPositionUno = async (globby: Ilobby) => {
         const game = await this.game.findOne({ _id: globby.game_id });
         if (!game) return;
-        const positions = Object.values(game.playerCards).map((cards: any) => { return cards.reduce((sum: any, obj: any) => { return sum + obj.value }, 0) });
+        const positions = this.getPositions(game.playerCards);
         for (const id of globby.users) {
             const player = await this.player.findOne({ _id: id });
             if (!player) return;
             const body: any = player;
-            const position = Object.keys(game.playerCards).length - positions.indexOf(Math.max(...positions));
-            body.rank += this.calculatePoints(position, Object.keys(game.playerCards).length, 20);
+
+            if (!globby.settings?.unranked) {
+                body.rank += this.calculatePoints(positions, 20);
+            }
             if (body.numberOfGames === undefined) body.numberOfGames = {};
             if (typeof body.numberOfGames[new Date().toISOString()] === 'undefined') {
                 body.numberOfGames = { ...body.numberOfGames, [new Date().toISOString()]: { wins: 0, losses: 0 } };
             }
-            if (position === 1) {
+            if (positions.find((pos: any) => pos.player === id._id)!.pos === 1) {
                 body.numberOfGames[new Date().toISOString()].wins++;
             } else {
                 body.numberOfGames[new Date().toISOString()].losses++;
@@ -230,13 +234,12 @@ export class GameChecker {
         const player = await this.player.findOne({ _id: id });
         if (!player) return;
         const body: any = player;
-        const position = 1;
-        body.rank += this.calculatePoints(position, Object.keys(game.playerCards).length, 10);
+        body.rank += this.calculatePoints([{pos: 1, player: id}], 10);
         if (body.numberOfGames === undefined) body.numberOfGames = {};
         if (typeof body.numberOfGames[new Date().toISOString()] === 'undefined') {
             body.numberOfGames = { ...body.numberOfGames, [new Date().toISOString()]: { wins: 0, losses: 0 } };
         }
-        if (position === 1) {
+        if (true) {
             body.numberOfGames[new Date().toISOString()].wins++;
         } else {
             body.numberOfGames[new Date().toISOString()].losses++;
@@ -257,11 +260,22 @@ export class GameChecker {
     }
 
 
-    private calculatePoints(rank: number, totalPlayers: number, maxPoints: number) {
-        if (rank < 1 || rank > totalPlayers) {
-            return 0;
-        }
-        const step = maxPoints / (totalPlayers - 1);
-        return Math.max(0, Math.round(maxPoints - (rank - 1) * step));
+    // public calculatePoints(rank: number, totalPlayers: number, maxPoints: number) {
+    //     if (rank < 1 || rank > totalPlayers) {
+    //         return 0;
+    //     }
+    //     const step = maxPoints / (totalPlayers - 1);
+    //     return Math.max(0, Math.round(maxPoints - (rank - 1) * step));
+    // }
+
+    public calculatePoints(position: any, maxPoints: number) {
+        const step = maxPoints / ((position.length - 1) == 0 ? 1 : position.length - 1);
+        return position.map((p: any, i: number) => { return { player: p.player, rank: Math.max(0, Math.round(maxPoints - (p.position - 1) * step)) } });
+    }
+
+    public getPositions(playerCards: any) {
+        const p: { pos: number, player: string }[] = Object.values(playerCards).map((cards: any, i: number) => { return { player: Object.keys(playerCards)[i], pos: cards.reduce((sum: any, obj: any) => { return sum + obj.value }, 0) } });
+        const sorted = p.sort((a: any, b: any) => a.pos - b.pos);
+        return sorted;
     }
 }   

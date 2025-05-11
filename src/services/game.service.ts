@@ -19,6 +19,18 @@ export class GameService {
         return await response.json();
     }
 
+    async getGameHistory(playerId: string, gameId: string) {
+        const response = await fetch(`/api/game_history/${playerId}/${gameId}`, {
+            method: "GET",
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${getCookie("token")}`
+            }
+        });
+
+        return await response.json();
+    }
+
     async startGame(lobbyId: string) {
         const response = await fetch(`/api/start/${lobbyId}/${this.type}`, {
             method: "POST",
@@ -169,7 +181,12 @@ export class SolitaireService extends GameService {
         return await response.json();
     }
 
-    async placeCards(lobbyId: string, body: { placedCards: Icard[], placingCards: Icard[] }) {
+    async placeCards(lobbyId: string, body: { placedCards: Icard[], placingCards: Icard[] }, index: number) {
+        if(index > -1) {
+            body.placingCards = body.placingCards.slice(index);
+        }else{
+            body.placingCards = body.placingCards;
+        }
         const response = await fetch(`/api/put/${lobbyId}/solitaire`, {
             method: "PUT",
             body: JSON.stringify(body),

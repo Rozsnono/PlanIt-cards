@@ -10,6 +10,7 @@ import mongoose from "mongoose";
 import { ERROR } from "../enums/error.enum";
 import { Icard, Ilobby } from "../interfaces/interface";
 import { GameChecker } from "../services/game.service";
+import { GameHistorySolitaire } from "../services/history.services";
 
 
 export default class SolitaireController implements Controller {
@@ -17,6 +18,8 @@ export default class SolitaireController implements Controller {
     public validate = gameModel.validate;
     public game = gameModel.gameModel;
     public lobby = lobbyModel.lobbyModel;
+    private GameHistorySolitaire = new GameHistorySolitaire();
+
 
 
     constructor() {
@@ -80,6 +83,8 @@ export default class SolitaireController implements Controller {
         await newGame.save();
         lobby.game_id = newGame._id;
         await lobby.save();
+        await this.GameHistorySolitaire.saveHistory(playerId, lobby.game_id)
+
         res.send({ message: "Game started!", game_id: newGame._id });
     };
 
@@ -119,6 +124,7 @@ export default class SolitaireController implements Controller {
         game["droppedCards"] = [];
         game["currentPlayer"] = { playerId: lobby?.users[0].toString(), time: 0 };
         await this.game.replaceOne({ _id: gameId }, game, { runValidators: true });
+        await this.GameHistorySolitaire.saveHistory(playerId, lobby.game_id, true);
         res.send({ message: "Game started!", game_id: game._id });
     };
 
@@ -157,6 +163,7 @@ export default class SolitaireController implements Controller {
         game.droppedCards.push({ droppedBy: playerId, card: card });
         game.shuffledCards = dealer!.deck;
         await this.game.replaceOne({ _id: gameId }, game, { runValidators: true });
+        await this.GameHistorySolitaire.saveHistory(playerId, lobby.game_id);
         res.send({ message: "Card drawn successfully!" });
     };
 
@@ -225,6 +232,7 @@ export default class SolitaireController implements Controller {
 
 
         await this.game.replaceOne({ _id: gameId }, game, { runValidators: true });
+        await this.GameHistorySolitaire.saveHistory(playerId, lobby.game_id);
         res.send({ message: "Card placed successfully!" });
     };
 
@@ -296,12 +304,18 @@ export default class SolitaireController implements Controller {
 
 
         await this.game.replaceOne({ _id: gameId }, game, { runValidators: true });
+        await this.GameHistorySolitaire.saveHistory(playerId, lobby.game_id);
 
-        if(!game.playedCards.map(c => c.cards).find(c => c.length != 0) && game.droppedCards.length === 0 && game.shuffledCards.length === 0) {
+        if (!game.playedCards.map(c => c.cards).find(c => c.length != 0) && game.droppedCards.length === 0 && game.shuffledCards.length === 0) {
             await new GameChecker().setRankInSolitaire(lobby as any);
+            await this.GameHistorySolitaire.savePosition(lobbyId, gameId, 10);
             res.send({ info: "Game Over!" });
             return;
         }
         res.send({ message: "Card played successfully!" });
+    }
+
+    private prevSteps = async (req: Request, res: Response) => {
+        
     }
 }

@@ -76,6 +76,8 @@ export default class SocketIO {
 
     private async getLobbies(query: any | null) {
         const filter: any = {};
+        const userid = query.userId;
+        
         const paging: { page: number, limit: number } = { page: 1, limit: 14 };
         if (query.cardType) {
             filter["settings.cardType"] = query.cardType;
@@ -101,7 +103,9 @@ export default class SocketIO {
         if (query.limit) {
             paging.limit = parseInt(query.limit.toString()) || 14;
         }
-        const lobbies = await this.lobby.find(filter).limit(paging.limit * paging.page).populate("users", "customId username rank settings");
+        console.log({ $and: [{...filter}, { $or: [{ $and: [{ 'settings.cardType': 'SOLITAIRE' }, { createdBy: userid }] }, { 'settings.cardType': { $ne: 'SOLITAIRE' } }] }] })
+        const lobbies = await this.lobby.find({ $and: [{...filter}, { $or: [{ $and: [{ 'settings.cardType': 'SOLITAIRE' }, { createdBy: userid }] }, { 'settings.cardType': { $ne: 'SOLITAIRE' } }] }] }).limit(paging.limit * paging.page).populate("users", "customId username rank settings");
+        
         const lobbyCount = await this.lobby.countDocuments();
         return { total: parseInt(((lobbyCount / paging.limit)).toFixed(0)), data: lobbies }
     }
@@ -126,12 +130,17 @@ export default class SocketIO {
                             case "UNO":
                                 this.gameChecker.stopInterval(change.fullDocument._id);
                                 this.gameChecker.setRankByPositionUno(lobby! as any); 
-                                this.gameHistory.savePosition(lobby!._id.toString(), change.fullDocument._id);
+                                this.gameHistory.savePosition(lobby!._id.toString(), change.fullDocument._id, 20);
                                 break;
                             case "RUMMY":
                                 this.gameChecker.stopInterval(change.fullDocument._id);
                                 this.gameChecker.setRankByPosition(lobby! as any);
-                                this.gameHistory.savePosition(lobby!._id.toString(), change.fullDocument._id);
+                                this.gameHistory.savePosition(lobby!._id.toString(), change.fullDocument._id, 20);
+                                break;
+                            case "SOLITAIRE":
+                                this.gameChecker.stopInterval(change.fullDocument._id);
+                                this.gameChecker.setRankInSolitaire(lobby! as any);
+                                this.gameHistory.savePosition(lobby!._id.toString(), change.fullDocument._id, 10);
                                 break;
                             default:
                                 this.gameChecker.stopInterval(change.fullDocument._id);
@@ -148,7 +157,6 @@ export default class SocketIO {
                     try {
                         if (Object.values(change.fullDocument.playerCards).find((array: any) => array.length === 0)) {
                             client.send(JSON.stringify({ game_over: true }));
-
                         } else if (change.fullDocument.currentPlayer && change.fullDocument.currentPlayer.playerId.includes('bot')) {
                             const lobby = await this.lobby.findOne({ game_id: change.fullDocument._id });
                             const currentPlayer = change.fullDocument.currentPlayer.playerId;

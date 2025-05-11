@@ -9,22 +9,22 @@ import { useQuery } from "react-query";
 import { GameService } from "@/services/game.service";
 import Loader from "@/components/loader.component";
 import CardsUrls from "@/contexts/cards.context";
+import { useContext } from "react";
+import { UserContext } from "@/contexts/user.context";
 
 export default function End() {
 
     const lobby_id = useParams().lobby_id;
     const game_id = useParams().game_id;
+    const { user } = useContext(UserContext);
 
     const router = useRouter();
 
     const gameSerivce = new GameService('');
-    const data = useQuery('game', async () => { return gameSerivce.getGame(lobby_id, game_id?.toString()) });
+    const data = useQuery('game-history', async () => { return gameSerivce.getGameHistory(user!._id, game_id!.toString()) });
 
-    function getPosition(allCards: any, id: string) {
-        const positions = Object.values(allCards).map((cards: any) => { return cards.reduce((sum: any, obj: any) => { return sum + obj.value }, 0) });
-        const sorted = positions.sort((a: any, b: any) => a - b);
-        if (sorted[0] !== 0) router.back();
-        switch (sorted.indexOf(allCards[id].reduce((sum: any, obj: any) => { return sum + obj.value }, 0))) {
+    function getPosition(position: number) {
+        switch (position) {
             case 0:
                 return "1:st";
             case 1:
@@ -32,7 +32,7 @@ export default function End() {
             case 2:
                 return "3:rd";
             default:
-                return sorted.indexOf(allCards[id].reduce((sum: any, obj: any) => { return sum + obj.value }, 0)) + ":th";
+                return position + ":th";
         }
     }
 
@@ -68,12 +68,12 @@ export default function End() {
                 {data.isError && <div>Error</div>}
                 {data.isSuccess && !data.isLoading && !data.isError && data.data && data.data.lobby &&
                     data.data.lobby.users.map((l: any, index: number) => (
-                        <Players place={getPosition(data.data.game.playerCards, l._id)} key={index} playerInfo={{ firstName: l.firstName, lastName: l.lastName, customId: l.customId, rank: l.rank }} cards={data.data.game.playerCards[l._id]}></Players>
+                        <Players place={getPosition(data.data.position)} key={index} playerInfo={{ firstName: l.firstName, lastName: l.lastName, customId: l.customId, rank: l.rank }} cards={data.data.game.playerCards[l._id]}></Players>
                     ))
                 }
                 {data.isSuccess && !data.isLoading && !data.isError && data.data && data.data.lobby &&
                     data.data.lobby.bots.map((l: any, index: number) => (
-                        <Players place={getPosition(data.data.game.playerCards, l._id)} key={index} playerInfo={{ firstName: l.name, lastName: 'Bot', customId: l._id, rank: 'BOT' }} cards={data.data.game.playerCards[l._id]}></Players>
+                        <Players place={'Not ranked'} key={index} playerInfo={{ firstName: l.name, lastName: 'Bot', customId: l._id, rank: 'BOT' }} cards={data.data.game.playerCards[l._id]}></Players>
                     ))
                 }
             </div>

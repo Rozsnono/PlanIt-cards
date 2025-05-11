@@ -8,6 +8,8 @@ import AuthController from "./controllers/auth.controller";
 import SocketIO from "./controllers/socketIO.controller";
 import userModel from "./models/user.model";
 import lobbyModel from "./models/lobby.model";
+import gameModel from "./models/game.model";
+import gameHistoryModel from "./models/game.history.model";
 
 const { MONGO_URL = "mongodb+srv://admin:admin@planit-card.0lrdm.mongodb.net/planitdb?retryWrites=true&w=majority&appName=Planit-card" } = process.env;
 
@@ -56,5 +58,7 @@ export default class App {
 
         userModel.userModel.init();
         lobbyModel.lobbyModel.init();
+        gameModel.gameModel.init();
+        gameHistoryModel.gameHistoryModel.init();
     }
 }

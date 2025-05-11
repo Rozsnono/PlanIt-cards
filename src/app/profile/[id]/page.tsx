@@ -35,20 +35,23 @@ export default function ProfilePage() {
 
 
     if (player.isLoading || player!.data.length == 0) return <Loader></Loader>
-    if(!user) return <div className="text-zinc-400 text-center w-full h-full flex items-center justify-center">Please login to see this page</div>
+    if (!user) return <div className="text-zinc-400 text-center w-full h-full flex items-center justify-center">Please login to see this page</div>
     return (
         <main className="flex gap-2 p-4 h-full">
             <main className="w-full flex flex-col gap-3 items-center justify-start border-2 rounded-lg border-zinc-500">
                 <div className="h-fit w-full p-2">
-                    <Chart data={{ wins: Object.values(player.data.numberOfGames).map((c: any) => c.wins).reduce((acc, num) => acc + num, 0), loses: Object.values(player.data.numberOfGames).map((c: any) => c.losses).reduce((acc, num) => acc + num, 0) }}></Chart>
+                    {
+                        player.data.numberOfGames &&
+                        <Chart data={{ wins: Object.values(player.data.numberOfGames).map((c: any) => c.wins).reduce((acc, num) => acc + num, 0), loses: Object.values(player.data.numberOfGames).map((c: any) => c.losses).reduce((acc, num) => acc + num, 0) }}></Chart>
+                    }
                 </div>
                 <div className="text-xl p-2 flex gap-2 items-center text-zinc-100">
                     Replays
                 </div>
-                <div className="w-full gap-2 flex flex-col h-full">
+                <div className="w-full gap-2 flex flex-col h-full p-2">
                     {!GameHistory.isLoading && GameHistory.data && GameHistory.data.map((game: any, i: number) => {
                         return (
-                            <GameReplays link={`/games/${game.lobbyId}/${game.gameId}/replay`} key={i} pos={game.position || 0} type={game.type} date={game.date}></GameReplays>
+                            <GameReplays link={`/games/${game.lobbyId}/${game.gameId}/replay`} key={i} pos={game.position.find((p: any) => p.player = user.customId) || {position: 0}} type={game.type} date={game.date}></GameReplays>
                         )
                     })}
                     {
@@ -77,8 +80,13 @@ export default function ProfilePage() {
                     <h1>Statistics</h1>
                     <div className="flex gap-2 justify-between items-center font-bold">
                         <div className="flex items-center gap-1 text-lg">
-                            <Icon name="game" size={24} stroke></Icon>
-                            {Object.values(player.data.numberOfGames).map((c: any) => c.wins).reduce((acc, num) => acc + num, 0) + Object.values(player.data.numberOfGames).map((c: any) => c.losses).reduce((acc, num) => acc + num, 0)} Games
+                            {
+                                player.data.numberOfGames &&
+                                <>
+                                    <Icon name="game" size={24} stroke></Icon>
+                                    {Object.values(player.data.numberOfGames).map((c: any) => c.wins).reduce((acc, num) => acc + num, 0) + Object.values(player.data.numberOfGames).map((c: any) => c.losses).reduce((acc, num) => acc + num, 0)} Games
+                                </>
+                            }
                         </div>
                     </div>
                 </div>
@@ -106,7 +114,7 @@ export default function ProfilePage() {
                         {
                             player.data.achievements.map((achievement: any, i: number) => {
                                 return (
-                                    <Achievements key={i} imageSrc={achievement.image} name={achievement.name} description={achievement.description}></Achievements>
+                                    <Achievements key={i} imageSrc={achievement.image}  name={achievement.name} description={achievement.description}></Achievements>
                                 )
                             })
                         }
@@ -146,7 +154,7 @@ export default function ProfilePage() {
     )
 }
 
-function GameReplays({ pos, type, date, link }: { pos: number, type: string, date: string, link: string }) {
+function GameReplays({ pos, type, date, link }: { pos: any, type: string, date: string, link: string }) {
     function getGameTypeImage() {
         switch (type) {
             case "UNO":
@@ -163,7 +171,7 @@ function GameReplays({ pos, type, date, link }: { pos: number, type: string, dat
             <Image className="hidden md:flex" src={getGameTypeImage()} width={100} height={100} alt={type}></Image>
             <div className="flex flex-col gap-3 items-center justify-center">
                 <div className="text-2xl">
-                    #{pos}
+                    #{pos.position}
                 </div>
             </div>
             <div className="flex flex-col gap-3 items-center justify-center">

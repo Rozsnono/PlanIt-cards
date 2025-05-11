@@ -2,7 +2,7 @@
 import Icon from "@/assets/icons";
 import LobbyCard from "@/components/lobby/lobby";
 import RightSideBar, { RightSideBarHeader } from "./sidebar";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { useQuery } from "react-query";
 import { Ilobby } from "@/interfaces/interface";
 import Loading from "../loading";
@@ -15,12 +15,16 @@ import Image from "next/image";
 import React from "react";
 import { WebSocketing } from "@/services/websocket.service";
 import { IP } from "@/enums/ip.enum";
+import { UserContext } from "@/contexts/user.context";
 const lobbyService = new LobbyService();
 
 export default function Games() {
     const [open, setOpen] = useState(false);
     const [openPrivate, setOpenPrivate] = useState(false);
     const [openFilter, setOpenFilter] = useState(false);
+    const { user } = useContext(UserContext);
+
+    const socket = useRef<WebSocket | null>(null);
 
     const [state, setState] = useState({
         isLoading: true,
@@ -35,20 +39,20 @@ export default function Games() {
     const [page, setPage] = useState(1);
 
     useEffect(() => {
-        const socket = new WebSocket(IP.LOBBYSOCKET);
+        socket.current = new WebSocket(IP.LOBBYSOCKET);
         setState({ ...state, isLoading: true });
 
 
-        socket.addEventListener('open', () => {
+        socket!.current!.addEventListener('open', () => {
             console.log('WebSocket is connected');
-            socket.send(JSON.stringify({}));
+            socket!.current!.send(JSON.stringify({userId: user?._id, ...getFilterFromURL()}));
             setState({ ...state, isLoading: true });
 
         });
 
-        socket.addEventListener('message', (event) => {
+        socket!.current!.addEventListener('message', (event) => {
             if(JSON.parse(event.data).refresh){
-                socket.send(JSON.stringify({}));
+                socket!.current!.send(JSON.stringify({userId: user?._id, ...getFilterFromURL()}));
                 setState({ ...state, isLoading: true });   
             }else{
                 try {
@@ -60,9 +64,14 @@ export default function Games() {
         });
 
         return () => {
-            socket.close();
+            socket!.current!.close();
         };
     }, [])
+
+    function refreshLobbyList(){
+        socket!.current!.send(JSON.stringify({userId: user?._id, ...getFilterFromURL()}));
+        setState({ ...state, isLoading: true });
+    }
 
 
     function getFilterFromURL() {
@@ -171,7 +180,7 @@ export default function Games() {
             </RightSideBar>
 
             <RightSideBar className="border-zinc-300" open={openFilter} onClose={() => setOpenFilter(!openFilter)}>
-                <FilterSideBarContent onClose={() => { setOpenFilter(!openFilter); }} />
+                <FilterSideBarContent onClose={() => { setOpenFilter(!openFilter); refreshLobbyList(); }} />
             </RightSideBar>
         </main>
     );
@@ -304,7 +313,14 @@ function FilterSideBarContent({ onClose }: Readonly<{ onClose?: () => void }>) {
     }
 
     function setFilterByParam(key: string, value: any) {
-        setFilter({ ...filter, [key]: value });
+        console.log(filter, (filter as any)[key])
+        if((filter as any)[key] === value){
+            delete (filter as any)[key];
+            console.log(filter, (filter as any)[key])
+            setFilter({ ...filter });
+        }else{
+            setFilter({ ...filter, [key]: value });
+        }
     }
 
     function getFilterCSS(filterType: 'cardType' | 'unranked' | 'noPrivateLobby' | 'noBots' | 'numberOfPlayers' | 'robotsDifficulty', condition: any, numberOf?: boolean) {
@@ -357,11 +373,13 @@ function FilterSideBarContent({ onClose }: Readonly<{ onClose?: () => void }>) {
                 <div className="flex items-center justify-between gap-2">
                     <button onClick={() => { setFilterByParam('cardType', 'RUMMY') }} className={getFilterCSS('cardType', 'RUMMY') + " w-full rounded-lg p-2 more-modal-input text-left flex gap-1 items-center"}> <Icon name="card" size={16} stroke></Icon> Rummy</button>
                     <button onClick={() => { setFilterByParam('cardType', 'UNO') }} className={getFilterCSS('cardType', 'UNO') + " w-full rounded-lg p-2 more-modal-input text-left flex gap-1 items-center"}> <Icon name="card" size={16} stroke></Icon> Uno</button>
+                    <button onClick={() => { setFilterByParam('cardType', 'SOLITAIRE') }} className={getFilterCSS('cardType', 'SOLITAIRE') + " w-full rounded-lg p-2 more-modal-input text-left flex gap-1 items-center"}> <Icon name="card" size={16} stroke></Icon> Solitaire</button>
                 </div>
 
                 <div className="flex items-center justify-between gap-2">
                     <div className="flex gap-1 w-full">
                         {
+                            filter.cardType !== 'SOLITAIRE' &&
                             new Array(filter.cardType === 'RUMMY' ? 5 : 7).fill(0).map((_, index) => (
                                 <button onClick={() => { setFilterByParam('numberOfPlayers', index + 2) }} key={index} className={getFilterCSS('numberOfPlayers', index + 2, true) + " w-full h-8 rounded-lg flex items-center justify-center"}>{index + 2}</button>
                             ))

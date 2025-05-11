@@ -9,22 +9,22 @@ import { useQuery } from "react-query";
 import { GameService } from "@/services/game.service";
 import Loader from "@/components/loader.component";
 import CardsUrls from "@/contexts/cards.context";
+import { useContext } from "react";
+import { UserContext } from "@/contexts/user.context";
 
 export default function End() {
 
     const lobby_id = useParams().lobby_id;
     const game_id = useParams().game_id;
+    const { user } = useContext(UserContext);
 
     const router = useRouter();
 
     const gameSerivce = new GameService('');
-    const data = useQuery('game', async () => { return gameSerivce.getGame(lobby_id, game_id?.toString()) });
+    const data = useQuery('game-history', async () => { return gameSerivce.getGameHistory(user!._id, game_id!.toString()) });
 
-    function getPosition(allCards: any, id: string) {
-        const positions = Object.values(allCards).map((cards: any) => { return cards.reduce((sum: any, obj: any) => { return sum + obj.value }, 0) });
-        const sorted = positions.sort((a: any, b: any) => a - b);
-        if(sorted[0] !== 0) router.back();
-        switch (sorted.indexOf(allCards[id].reduce((sum: any, obj: any) => { return sum + obj.value }, 0))) {
+    function getPosition(position: number) {
+        switch (position) {
             case 0:
                 return "1:st";
             case 1:
@@ -32,11 +32,11 @@ export default function End() {
             case 2:
                 return "3:rd";
             default:
-                return sorted.indexOf(allCards[id].reduce((sum: any, obj: any) => { return sum + obj.value }, 0)) + ":th";
+                return position + ":th";
         }
     }
 
-    async function returnToLobby(){
+    async function returnToLobby() {
         await gameSerivce.deleteGame(lobby_id as string);
         router.push('/games/' + lobby_id);
     }
@@ -49,7 +49,7 @@ export default function End() {
                     Statistics
                 </div>
                 <div className="flex gap-2 relative">
-                    <Link href={`/games/${lobby_id}/${game_id}/rummy/replay`} className="text-zinc-200 p-2 px-4 rounded-md hover:bg-red-700 focus:bg-zinc-800 flex items-center gap-1 ">
+                    <Link href={`/games/${lobby_id}/${game_id}/replay`} className="text-zinc-200 p-2 px-4 rounded-md hover:bg-red-700 focus:bg-zinc-800 flex items-center gap-1 ">
                         <Icon name="watch"></Icon>
                         Watch replay
                     </Link>
@@ -67,13 +67,8 @@ export default function End() {
                 {data.isLoading && <Loader></Loader>}
                 {data.isError && <div>Error</div>}
                 {data.isSuccess && !data.isLoading && !data.isError && data.data && data.data.lobby &&
-                    data.data.lobby.users.map((l: any, index: number) => (
-                        <Players place={getPosition(data.data.game.playerCards, l._id)} key={index} playerInfo={{ firstName: l.firstName, lastName: l.lastName, customId: l.customId, rank: l.rank }} cards={data.data.game.playerCards[l._id]}></Players>
-                    ))
-                }
-                {data.isSuccess && !data.isLoading && !data.isError && data.data && data.data.lobby &&
-                    data.data.lobby.bots.map((l: any, index: number) => (
-                        <Players place={getPosition(data.data.game.playerCards, l._id)} key={index} playerInfo={{ firstName: l.name, lastName: 'Bot', customId: l._id, rank: 'BOT' }} cards={data.data.game.playerCards[l._id]}></Players>
+                    data.data.players.map((l: any, index: number) => (
+                        <Players place={getPosition(data.data.position)} key={index} playerInfo={{ firstName: l.firstName, lastName: l.lastName, customId: l.customId, rank: l.rank }}></Players>
                     ))
                 }
             </div>
@@ -81,7 +76,7 @@ export default function End() {
     )
 }
 
-function Players({ playerInfo, cards, place }: { playerInfo: any, cards: any, place: string }) {
+function Players({ playerInfo, place }: { playerInfo: any, place: string }) {
 
     return (
         <div className="rounded-lg w-full h-full bg-zinc-800 flex flex-col p-4 justify-between gap-3">
@@ -128,16 +123,6 @@ function Players({ playerInfo, cards, place }: { playerInfo: any, cards: any, pl
                     </div>
 
                 </div>
-            </div>
-
-            <div className="flex w-full relative">
-                {
-                    cards.map((card: any, index: number) => (
-                        <div key={index} className="w-10 bg-zinc-700 rounded-md flex justify-center items-center">
-                            <Image src={"/assets/cards/rummy/" + new CardsUrls().getCardUrl(card.name)} width={100} height={100} alt={card.name}></Image>
-                        </div>
-                    ))
-                }
             </div>
         </div>
     )
