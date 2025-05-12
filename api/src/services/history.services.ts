@@ -109,7 +109,7 @@ export class GameHistorySolitaire extends GameHistoryService {
         if (!game) return { error: ERROR.GAME_NOT_FOUND };
         const player = await this.user.findOne({ _id: player_id });
         if (!player) return { error: ERROR.USER_NOT_FOUND };
-        const lobby = await this.lobby.findOne({ game_id }).populate("users", "_id customId username settings firstName lastName");
+        const lobby = await this.lobby.findOne({ game_id }).populate("users", "_id customId username settings firstName lastName rank");
         if (!lobby) return { error: ERROR.LOBBY_NOT_FOUND };
         const gameH = await this.gameHistory.find({ playerId: player_id }).populate("lobbyId", "settings");
         const finded = gameH.find((history: any) => history.lobbyId == null || (history.lobbyId != null && history.lobbyId.settings?.cardType === 'SOLITAIRE'));
@@ -124,13 +124,14 @@ export class GameHistorySolitaire extends GameHistoryService {
                     1: {
                         playerCards: game.playerCards,
                         playedCards: game.playedCards,
-                        droppedCards: game.droppedCards
+                        droppedCards: game.droppedCards,
+                        shuffledCards: game.shuffledCards,
                     }
                 },
                 players: (lobby.users as any[]).concat(lobby.bots as any),
                 date: new Date(),
-                position: lobby.users.map((user: any, index: number) => {return { player: user.customId, position: 0 } }),
-                rank: lobby.users.map((user: any, index: number) => {return { player: user.customId, rank: 0 } }),
+                position: lobby.users.map((user: any, index: number) => { return { player: user.customId, position: 0 } }),
+                rank: lobby.users.map((user: any, index: number) => { return { player: user.customId, rank: 0 } }),
             }
             await this.gameHistory.replaceOne({ _id: TMPgameHistory!._id }, newGameHistory, { runValidators: true });
             return { message: "History saved!" };
@@ -147,7 +148,8 @@ export class GameHistorySolitaire extends GameHistoryService {
                         1: {
                             playerCards: game.playerCards,
                             playedCards: game.playedCards,
-                            droppedCards: game.droppedCards
+                            droppedCards: game.droppedCards,
+                            shuffledCards: game.shuffledCards
                         }
                     },
                     type: lobby.settings?.cardType,
@@ -170,7 +172,8 @@ export class GameHistorySolitaire extends GameHistoryService {
                 [Object.keys(gameHistory.turns).length + 1]: {
                     playerCards: game.playerCards,
                     playedCards: game.playedCards,
-                    droppedCards: game.droppedCards
+                    droppedCards: game.droppedCards,
+                    shuffledCards: game.shuffledCards
                 }
             };
 
@@ -191,7 +194,7 @@ export class GameHistorySolitaire extends GameHistoryService {
         if (!gameHistory) return { error: ERROR.GAME_HISTORY_NOT_FOUND };
 
         gameHistory.forEach(async (history) => {
-            history.position = history.position.map((p: any) => {return { player: p.player, position: 1 } });
+            history.position = history.position.map((p: any) => { return { player: p.player, position: 1 } });
             history.rank = new GameChecker().calculatePoints(history.position, maxPoints);
             await this.gameHistory.replaceOne({ _id: history._id }, history, { runValidators: true });
         });

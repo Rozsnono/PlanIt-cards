@@ -11,6 +11,7 @@ import { ERROR } from "../enums/error.enum";
 import { Icard, Ilobby } from "../interfaces/interface";
 import { GameChecker } from "../services/game.service";
 import { GameHistorySolitaire } from "../services/history.services";
+import gameHistoryModel from "../models/game.history.model";
 
 
 export default class SolitaireController implements Controller {
@@ -18,6 +19,7 @@ export default class SolitaireController implements Controller {
     public validate = gameModel.validate;
     public game = gameModel.gameModel;
     public lobby = lobbyModel.lobbyModel;
+    public gameHistory = gameHistoryModel.gameHistoryModel;
     private GameHistorySolitaire = new GameHistorySolitaire();
 
 
@@ -41,6 +43,10 @@ export default class SolitaireController implements Controller {
 
         this.router.post("/restart/:lobbyId/:gameId/solitaire", hasAuth([Auth["UNO.PLAY"]]), (req, res, next) => {
             this.reStartGame(req, res).catch(next);
+        });
+
+        this.router.post("/prevSteps/:lobbyId/:gameId/solitaire", hasAuth([Auth["UNO.PLAY"]]), (req, res, next) => {
+            this.prevSteps(req, res).catch(next);
         });
 
     }
@@ -316,6 +322,61 @@ export default class SolitaireController implements Controller {
     }
 
     private prevSteps = async (req: Request, res: Response) => {
-        
+        const lobbyId = req.params.lobbyId;
+        const playerId = await getIDfromToken(req);
+        const lobby = await this.lobby.findOne({ _id: lobbyId });
+
+        if (!lobby) {
+            res.status(404).send({ error: ERROR.LOBBY_NOT_FOUND });
+            return;
+        }
+
+        if (!lobby.users.find((player) => player.toString() == playerId)) {
+            res.status(403).send({ error: ERROR.NOT_IN_LOBBY });
+            return;
+        }
+
+        const gameId = lobby.game_id;
+        const game = await this.game.findOne({ _id: gameId });
+
+        if (!game) {
+            res.status(404).send({ error: ERROR.GAME_NOT_FOUND });
+            return;
+        }
+
+        // check if the player is the current player
+        if (playerId.toString() !== game.currentPlayer.playerId.toString()) {
+            res.status(403).send({ error: ERROR.NOT_YOUR_TURN });
+            return;
+        }
+
+        const gameHistory = await this.gameHistory.findOne({ gameId: gameId });
+        if (!gameHistory) {
+            res.status(404).send({ error: ERROR.GAME_HISTORY_NOT_FOUND });
+            return;
+        }
+
+        const turns = Object.values(gameHistory.turns).length;
+        const turn = gameHistory.turns[turns - 1];
+
+        console.log(gameHistory, turns, gameHistory.turns[turns]);
+
+        if (!turn) {
+            res.status(404).send({ error: ERROR.GAME_HISTORY_NOT_FOUND });
+            return;
+        }
+
+        game.playerCards = turn.playerCards;
+        game.playedCards = turn.playedCards;
+        game.droppedCards = turn.droppedCards;
+        game.shuffledCards = turn.shuffledCards;
+
+        game.currentPlayer = { playerId: game.currentPlayer.playerId, time: 0 };
+        await this.game.replaceOne({ _id: gameId }, game, { runValidators: true });
+
+        gameHistory.turns = Object.values(gameHistory.turns).filter((t, index: number) => index + 1 !== turns).map((turn: any, index: number) => { return { [index + 1]: turn } });
+        await this.gameHistory.replaceOne({ gameId: gameId }, gameHistory, { runValidators: true });
+
+        res.send({ message: "Card played successfully!" });
     }
 }

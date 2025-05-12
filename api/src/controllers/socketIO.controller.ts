@@ -32,6 +32,9 @@ export default class SocketIO {
                     if (inGame) {
                         const obj: any = inGame.toObject();
                         const playerCard = obj.playerCards[identifier.player_id];
+                        if(inLobby.settings?.cardType === "SOLITAIRE" && !obj.playedCards.find((c: any) => c.cards.length > 0) && obj.droppedCards.length === 0 ) {
+                            ws.send(JSON.stringify({ game_over: true }));
+                        }
                         if (Object.values(obj.playerCards).find((array: any) => array.length === 0)) {
                             ws.send(JSON.stringify({ game_over: true }));
                         }

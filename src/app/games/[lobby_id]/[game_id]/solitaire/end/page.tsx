@@ -57,7 +57,7 @@ export default function End() {
                     Statistics
                 </div>
                 <div className="flex gap-2 relative">
-                    <div onClick={startNewGame} className="text-zinc-200 p-2 px-4 rounded-md hover:bg-red-700 focus:bg-zinc-800 flex items-center gap-1 cursor-pointer">
+                    <div onClick={startNewGame} className="text-zinc-200 p-2 px-4 rounded-md hover:bg-blue-700 focus:bg-zinc-800 flex items-center gap-1 cursor-pointer">
                         <Icon name="game" stroke></Icon>
                         Start new game
                     </div>
@@ -76,7 +76,7 @@ export default function End() {
                 {data.isError && <div>Error</div>}
                 {data.isSuccess && !data.isLoading && !data.isError && data.data &&
                     data.data.players.map((l: any, index: number) => (
-                        <PlayerCard key={index} playerInfo={l} rank={l.rank} gain={data.data.rank.find((c) => Object.keys(c) === l.customId)} pos={data.data.position.find((c) => c.player === l.customId)} ></PlayerCard>
+                        <PlayerCard key={index} playerInfo={l} rank={l.rank} gain={data.data.rank.find((c) => c.player === l.customId).rank} pos={data.data.position.find((c) => c.player === l.customId).position} ></PlayerCard>
                     ))
                 }
             </div>
@@ -85,7 +85,6 @@ export default function End() {
 }
 
 function PlayerCard({ rank, gain, pos, playerInfo}: { rank: number, gain: number, pos: number, playerInfo: any }) {
-    return( <div></div>)
     return (
         <div className="rounded-lg w-1/3 h-full bg-zinc-800 flex flex-col p-4 justify-between gap-3">
             <div className="flex w-full justify-between">
@@ -108,6 +107,7 @@ function PlayerCard({ rank, gain, pos, playerInfo}: { rank: number, gain: number
                     <div className="w-[0.1rem] h-full bg-zinc-600 rounded-lg" />
                     <div className="w-full h-full flex justify-center items-center text-[2rem] font-bold">
                         <div className="flex ">
+                            {pos}
                         </div>
                     </div>
                 </div>
@@ -120,7 +120,7 @@ function PlayerCard({ rank, gain, pos, playerInfo}: { rank: number, gain: number
                             {getRankName(playerInfo.rank).title}
                         </h2>
                         <div className="flex gap-1 items-center">
-                            <div className="text-lg font-bold">+ 20</div>
+                            <div className="text-lg font-bold">+ {gain}</div>
                         </div>
                         <div className="flex gap-2 flex-wrap font-thin relative w-full">
                             <div className="rounded-full h-2 w-full bg-gray-500 absolute"></div>

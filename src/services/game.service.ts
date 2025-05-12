@@ -224,6 +224,18 @@ export class SolitaireService extends GameService {
         return res;
     }
 
+    async prevStep(lobbyId: string, gameId: string) {
+        const response = await fetch(`/api/prevSteps/${lobbyId}/${gameId}/solitaire`, {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${getCookie("token")}`
+            }
+        });
+        const res = await response.json();
+        return res;
+    }
+
     async playWithPress(lobbyId: string, body: { playedCards: Icard[][], playingCard: Icard }) {
         const check = body.playedCards.find((cards: Icard[]) => {
             return cards.find((card: Icard) => {

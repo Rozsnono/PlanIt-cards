@@ -42,7 +42,7 @@ export default function Game() {
             console.log("Data from websocket");
             setIsLoading(false);
             if (game_over) {
-                router.push(`/games/${lobby_id}/${game_id}/end`);
+                router.push(`/games/${lobby_id}/${game_id}/solitaire/end`);
                 console.log("Game Over");
                 socket.close();
             }
@@ -159,6 +159,18 @@ export default function Game() {
             setIsLoading(false);
         });
     }
+
+    function goBack() {
+        if (isLoading) return;
+        setIsLoading(true);
+        gameService.prevStep(lobby_id as string, game_id as string).then(data => {
+        }).catch(err => {
+            setError(err);
+            setIsLoading(false);
+
+        });
+    }
+
     return (
         <main className="flex w-full h-full rounded-md p-3 relative">
 
@@ -249,6 +261,9 @@ export default function Game() {
                 <div className="absolute left-20 top-4 flex justify-center items-center gap-3">
                     <div onClick={restartGame} className="w-[3rem] h-[3rem] rounded-full border border-blue-300 text-blue-300 hover:border-sky-100 hover:text-sky-100 flex justify-center items-center cursor-pointer duration-100">
                         <Icon name="refresh" size={24} stroke></Icon>
+                    </div>
+                    <div onClick={goBack} className="w-[3rem] h-[3rem] rounded-full border border-blue-300 text-blue-300 hover:border-sky-100 hover:text-sky-100 flex justify-center items-center cursor-pointer duration-100">
+                        <Icon name="arrow-left" size={24} stroke></Icon>
                     </div>
                 </div>
             </main>

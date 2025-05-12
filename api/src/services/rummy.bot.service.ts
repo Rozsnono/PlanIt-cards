@@ -55,24 +55,25 @@ export class RummyBot {
 
     private searchForMelds(): any {
         const melds = [];
-
-        const sequence = this.hasSequence();
-        const set = this.hasSet();
+        const { sequence, set }: any = {sequence: [], set: []};
+        // const sequence = this.hasSequence();
+        // const set = this.hasSet();
         let values = 0;
-        sequence.forEach(card => values += card.value);
-        set.forEach(card => values += card.value);
+        sequence.forEach((card: Icard[]) => card.forEach(c => values += c.value));
+        set.forEach((card: any) => values += card.value);
         if (values >= 51) {
             if(sequence.length > 0){
                 melds.push({ playedBy: this.name, cards: sequence });
             }
-            melds.push({ playedBy: this.name, cards: sequence });
-            melds.push({ playedBy: this.name, cards: set });
+            if(set.length > 0){
+                melds.push({ playedBy: this.name, cards: set });
+            }
         }
 
         return melds;
     }
 
-    private hasSequence(): Icard[] | [] {
+    private hasSequence(): Icard[][] | [] {
 
         const suits = ["S", "H", "D", "C"];
 
@@ -82,23 +83,30 @@ export class RummyBot {
             }
             return a.rank - b.rank;
         });
-        const sequence: Icard[] = [];
+        const tmpSequence: Icard[] = [];
+        const sequence: Icard[][] = [];
         const hasJoker = this.playerCards.filter(card => card.isJoker);
         for (let i = 0; i < this.playerCards.length - 1; i++) {
             const card = this.playerCards[i];
             const nextCard = this.playerCards[i + 1];
             const prevCard = this.playerCards[i - 1] || { rank: 0 };
+
+            if(card.rank - 1 !== prevCard.rank){
+                tmpSequence.length = 0;
+            }
+
             if (card.rank + 1 === nextCard.rank) {
-                sequence.push(card);
+                tmpSequence.push(card);
             } else if (card.rank - 1 === prevCard.rank) {
-                sequence.push(card);
+                tmpSequence.push(card);
             }
             else if (hasJoker.length > 0) {
-                sequence.push(hasJoker.pop()!);
+                tmpSequence.push(hasJoker.pop()!);
             }
-        }
-        if (sequence.length < 3) {
-            return [];
+            if(tmpSequence.length > 2){
+                sequence.push(tmpSequence);
+                tmpSequence.length = 0;
+            }
         }
 
         return sequence;
@@ -116,22 +124,23 @@ export class RummyBot {
         });
 
         const hasJoker = this.playerCards.filter(card => card.isJoker);
-        const set: Icard[] = [];
+        const tmpSet: Icard[] = [];
+        const set: Icard[][] = [];
         for (let i = 0; i < this.playerCards.length - 1; i++) {
             const card = this.playerCards[i];
             const nextCard = this.playerCards[i + 1];
             const prevCard = this.playerCards[i - 1] || { rank: 0 };
             if (card.rank === nextCard.rank && card.suit !== nextCard.suit) {
                 if(set.length == 0){
-                    set.push(card);
-                }else if(set.length > 0 && set[0].rank == card.rank){
-                    set.push(card);
+                    tmpSet.push(card);
+                }else if(set.length > 0 && tmpSet[0].rank == card.rank){
+                    tmpSet.push(card);
                 }
-            } else if (card.rank === prevCard.rank && card.suit !== prevCard.suit && (set.length > 0 && set[0].rank == card.rank)) {
-                set.push(card);
+            } else if (card.rank === prevCard.rank && card.suit !== prevCard.suit && (set.length > 0 && tmpSet[0].rank == card.rank)) {
+                tmpSet.push(card);
             }
             else if (hasJoker.length > 0) {
-                set.push(hasJoker.pop()!);
+                tmpSet.push(hasJoker.pop()!);
             }
         }
 
@@ -139,7 +148,7 @@ export class RummyBot {
             return [];
         }
 
-        return set;
+        return tmpSet;
     }
 
     private searchForPuttableCards(): any {
