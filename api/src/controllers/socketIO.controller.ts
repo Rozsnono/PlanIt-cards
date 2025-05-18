@@ -47,7 +47,21 @@ export default class SocketIO {
                         ws.send(JSON.stringify(inLobby));
                     }
                 } else {
-                    ws.send(JSON.stringify({ status: ERROR.NOT_IN_LOBBY }));
+
+                    const lobby = await this.lobby.findOne({ _id: identifier._id }).populate("users", 'firstName lastName email username customId rank settings').exec();
+                    if (lobby?.game_id) {
+                        const game = await this.game.findOne({ _id: lobby.game_id });
+                        const obj: any = game?.toObject();
+                        delete obj.playerCards;
+                        const res = {
+                            lobby: lobby,
+                            game: obj
+                        }
+                        ws.send(JSON.stringify(res));
+                    } else {
+                        ws.send(JSON.stringify({ status: ERROR.NOT_IN_LOBBY }));
+                    }
+
 
                 }
             });

@@ -31,4 +31,10 @@ export class UserSettings {
     
         return brightness > 128 ? "#000000" : "#FFFFFF";
     }
+
+    public getRandomCode(length: number): string {
+        const randomNumber = Math.floor((Math.random() * 1000000) + 1000);
+        const randomCode = randomNumber.toString(16).padStart(length, '0');
+        return randomCode;
+    }
 }

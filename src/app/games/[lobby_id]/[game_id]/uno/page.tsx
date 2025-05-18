@@ -15,6 +15,7 @@ import React from "react";
 import { useContext, useEffect, useState } from "react";
 import CardsUrls from "@/contexts/cards.context";
 import ColorPicker from "@/components/color.picker";
+import GameUser, { GameBot } from "@/components/user/game.user.component";
 
 const gameService = new UnoService();
 const timerClass = new Timer();
@@ -183,35 +184,9 @@ export default function Game() {
                 <div className="absolute top-0 left-2 h-full flex flex-col justify-between items-center">
                     <div></div>
                     {
-                        lobby?.users.filter((u)=>{return u._id !== user?._id}).slice(0, lobby?.users.length / 2).map((user, j) => {
+                        lobby?.users.filter((u) => { return u._id !== user?._id }).slice(0, lobby?.users.length / 2).map((user, j) => {
                             return (
-                                <div key={j} className="w-16 h-16 relative group cursor-pointer">
-
-                                    <div style={{ color: getColorByInitials(user).text, backgroundColor: getColorByInitials(user).background }} className="w-16 h-16 rounded-full flex text-zinc-300 items-center justify-center relative">
-                                        {getUserInitials(user.firstName, user.lastName)}
-                                        {game.currentPlayer.playerId === user._id &&
-                                            <div className="absolute -top-6 w-full flex justify-center">
-                                                <div className="-rotate-[16deg] animate-pulse">
-                                                    <Icon name="card-d" size={24}></Icon>
-                                                </div>
-                                                <div className="rotate-[16deg] animate-pulse">
-                                                    <Icon name="card-d" size={24}></Icon>
-                                                </div>
-                                            </div>
-                                        }
-                                    </div>
-                                    <div>
-                                        <p className="text-zinc-300 text-center">{user.firstName}</p>
-                                    </div>
-
-                                    <div className="absolute rounded-full w-8 h-8 top-0 group-hover:top-[3.5rem] left-4 bg-blue-500 hover:bg-blue-400 opacity-0 group-hover:opacity-100 flex justify-center items-center duration-200">
-                                        <Icon name="add-friend"></Icon>
-                                    </div>
-                                    <div className="absolute rounded-full w-8 h-8 top-0 group-hover:top-[5rem] left-4 bg-sky-500 hover:bg-sky-400 opacity-0 group-hover:opacity-100 flex justify-center items-center duration-200">
-                                        <Icon name="info"></Icon>
-                                    </div>
-
-                                </div>
+                                <GameUser key={j} user={user} currentPlayer={game.currentPlayer.playerId}></GameUser>
                             )
                         })
                     }
@@ -219,26 +194,7 @@ export default function Game() {
                     {
                         lobby?.bots.slice(0, lobby?.bots.length / 2).map((bot, j) => {
                             return (
-                                <div key={j} className="w-16 h-16 relative group cursor-pointer">
-
-                                    <div className="w-16 h-16 rounded-full flex text-zinc-300 items-center justify-center bg-zinc-500 border relative">
-                                        <Icon name="robot" size={32} stroke></Icon>
-                                        {game.currentPlayer.playerId === bot._id &&
-                                            <div className="absolute -top-6 w-full flex justify-center">
-                                                <div className="-rotate-[16deg] animate-pulse">
-                                                    <Icon name="card-d" size={24}></Icon>
-                                                </div>
-                                                <div className="rotate-[16deg] animate-pulse">
-                                                    <Icon name="card-d" size={24}></Icon>
-                                                </div>
-                                            </div>
-                                        }
-                                    </div>
-                                    <div>
-                                        <p className="text-zinc-300 text-center">{bot.name}</p>
-                                    </div>
-
-                                </div>
+                                <GameBot key={j} bot={bot} currentPlayer={game.currentPlayer.playerId}></GameBot>
                             )
                         })
                     }
@@ -248,35 +204,9 @@ export default function Game() {
                 <div className="absolute top-0 right-2 h-full flex flex-col justify-between items-center">
                     <div></div>
                     {
-                        lobby?.users.filter((u)=>{return u._id !== user?._id}).slice(lobby?.users.length / 2).map((user, j) => {
+                        lobby?.users.filter((u) => { return u._id !== user?._id }).slice(lobby?.users.length / 2).map((user, j) => {
                             return (
-                                <div key={j} className="w-16 h-16 relative group cursor-pointer">
-
-                                    <div style={{ color: getColorByInitials(user).text, backgroundColor: getColorByInitials(user).background }} className="w-16 h-16 rounded-full flex text-zinc-300 items-center justify-center relative">
-                                        {getUserInitials(user.firstName, user.lastName)}
-                                        {game.currentPlayer.playerId === user._id &&
-                                            <div className="absolute -top-6 w-full flex justify-center">
-                                                <div className="-rotate-[16deg] animate-pulse">
-                                                    <Icon name="card-d" size={24}></Icon>
-                                                </div>
-                                                <div className="rotate-[16deg] animate-pulse">
-                                                    <Icon name="card-d" size={24}></Icon>
-                                                </div>
-                                            </div>
-                                        }
-                                    </div>
-                                    <div>
-                                        <p className="text-zinc-300 text-center">{user.firstName}</p>
-                                    </div>
-
-                                    <div className="absolute rounded-full w-8 h-8 top-0 group-hover:top-[3.5rem] left-4 bg-blue-500 hover:bg-blue-400 opacity-0 group-hover:opacity-100 flex justify-center items-center duration-200">
-                                        <Icon name="add-friend"></Icon>
-                                    </div>
-                                    <div className="absolute rounded-full w-8 h-8 top-0 group-hover:top-[5rem] left-4 bg-sky-500 hover:bg-sky-400 opacity-0 group-hover:opacity-100 flex justify-center items-center duration-200">
-                                        <Icon name="info"></Icon>
-                                    </div>
-
-                                </div>
+                                <GameUser key={j} user={user} currentPlayer={game.currentPlayer.playerId}></GameUser>
                             )
                         })
                     }
@@ -284,26 +214,7 @@ export default function Game() {
                     {
                         lobby?.bots.slice(lobby?.bots.length / 2).map((bot, j) => {
                             return (
-                                <div key={j} className="w-16 h-16 relative group cursor-pointer">
-
-                                    <div className="w-16 h-16 rounded-full flex text-zinc-300 items-center justify-center bg-zinc-500 border relative">
-                                        <Icon name="robot" size={32} stroke></Icon>
-                                        {game.currentPlayer.playerId === bot._id &&
-                                            <div className="absolute -top-6 w-full flex justify-center">
-                                                <div className="-rotate-[16deg] animate-pulse">
-                                                    <Icon name="card-d" size={24}></Icon>
-                                                </div>
-                                                <div className="rotate-[16deg] animate-pulse">
-                                                    <Icon name="card-d" size={24}></Icon>
-                                                </div>
-                                            </div>
-                                        }
-                                    </div>
-                                    <div>
-                                        <p className="text-zinc-300 text-center">{bot.name}</p>
-                                    </div>
-
-                                </div>
+                                <GameBot key={j} bot={bot} currentPlayer={game.currentPlayer.playerId}></GameBot>
                             )
                         })
                     }

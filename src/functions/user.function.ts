@@ -40,7 +40,6 @@ export function getColorByInitials(user?: Iplayer | null) {
         const user = getUser();
         return { background: user!.settings.backgroundColor, text: user!.settings.textColor };
     }
-    console.log(user)
     return { background: user.settings.backgroundColor, text: user.settings.textColor };
 }
 

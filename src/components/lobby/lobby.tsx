@@ -77,7 +77,7 @@ export default function LobbyCard({ lobbyDatas, lobbyNumber, isAdmin }: { lobbyD
         }
         else if (lobbyDatas.game_id || (lobbyDatas.users?.length && lobbyDatas.users?.length + (lobbyDatas.bots?.length ? lobbyDatas.bots?.length : 0) >= lobbyDatas.settings.numberOfPlayers)) {
             return (
-                <Link href={"games/" + lobbyDatas._id} className="bg-zinc-500 text-white p-2 px-2 rounded-md hover:bg-zinc-400 flex items-center gap-1">
+                <Link href={"games/" + lobbyDatas._id  + "/" + lobbyDatas.game_id + "/" + lobbyDatas.settings.cardType.toLowerCase() +  "/watch"} className="bg-zinc-500 text-white p-2 px-2 rounded-md hover:bg-zinc-400 flex items-center gap-1">
                     <Icon name="watch"></Icon>
                     Watch
                 </Link>

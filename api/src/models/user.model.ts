@@ -98,6 +98,11 @@ export const userSchema = new Schema(
                 canInvite: true,
             }
         },
+        registraionCode: {
+            type: String,
+            default: null,
+            nullable: true
+        },
         isDeleted: {
             type: Boolean,
             default: false,

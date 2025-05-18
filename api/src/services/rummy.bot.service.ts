@@ -28,6 +28,14 @@ export class RummyBot {
         this.playedCards = playedCards;
     }
 
+    get hasSequenceGetter() {
+        return this.hasSequence();
+    }
+
+    get hasSetGetter() {
+        return this.hasSet();
+    }
+
     public get thinkingTime(): number {
         return Math.floor(Math.random() * (ThinkTimeByDifficulty[this.difficulty].max - ThinkTimeByDifficulty[this.difficulty].min + 1) + ThinkTimeByDifficulty[this.difficulty].min) * 1000;
     }
@@ -83,6 +91,7 @@ export class RummyBot {
             }
             return a.rank - b.rank;
         });
+        console.log(this.playerCards);
         const tmpSequence: Icard[] = [];
         const sequence: Icard[][] = [];
         const hasJoker = this.playerCards.filter(card => card.isJoker);
@@ -92,6 +101,7 @@ export class RummyBot {
             const prevCard = this.playerCards[i - 1] || { rank: 0 };
 
             if(card.rank - 1 !== prevCard.rank){
+                if(tmpSequence.length > 0){sequence.push(tmpSequence);}
                 tmpSequence.length = 0;
             }
 
@@ -102,10 +112,6 @@ export class RummyBot {
             }
             else if (hasJoker.length > 0) {
                 tmpSequence.push(hasJoker.pop()!);
-            }
-            if(tmpSequence.length > 2){
-                sequence.push(tmpSequence);
-                tmpSequence.length = 0;
             }
         }
 

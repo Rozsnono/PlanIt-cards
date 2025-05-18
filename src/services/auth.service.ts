@@ -19,6 +19,24 @@ export class AuthService {
             });
     }
 
+    public async Validate(username: string, code: string) {
+        return fetch('/auth/validate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ username, code }),
+        })
+            .then((res) => res.json())
+            .then((data) => {
+                if (data.status === 'error') {
+                    throw new Error(data.error);
+                }
+                this.saveInCookie(data.token);
+                return data;
+            });
+    }
+
     private saveInCookie(data: string, remember: boolean = false) {
         document.cookie = `token=${data}; expires=${new Date(new Date().setDate(new Date().getDate() + (remember ? 7 : 0))).toString()} path=/`;
     }

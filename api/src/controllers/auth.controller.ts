@@ -8,6 +8,7 @@ import { Auth } from "../enums/auth.enum";
 import mongoose from "mongoose";
 import { ERROR } from "../enums/error.enum";
 import { UserSettings } from "../cards/user";
+import MailController from "./mail.controller";
 
 const { ACCESS_TOKEN_SECRET = "secret" } = process.env;
 
@@ -15,10 +16,15 @@ export default class AuthController implements Controller {
     public router = Router();
     public user = userModel.userModel;
     public validate = userModel.validate;
+    public mail = new MailController();
 
     constructor() {
         this.router.post("/login", (req, res, next) => {
             this.login(req, res).catch(next);
+        });
+
+        this.router.post("/validate", (req, res, next) => {
+            this.validator(req, res).catch(next);
         });
 
         this.router.post("/register", (req, res, next) => {
@@ -47,6 +53,37 @@ export default class AuthController implements Controller {
         }
     };
 
+    private validator = async (req: Request, res: Response) => {
+        const body = req.body;
+
+        let user = await this.user.findOne({ username: body.username });
+        if (user) {
+            const result = await bcrypt.compare(body.code, user.registraionCode);
+            if (result) {
+                user.registraionCode = '';
+                const hex = Array.from((body.firstName + body.lastName)).map((char: any) => char.charCodeAt(0).toString(16)).join('');
+                body["customId"] = hex + new mongoose.Types.ObjectId().toString().slice(0, 6);
+                const userS = new UserSettings();
+                body["settings"] = {
+                    backgroundColor: userS.getColorByInitials(body.firstName + body.lastName).background,
+                    textColor: userS.getColorByInitials(body.firstName + body.lastName).text,
+                }
+                await this.user.replaceOne({ _id: user._id }, user, { runValidators: true });
+                user = await this.user.findOne({ username: body.username });
+                if (user) {
+                    const token = jwt.sign({ _id: user._id, username: user.username, firstName: user.firstName, lastName: user.lastName, auth: user.auth, numberOfGames: user.numberOfGames, rank: user.rank, email: user.email, customId: user.customId, peddingFriends: user.peddingFriends.length, settings: user.settings }, ACCESS_TOKEN_SECRET);
+                    res.send({ token: token });
+                }else{
+                    res.status(404).send({ error: ERROR.AN_ERROR_OCCURRED });
+                }
+            } else {
+                res.status(401).send({ error: ERROR.INVALID_USER });
+            }
+        } else {
+            res.status(404).send({ error: ERROR.AN_ERROR_OCCURRED });
+        }
+    };
+
     private register = async (req: Request, res: Response) => {
         const body = req.body;
         const { error } = this.validate(body);
@@ -61,18 +98,19 @@ export default class AuthController implements Controller {
         }
         body["_id"] = new mongoose.Types.ObjectId();
         body["password"] = await bcrypt.hash(body["password"], 10);
-        const hex = Array.from((body.firstName + body.lastName)).map((char: any) => char.charCodeAt(0).toString(16)).join('');
-        body["customId"] = hex + new mongoose.Types.ObjectId().toString().slice(0,6);
+
         const userS = new UserSettings();
+        const code = userS.getRandomCode(1);
+        body["registraionCode"] = await bcrypt.hash(code, 10);
         body["settings"] = {
             backgroundColor: userS.getColorByInitials(body.firstName + body.lastName).background,
             textColor: userS.getColorByInitials(body.firstName + body.lastName).text,
         }
+        this.mail.sendMail(body.email, body.username, 'Welcome to PlanIt!', code);
 
         const newUser = new this.user(body);
         await newUser.save();
-        const token = jwt.sign({ _id: newUser._id, username: newUser.username, firstName: newUser.firstName, lastName: newUser.lastName, auth: newUser.auth, numberOfGames: newUser.numberOfGames, rank: newUser.rank, email: newUser.email, customId: newUser.customId, settings: newUser.settings }, ACCESS_TOKEN_SECRET);
-        res.send({ message: "OK", token: token });
+        res.send({ message: "OK" });
     };
 
     private password = async (req: Request, res: Response) => {

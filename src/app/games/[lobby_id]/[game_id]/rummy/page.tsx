@@ -5,7 +5,6 @@ import Loader from "@/components/loader.component";
 import { SettingsContext } from "@/contexts/settings.context";
 import { UserContext } from "@/contexts/user.context";
 import { dropCard, placeCardToIndex, playCard, sortRummyCards } from "@/functions/card.function";
-import { getColorByInitials, getUserInitials } from "@/functions/user.function";
 import { Icard, Igame, Ilobby } from "@/interfaces/interface";
 import { GameService } from "@/services/game.service";
 import { Timer } from "@/services/timer.service";
@@ -15,6 +14,7 @@ import React from "react";
 import { useContext, useEffect, useState } from "react";
 import CardsUrls from "@/contexts/cards.context";
 import { IP } from "@/enums/ip.enum";
+import GameUser, { GameBot } from "@/components/user/game.user.component";
 
 const gameService = new GameService("rummy");
 const timerClass = new Timer();
@@ -147,7 +147,7 @@ export default function Game() {
         const interval = setInterval(() => {
             try {
                 setTimer(parseInt(((new Date().getTime() - game.currentPlayer.time) / 1000).toFixed(0)));
-            } catch {}
+            } catch { }
         }, 1000);
         return () => clearInterval(interval);
     }, [game]);
@@ -186,7 +186,7 @@ export default function Game() {
                                                 return (
                                                     <div onDrop={() => { cardPlacingDrop(e) }} key={j} className="w-8 h-16 relative group cursor-pointer overflow-visible">
                                                         <Image className={`card-animation w-16 max-w-16 rounded-md border border-transparent ${e.playedBy === user?._id ? ' group-hover:border-green-500' : ""} `} key={j} src={"/assets/cards/rummy/" + new CardsUrls().getCardUrl(card.name)} width={70} height={60} alt={new CardsUrls().getCardUrl(card.name)}></Image>
-                                                        {j === 0 && <div className="opacity-0 group-hover:opacity-100 absolute group-hover:bottom-[-3.6rem] bottom-0 left-0 w-16 z-[-1] duration-200">{lobby?.users.find(user => user._id === e.playedBy)?.firstName || e.playedBy}</div>}
+                                                        {j === 0 && <div className="opacity-0 group-hover:opacity-100 absolute group-hover:bottom-[-3.6rem] bottom-0 text-zinc-300 left-0 w-16 z-[-1] duration-200 ">{lobby?.users.find(user => user._id === e.playedBy)?.firstName || e.playedBy}</div>}
                                                     </div>
                                                 )
                                             })
@@ -224,33 +224,8 @@ export default function Game() {
                     {
                         lobby?.users.filter((u, i) => { return i % 2 === 0 && u._id !== user?._id }).map((user, j) => {
                             return (
-                                <div key={j} className="w-16 h-16 relative group cursor-pointer">
+                                <GameUser key={j} user={user} currentPlayer={game.currentPlayer.playerId}></GameUser>
 
-                                    <div style={{ color: getColorByInitials(user).text, backgroundColor: getColorByInitials(user).background }} className="w-16 h-16 rounded-full flex text-zinc-300 items-center justify-center relative">
-                                        {getUserInitials(user.firstName, user.lastName)}
-                                        {game.currentPlayer.playerId === user._id &&
-                                            <div className="absolute -top-6 w-full flex justify-center">
-                                                <div className="-rotate-[16deg] animate-pulse">
-                                                    <Icon name="card-d" size={24}></Icon>
-                                                </div>
-                                                <div className="rotate-[16deg] animate-pulse">
-                                                    <Icon name="card-d" size={24}></Icon>
-                                                </div>
-                                            </div>
-                                        }
-                                    </div>
-                                    <div>
-                                        <p className="text-zinc-300 text-center">{user.firstName}</p>
-                                    </div>
-
-                                    <div className="absolute rounded-full w-8 h-8 top-0 group-hover:top-[3.5rem] left-4 bg-blue-500 hover:bg-blue-400 opacity-0 group-hover:opacity-100 flex justify-center items-center duration-200">
-                                        <Icon name="add-friend"></Icon>
-                                    </div>
-                                    <div className="absolute rounded-full w-8 h-8 top-0 group-hover:top-[5rem] left-4 bg-sky-500 hover:bg-sky-400 opacity-0 group-hover:opacity-100 flex justify-center items-center duration-200">
-                                        <Icon name="info"></Icon>
-                                    </div>
-
-                                </div>
                             )
                         })
                     }
@@ -258,26 +233,8 @@ export default function Game() {
                     {
                         lobby?.bots.filter((u, i) => { return i % 2 === 1 }).map((bot, j) => {
                             return (
-                                <div key={j} className="w-16 h-16 relative group cursor-pointer">
+                                <GameBot key={j} bot={bot} currentPlayer={game.currentPlayer.playerId}></GameBot>
 
-                                    <div className="w-16 h-16 rounded-full flex text-zinc-300 items-center justify-center bg-zinc-500 border relative">
-                                        <Icon name="robot" size={32} stroke></Icon>
-                                        {game.currentPlayer.playerId === bot._id &&
-                                            <div className="absolute -top-6 w-full flex justify-center">
-                                                <div className="-rotate-[16deg] animate-pulse">
-                                                    <Icon name="card-d" size={24}></Icon>
-                                                </div>
-                                                <div className="rotate-[16deg] animate-pulse">
-                                                    <Icon name="card-d" size={24}></Icon>
-                                                </div>
-                                            </div>
-                                        }
-                                    </div>
-                                    <div>
-                                        <p className="text-zinc-300 text-center">{bot.name}</p>
-                                    </div>
-
-                                </div>
                             )
                         })
                     }
@@ -289,33 +246,8 @@ export default function Game() {
                     {
                         lobby?.users.filter((u, i) => { return i % 2 === 1 && u._id !== user?._id }).map((user, j) => {
                             return (
-                                <div key={j} className="w-16 h-16 relative group cursor-pointer">
+                                <GameUser key={j} user={user} currentPlayer={game.currentPlayer.playerId}></GameUser>
 
-                                    <div style={{ color: getColorByInitials(user).text, backgroundColor: getColorByInitials(user).background }} className="w-16 h-16 rounded-full flex text-zinc-300 items-center justify-center relative">
-                                        {getUserInitials(user.firstName, user.lastName)}
-                                        {game.currentPlayer.playerId === user._id &&
-                                            <div className="absolute -top-6 w-full flex justify-center">
-                                                <div className="-rotate-[16deg] animate-pulse">
-                                                    <Icon name="card-d" size={24}></Icon>
-                                                </div>
-                                                <div className="rotate-[16deg] animate-pulse">
-                                                    <Icon name="card-d" size={24}></Icon>
-                                                </div>
-                                            </div>
-                                        }
-                                    </div>
-                                    <div>
-                                        <p className="text-zinc-300 text-center">{user.firstName}</p>
-                                    </div>
-
-                                    <div className="absolute rounded-full w-8 h-8 top-0 group-hover:top-[3.5rem] left-4 bg-blue-500 hover:bg-blue-400 opacity-0 group-hover:opacity-100 flex justify-center items-center duration-200">
-                                        <Icon name="add-friend"></Icon>
-                                    </div>
-                                    <div className="absolute rounded-full w-8 h-8 top-0 group-hover:top-[5rem] left-4 bg-sky-500 hover:bg-sky-400 opacity-0 group-hover:opacity-100 flex justify-center items-center duration-200">
-                                        <Icon name="info"></Icon>
-                                    </div>
-
-                                </div>
                             )
                         })
                     }
@@ -323,26 +255,8 @@ export default function Game() {
                     {
                         lobby?.bots.filter((u, i) => { return i % 2 === 0 }).map((bot, j) => {
                             return (
-                                <div key={j} className="w-16 h-16 relative group cursor-pointer">
+                                <GameBot key={j} bot={bot} currentPlayer={game.currentPlayer.playerId}></GameBot>
 
-                                    <div className="w-16 h-16 rounded-full flex text-zinc-300 items-center justify-center bg-zinc-500 border relative">
-                                        <Icon name="robot" size={32} stroke></Icon>
-                                        {game.currentPlayer.playerId === bot._id &&
-                                            <div className="absolute -top-6 w-full flex justify-center">
-                                                <div className="-rotate-[16deg] animate-pulse">
-                                                    <Icon name="card-d" size={24}></Icon>
-                                                </div>
-                                                <div className="rotate-[16deg] animate-pulse">
-                                                    <Icon name="card-d" size={24}></Icon>
-                                                </div>
-                                            </div>
-                                        }
-                                    </div>
-                                    <div>
-                                        <p className="text-zinc-300 text-center">{bot.name}</p>
-                                    </div>
-
-                                </div>
                             )
                         })
                     }

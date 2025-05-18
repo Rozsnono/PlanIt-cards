@@ -42,7 +42,7 @@ export default function Navbar({ clear }: { clear?: boolean }) {
     if (clear) {
         return (
             <main className='fixed top-4 left-4 z-[100] opacity-70 '>
-                <div className='w-16 h-16 bg-zinc-900 rounded-full flex flex-col justify-start items-center group relative hover:h-64 duration-200'>
+                <div className='w-16 h-16 rounded-full flex flex-col justify-start items-center group relative hover:bg-transparent hover:h-96 duration-200'>
                     <div className='w-16 h-16 bg-zinc-900 z-50 p-2 rounded-full flex items-center justify-center border-2 border-zinc-600 '>
                         <Image src={"/assets/icon.png"} alt='Logo' width={120} height={100}></Image>
                     </div>

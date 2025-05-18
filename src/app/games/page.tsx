@@ -45,22 +45,24 @@ export default function Games() {
 
         socket!.current!.addEventListener('open', () => {
             console.log('WebSocket is connected');
-            socket!.current!.send(JSON.stringify({userId: user?._id, ...getFilterFromURL()}));
+            socket!.current!.send(JSON.stringify({userId: user?._id||null, ...getFilterFromURL()}));
             setState({ ...state, isLoading: true });
 
         });
 
         socket!.current!.addEventListener('message', (event) => {
-            if(JSON.parse(event.data).refresh){
-                socket!.current!.send(JSON.stringify({userId: user?._id, ...getFilterFromURL()}));
-                setState({ ...state, isLoading: true });   
-            }else{
-                try {
-                    setState({ ...state, data: JSON.parse(event.data), isLoading: false });
-                } catch {
-                    setState({ ...state, isLoading: false });   
+            try {
+                if(event.data && JSON.parse(event.data).refresh){
+                    socket!.current!.send(JSON.stringify({userId: user?._id||null, ...getFilterFromURL()}));
+                    setState({ ...state, isLoading: true });   
+                }else{
+                    try {
+                        setState({ ...state, data: JSON.parse(event.data), isLoading: false });
+                    } catch {
+                        setState({ ...state, isLoading: false });   
+                    }
                 }
-            }
+            } catch{}
         });
 
         return () => {
