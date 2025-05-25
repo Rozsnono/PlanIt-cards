@@ -30,7 +30,7 @@ export default function Game() {
     const [lobby, setLobby] = useState<Ilobby | null>(null);
 
     useEffect(() => {
-        const socket = new WebSocket("ws://localhost:8080");
+        const socket = new WebSocket("ws://192.168.0.13:8080");
 
         socket.addEventListener('open', () => {
             console.log('WebSocket is connected');

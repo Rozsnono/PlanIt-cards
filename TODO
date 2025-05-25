@@ -2,6 +2,10 @@ Redesign end
 Redesign replay
 Do replay on UNO
 RUMMY bots fixes
+Pick up card
+ EASY -> Place after less than 4 cards ✅
+ MEDIUM -> Place from the start but only 1 at once ✅
+ HARD -> Place from start and place any, checking cards to drop
 New admin panel
 Quality of life
 Solitaire bugs

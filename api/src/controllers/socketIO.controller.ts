@@ -32,11 +32,16 @@ export default class SocketIO {
                     if (inGame) {
                         const obj: any = inGame.toObject();
                         const playerCard = obj.playerCards[identifier.player_id];
-                        if(inLobby.settings?.cardType === "SOLITAIRE" && !obj.playedCards.find((c: any) => c.cards.length > 0) && obj.droppedCards.length === 0 ) {
+                        if (inLobby.settings?.cardType === "SOLITAIRE" && !obj.playedCards.find((c: any) => c.cards.length > 0) && obj.droppedCards.length === 0) {
                             ws.send(JSON.stringify({ game_over: true }));
                         }
                         if (Object.values(obj.playerCards).find((array: any) => array.length === 0)) {
-                            ws.send(JSON.stringify({ game_over: true }));
+                            ws.send(JSON.stringify({
+                                game_over: true,
+                                lobby: inLobby,
+                                game: { ...obj, playerCards: inLobby.settings!.cardType === 'SOLITAIRE' ? obj.playerCards : Object.keys(obj.playerCards).map((key) => { return { [key]: obj.playerCards[key].length } }) },
+                                playerCard: playerCard
+                            }));
                         }
                         ws.send(JSON.stringify({
                             lobby: inLobby,
@@ -94,7 +99,7 @@ export default class SocketIO {
     private async getLobbies(query: any | null) {
         const filter: any = {};
         const userid = query.userId;
-        
+
         const paging: { page: number, limit: number } = { page: 1, limit: 14 };
         if (query.cardType) {
             filter["settings.cardType"] = query.cardType;
@@ -120,9 +125,8 @@ export default class SocketIO {
         if (query.limit) {
             paging.limit = parseInt(query.limit.toString()) || 14;
         }
-        console.log({ $and: [{...filter}, { $or: [{ $and: [{ 'settings.cardType': 'SOLITAIRE' }, { createdBy: userid }] }, { 'settings.cardType': { $ne: 'SOLITAIRE' } }] }] })
-        const lobbies = await this.lobby.find({ $and: [{...filter}, { $or: [{ $and: [{ 'settings.cardType': 'SOLITAIRE' }, { createdBy: userid }] }, { 'settings.cardType': { $ne: 'SOLITAIRE' } }] }] }).limit(paging.limit * paging.page).populate("users", "customId username rank settings");
-        
+        const lobbies = await this.lobby.find({ $and: [{ ...filter }, { $or: [{ $and: [{ 'settings.cardType': 'SOLITAIRE' }, { createdBy: userid }] }, { 'settings.cardType': { $ne: 'SOLITAIRE' } }] }] }).limit(paging.limit * paging.page).populate("users", "customId username rank settings");
+
         const lobbyCount = await this.lobby.countDocuments();
         return { total: parseInt(((lobbyCount / paging.limit)).toFixed(0)), data: lobbies }
     }
@@ -146,7 +150,7 @@ export default class SocketIO {
                         switch (lobby.settings?.cardType) {
                             case "UNO":
                                 this.gameChecker.stopInterval(change.fullDocument._id);
-                                this.gameChecker.setRankByPositionUno(lobby! as any); 
+                                this.gameChecker.setRankByPositionUno(lobby! as any);
                                 this.gameHistory.savePosition(lobby!._id.toString(), change.fullDocument._id, 20);
                                 break;
                             case "RUMMY":
@@ -170,10 +174,9 @@ export default class SocketIO {
 
             this.wss.clients.forEach(async (client) => {
                 if (client.readyState === WebSocket.OPEN) {
-                    console.log(change.fullDocument.currentPlayer);
                     try {
                         if (Object.values(change.fullDocument.playerCards).find((array: any) => array.length === 0)) {
-                            client.send(JSON.stringify({ game_over: true }));
+                            client.send(JSON.stringify({ game_over: true, refresh: true }));
                         } else if (change.fullDocument.currentPlayer && change.fullDocument.currentPlayer.playerId.includes('bot')) {
                             const lobby = await this.lobby.findOne({ game_id: change.fullDocument._id });
                             const currentPlayer = change.fullDocument.currentPlayer.playerId;

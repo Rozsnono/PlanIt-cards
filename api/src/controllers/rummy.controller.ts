@@ -28,6 +28,10 @@ export default class RummyController implements Controller {
         this.router.put("/draw/:lobbyId/rummy", hasAuth([Auth["RUMMY.PLAY"]]), (req, res, next) => {
             this.drawCard(req, res).catch(next);
         });
+        // API route to draw a card from dropped cards
+        this.router.put("/draw/dropped/:lobbyId/rummy", hasAuth([Auth["RUMMY.PLAY"]]), (req, res, next) => {
+            this.drawCardFromDropped(req, res).catch(next);
+        });
         // API route to get the next turn
         this.router.put("/next/:lobbyId/rummy", hasAuth([Auth["RUMMY.PLAY"]]), (req, res, next) => {
             this.nextTurn(req, res).catch(next);
@@ -47,6 +51,7 @@ export default class RummyController implements Controller {
         this.router.put("/force-next/:lobbyId/rummy", hasAuth([Auth["RUMMY.PLAY"]]), (req, res, next) => {
             this.forcedNextTurn(req, res).catch(next);
         });
+
 
     }
 
@@ -224,6 +229,57 @@ export default class RummyController implements Controller {
         await this.game.replaceOne({ _id: gameId }, game, { runValidators: true });
         res.send({ message: "Card drawn!" });
     };
+
+    private drawCardFromDropped = async (req: Request, res: Response) => {
+        const lobbyId = req.params.lobbyId;
+        const playerId = await getIDfromToken(req);
+        const lobby = await this.lobby.findOne({ _id: lobbyId });
+
+        if (!lobby) {
+            res.status(404).send({ error: ERROR.LOBBY_NOT_FOUND });
+            return;
+        }
+
+        if (!lobby.users.find((player) => player.toString() == playerId)) {
+            res.status(403).send({ error: ERROR.NOT_IN_LOBBY });
+            return;
+        }
+
+        const gameId = lobby.game_id;
+        const game = await this.game.findOne({ _id: gameId });
+        if (!game) {
+            res.status(404).send({ error: ERROR.GAME_NOT_FOUND });
+            return;
+        }
+
+        if (playerId.toString() !== game.currentPlayer.playerId.toString()) {
+            res.status(403).send({ error: ERROR.NOT_YOUR_TURN });
+            return;
+        }
+
+        if (game.drawedCard.lastDrawedBy === playerId) {
+            res.status(403).send({ error: ERROR.ALREADY_DRAWN });
+            return;
+        }
+
+        if (game.droppedCards.length === 0) {
+            res.status(403).send({ error: ERROR.NO_CARDS_DROPPED });
+            return;
+        }
+
+        if (game.droppedCards[game.droppedCards.length - 1].droppedBy === playerId) {
+            res.status(403).send({ error: ERROR.AN_ERROR_OCCURRED });
+            return;
+        }
+
+        game.playerCards[playerId] = game.playerCards[playerId].concat(game.droppedCards[game.droppedCards.length - 1].card);
+        game.droppedCards.splice(game.droppedCards.length - 1, 1);
+        game.droppedCards[game.droppedCards.length - 1].droppedBy = "";
+        game.drawedCard.lastDrawedBy = playerId;
+        await this.game.replaceOne({ _id: gameId }, game, { runValidators: true });
+        res.send({ message: "Card drawn!" });
+
+    }
 
     private nextPlayer(users: string[], current: string, bots?: string[]): string {
         if (bots && bots?.includes(current)) {

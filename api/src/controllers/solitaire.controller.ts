@@ -24,6 +24,7 @@ export default class SolitaireController implements Controller {
 
 
 
+
     constructor() {
         // API route to start a game
         this.router.post("/start/:lobbyId/solitaire", hasAuth([Auth["START.GAME"]]), (req, res, next) => {
@@ -48,6 +49,9 @@ export default class SolitaireController implements Controller {
         this.router.post("/prevSteps/:lobbyId/:gameId/solitaire", hasAuth([Auth["UNO.PLAY"]]), (req, res, next) => {
             this.prevSteps(req, res).catch(next);
         });
+
+
+
 
     }
 
@@ -358,8 +362,6 @@ export default class SolitaireController implements Controller {
 
         const turns = Object.values(gameHistory.turns).length;
         const turn = gameHistory.turns[turns - 1];
-
-        console.log(gameHistory, turns, gameHistory.turns[turns]);
 
         if (!turn) {
             res.status(404).send({ error: ERROR.GAME_HISTORY_NOT_FOUND });

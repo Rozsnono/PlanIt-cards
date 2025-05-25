@@ -32,7 +32,7 @@ export default function Game() {
     const [playerCards, setPlayerCards] = useState<Icard[]>([]);
 
     useEffect(() => {
-        const socket = new WebSocket("ws://localhost:8080");
+        const socket = new WebSocket("ws://192.168.0.13:8080");
 
         socket.addEventListener('open', () => {
             console.log('WebSocket is connected');

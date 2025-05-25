@@ -55,6 +55,18 @@ export class GameService {
         return await response.json();
     }
 
+    async drawFromDropped(lobbyId: string) {
+        const response = await fetch(`/api/draw/dropped/${lobbyId}/${this.type}`, {
+            method: "PUT",
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${getCookie("token")}`
+            }
+        });
+
+        return await response.json();
+    }
+
     async dropCard(lobbyId: string, body: { droppedCard: Icard }) {
         const response = await fetch(`/api/drop/${lobbyId}/${this.type}`, {
             method: "PUT",
@@ -94,12 +106,13 @@ export class GameService {
     }
 
     public getDataFromWebsocket(object: any, socket: any, data: object): { lobby: any, game: any, playerCards: any, game_over?: boolean } | null {
+        console.log("getDataFromWebsocket", object);
         if (object.refresh) {
             socket.send(JSON.stringify(data));
             return null;
         }
         if (object.game_over) {
-            return { game_over: true } as any;
+            return { game_over: true, lobby: object.lobby, game: object.game, playerCards: object.playerCard } as any;
         }
         if (!object.lobby) return null;
         return { lobby: object.lobby, game: object.game, playerCards: object.playerCard };

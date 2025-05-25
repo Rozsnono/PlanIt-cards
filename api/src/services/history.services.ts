@@ -55,8 +55,12 @@ export default class GameHistoryService {
                 type: lobby.settings?.cardType,
                 players: (lobby.users as any[]).concat(lobby.bots as any),
                 date: new Date(),
-                _id: new mongoose.Types.ObjectId()
+                _id: new mongoose.Types.ObjectId(),
+                position: lobby.users.concat(lobby.bots as any).map((user: any) => { return { player: user.customId, position: 0 } }),
+                rank: lobby.users.concat(lobby.bots as any).map((user: any) => { return { player: user.customId, rank: 0 } }),
             };
+
+            console.log("Saving game history", gameHistory);
 
             await this.gameHistory.create(gameHistory);
             return { message: "History saved!" };

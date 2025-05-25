@@ -25,6 +25,10 @@ export default function StarBackground() {
         return { saturn: new Date().getMinutes() * (100 / 60), uranus: new Date().getDate() * (100 / 30), neptun: new Date().getHours() * 2.5 * (100 / 60), redgiant: new Date().getMonth() * (100 / 12), moon: new Date().getSeconds() * (200 / 60) - 50 };
     }
 
+    return(
+        <main></main>
+    )
+
     return (
         <main className="absolute top-0 left-0 w-[100%] h-screen overflow-hidden z-[-1]">
             {

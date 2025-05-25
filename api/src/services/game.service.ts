@@ -103,21 +103,17 @@ export class GameChecker {
     }
 
     public playWithBots = async (game: any, lobby: Ilobby, currentPlayer: string) => {
-        console.log("Bot playing!")
         const bot = new RummyBot(currentPlayer, 'easy', game.playerCards[currentPlayer], game.droppedCards, game.playedCards, game.shuffledCards);
         const { droppedCards, playedCards, playerCards } = bot.play();
         game.playerCards[currentPlayer] = playerCards;
-        console.log("Bot played cards: ", playedCards);
         game.playedCards = playedCards;
         game.droppedCards = droppedCards;
         game.drawedCard.lastDrawedBy = currentPlayer;
         const waitingTime = bot.thinkingTime;
-        console.log("Waiting for " + waitingTime + "ms");
         await this.wait(waitingTime);
         const players = lobby.users.map(u => u._id).concat(lobby.bots.map(bot => bot._id)).map(id => id.toString());
         currentPlayer = this.getNextPlayer(players, currentPlayer);
         game.currentPlayer = { playerId: currentPlayer, time: new Date().getTime() };
-        console.log("Bot played!")
         await this.game.replaceOne({ _id: game._id }, game, { runValidators: true });
     }
 
@@ -185,15 +181,16 @@ export class GameChecker {
             if (!globby.settings?.unranked) {
                 body.rank += this.calculatePoints(positions, 20);
             }
-            if (body.numberOfGames === undefined) body.numberOfGames = {};
-            if (typeof body.numberOfGames[new Date().toISOString()] === 'undefined') {
-                body.numberOfGames = { ...body.numberOfGames, [new Date().toISOString()]: { wins: 0, losses: 0 } };
+            const date = new Date().toISOString().split('T')[0];
+            if (body.numberOfGames === undefined || Number.isNaN(body.numberOfGames)) body.numberOfGames = {};
+            if (typeof body.numberOfGames[date] === 'undefined') {
+                body.numberOfGames = { ...body.numberOfGames, [date]: { wins: 0, losses: 0 } };
             }
 
-            if (positions.find((pos: any) => pos.player === id._id)!.pos === 1) {
-                body.numberOfGames[new Date().toISOString()].wins++;
+            if (positions.find((pos: any) => pos.player === id._id.toString())!.pos === 1) {
+                body.numberOfGames[date].wins++;
             } else {
-                body.numberOfGames[new Date().toISOString()].losses++;
+                body.numberOfGames[date].losses++;
             }
             body.achievements = await this.checkAnchievements(player, game);
             const res = await this.player.replaceOne({ _id: body._id }, body, { runValidators: true });
@@ -234,7 +231,7 @@ export class GameChecker {
         const player = await this.player.findOne({ _id: id });
         if (!player) return;
         const body: any = player;
-        body.rank += this.calculatePoints([{pos: 1, player: id}], 10);
+        body.rank += this.calculatePoints([{ pos: 1, player: id }], 10);
         if (body.numberOfGames === undefined) body.numberOfGames = {};
         if (typeof body.numberOfGames[new Date().toISOString()] === 'undefined') {
             body.numberOfGames = { ...body.numberOfGames, [new Date().toISOString()]: { wins: 0, losses: 0 } };
@@ -274,8 +271,15 @@ export class GameChecker {
     }
 
     public getPositions(playerCards: any) {
-        const p: { pos: number, player: string }[] = Object.values(playerCards).map((cards: any, i: number) => { return { player: Object.keys(playerCards)[i], pos: cards.reduce((sum: any, obj: any) => { return sum + obj.value }, 0) } });
-        const sorted = p.sort((a: any, b: any) => a.pos - b.pos);
+        const p: { pos: number, player: string }[] =
+            Object.values(playerCards).map((cards: any, i: number) => {
+                return {
+                    player: Object.keys(playerCards)[i], pos: cards.reduce((sum: any, obj: any) => { return sum + obj.value }, 0)
+                }
+            });
+        const sorted = p.sort((a: any, b: any) => a.pos - b.pos).map((p: any, i: number) => {
+            return { player: p.player, pos: i + 1 };
+        });
         return sorted;
     }
 }   

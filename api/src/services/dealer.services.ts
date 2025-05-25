@@ -238,7 +238,6 @@ export class SolitaireDealer extends CardDealer {
     }
 
     public validatePlace(placingCards: Icard[], placedCards: Icard[] ): boolean {
-        console.log(placingCards, placedCards);
         if(placedCards.length === 0 && placingCards[0].rank == 13) return true;
         if(placedCards[placedCards.length - 1].rank - 1 !== placingCards[0].rank) return false;
         if(placedCards[placedCards.length - 1].suit === placingCards[0].suit) return false;

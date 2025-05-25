@@ -80,7 +80,7 @@ export default class LobbyController implements Controller {
         body["_id"] = new mongoose.Types.ObjectId();
         body["users"] = [new mongoose.Types.ObjectId(userid)];
         body["createdBy"] = new mongoose.Types.ObjectId(userid);
-        body["bots"] = (body.settings.fillWithRobots ? Array.from({ length: body.settings.numberOfRobots }, (_, i) => { return { name: new Bot().getRobotName(body.settings.robotsDifficulty, i), _id: 'bot' + i } }) : []);
+        body["bots"] = (body.settings.fillWithRobots ? Array.from({ length: body.settings.numberOfRobots }, (_, i) => { return { name: new Bot().getRobotName(body.settings.robotsDifficulty, i), _id: 'bot' + i, customId: 'bot-'+i } }) : []);
         const newLobby = new this.lobby(body);
         await newLobby.save();
         res.send({ _id: newLobby._id });
@@ -115,7 +115,6 @@ export default class LobbyController implements Controller {
         if (query.limit) {
             paging.limit = parseInt(query.limit.toString()) || 14;
         }
-        console.log({ $and: [...filter, { $or: [{ $and: [{ 'settings.cardType': 'SOLITAIRE' }, { createdBy: userid }] }, { 'settings.cardType': { $ne: 'SOLITAIRE' } }] }] })
         const lobbies = await this.lobby.find({ $and: [...filter, { $or: [{ $and: [{ 'settings.cardType': 'SOLITAIRE' }, { createdBy: userid }] }, { 'settings.cardType': { $ne: 'SOLITAIRE' } }] }] }).limit(paging.limit * paging.page).populate("users", "customId username rank settings");
         const lobbyCount = await this.lobby.countDocuments();
         res.send({ total: parseInt(((lobbyCount / paging.limit)).toFixed(0)), data: lobbies });

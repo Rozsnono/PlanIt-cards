@@ -16,12 +16,14 @@
     "dev:all": "concurrently \"npm run dev\" \"npm run dev:api\"",
     "build:all": "concurrently \"npm run build\" \"npm run build:api\"",
     "start:all": "concurrently \"npm run start\" \"npm run start:api\"",
-    "build-start:all": "concurrently \"npm run build:start\" \"npm run api-build:start\""
+    "build-start:all": "concurrently \"npm run build:start\" \"npm run api-build:start\"",
+    "test:api": "jest --config api/jest.config.ts"
   },
   "dependencies": {
     "@types/bcryptjs": "^2.4.6",
     "@types/jsonwebtoken": "^9.0.5",
     "@types/mongoose": "^5.11.97",
+    "@types/nodemailer": "^6.4.17",
     "@types/socket.io-client": "^3.0.0",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.20.2",
@@ -35,6 +37,7 @@
     "mongoose": "^7.6.6",
     "morgan": "^1.10.0",
     "next": "^15.1.7",
+    "nodemailer": "^7.0.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-query": "^3.39.3",
@@ -46,7 +49,8 @@
   },
   "devDependencies": {
     "@types/express": "^4.17.21",
-    "@types/node": "^20",
+    "@types/jest": "^29.5.14",
+    "@types/node": "^20.17.47",
     "@types/react": "^18",
     "@types/react-beautiful-dnd": "^13.1.8",
     "@types/react-dom": "^18",
@@ -54,9 +58,11 @@
     "concurrently": "^9.1.2",
     "eslint": "^8",
     "eslint-config-next": "^15.1.7",
+    "jest": "^29.7.0",
     "postcss": "^8",
     "sass": "^1.77.8",
     "tailwindcss": "^3.4.1",
+    "ts-jest": "^29.3.4",
     "typescript": "^5"
   }
 }
