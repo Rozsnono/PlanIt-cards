@@ -85,6 +85,10 @@ export default function Game() {
     }
 
     function checkIfCardIsSelected(card: Icard) {
+        let c = [...sortRummyCards(playerCards, settings?.autoSort, sortType)];
+        return card === c.reverse().find((e: Icard) => selectedCards.find((sc: Icard) => { return JSON.stringify(sc) === JSON.stringify(e) }));
+    }
+    function checkIfCardsIsSelected(card: Icard) {
         return selectedCards.find((e: Icard) => { return JSON.stringify(e) === JSON.stringify(card) });
     }
 
@@ -295,7 +299,7 @@ export default function Game() {
                         sortRummyCards(playerCards, settings?.autoSort, sortType).map((card, i) => {
                             return (
                                 <React.Fragment key={i}>
-                                    <div draggable onClick={() => { selectCard(card) }} className={`cursor-pointer w-12 overflow-visible hover:cursor-grab group rounded-lg duration-200 ${checkIfCardIsSelected(card) ? 'border-green-400 translate-y-[-1rem]' : ''} ${draggedCard && JSON.stringify(draggedCard) === JSON.stringify(card) ? 'opacity-10' : ''}`}>
+                                    <div draggable onClick={() => { selectCard(card) }} className={`cursor-pointer w-12 overflow-visible hover:cursor-grab group rounded-lg duration-200 ${checkIfCardIsSelected(card) ? 'w-20 ' : ''} ${checkIfCardsIsSelected(card) ? 'border-green-400 -translate-y-[0.5rem]' : ''} ${draggedCard && JSON.stringify(draggedCard) === JSON.stringify(card) ? 'opacity-10' : ''}`}>
                                         <Image onDragEnter={(e) => { onDragEnter(e, i) }} className="border-2 border-transparent group-hover:border-green-400 rounded-lg" style={{ width: "6rem", maxWidth: "6rem" }} loading="eager" onDragEnd={() => { setDraggedCard(null) }} onDragStart={() => { startDrag(card) }} onDrop={() => { dropDrag(i) }} onDragOver={overDrag} src={"/assets/cards/rummy/" + new CardsUrls().getCardUrl(card.name)} width={100} height={100} alt={new CardsUrls().getCardUrl(card.name)}></Image>
                                     </div>
                                     <div onDragOver={overDrag} className={`${draggedCard && JSON.stringify(draggedCard) !== JSON.stringify(card) && dragEnter === i ? "w-[5.8rem]" : "w-0"} bg-[#00000040] rounded-lg duration-100`}>

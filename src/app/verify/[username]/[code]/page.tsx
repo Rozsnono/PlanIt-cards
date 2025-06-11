@@ -9,7 +9,7 @@ export default function VerifyPage() {
 
     const router = useRouter();
     const { username, code } = useParams();
-    const authService = new AuthService('');
+    const authService = new AuthService();
     const { setUser } = useContext(UserContext);
 
     function verifyEmail() {

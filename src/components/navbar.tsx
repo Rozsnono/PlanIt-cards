@@ -3,7 +3,7 @@ import { MenuContext } from '@/contexts/menu.context';
 import Image from 'next/image'
 import Link from 'next/link';
 import { useContext, useEffect, useMemo, useState } from 'react';
-import { FilterModal, ModalClass } from './filter.modal';
+import { ModalClass } from './filter.modal';
 import { UserContext } from '@/contexts/user.context';
 import React from 'react';
 import { getColorByInitials, getUserInitials, Logout } from '@/functions/user.function';
@@ -32,7 +32,7 @@ export default function Navbar({ clear }: { clear?: boolean }) {
                     <div className="flex items-center justify-center gap-4 text-zinc-100 max-h-[4.2rem]">
                         <Image src={"/assets/logo.png"} alt='Logo' width={120} height={100}></Image>
                     </div>
-                    <Menus user={null} isLogged={!!user}></Menus>
+                    <Menus user={null} isLogged={false}></Menus>
                     <div className='w-48 h-8 rounded-lg bg-zinc-800 animate-pulse'></div>
                 </div>
             </main>

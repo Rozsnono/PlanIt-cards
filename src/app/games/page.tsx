@@ -3,17 +3,13 @@ import Icon from "@/assets/icons";
 import LobbyCard from "@/components/lobby/lobby";
 import RightSideBar, { RightSideBarHeader } from "./sidebar";
 import { useContext, useEffect, useRef, useState } from "react";
-import { useQuery } from "react-query";
 import { Ilobby } from "@/interfaces/interface";
 import Loading from "../loading";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import LobbyService from "@/services/lobby.service";
-import { ModalClass } from "@/components/filter.modal";
 import LobbySettings from "@/components/lobby/lobby.settings.component";
-import Pagination from "@/components/pagination";
 import Image from "next/image";
 import React from "react";
-import { WebSocketing } from "@/services/websocket.service";
 import { IP } from "@/enums/ip.enum";
 import { UserContext } from "@/contexts/user.context";
 const lobbyService = new LobbyService();
@@ -29,7 +25,7 @@ export default function Games() {
     const [state, setState] = useState({
         isLoading: true,
         isError: false,
-        data: {data: [], total: 0},
+        data: { data: [], total: 0 },
     });
 
     const router = useRouter();
@@ -45,24 +41,24 @@ export default function Games() {
 
         socket!.current!.addEventListener('open', () => {
             console.log('WebSocket is connected');
-            socket!.current!.send(JSON.stringify({userId: user?._id||null, ...getFilterFromURL()}));
+            socket!.current!.send(JSON.stringify({ userId: user?._id || null, ...getFilterFromURL() }));
             setState({ ...state, isLoading: true });
 
         });
 
         socket!.current!.addEventListener('message', (event) => {
             try {
-                if(event.data && JSON.parse(event.data).refresh){
-                    socket!.current!.send(JSON.stringify({userId: user?._id||null, ...getFilterFromURL()}));
-                    setState({ ...state, isLoading: true });   
-                }else{
+                if (event.data && JSON.parse(event.data).refresh) {
+                    socket!.current!.send(JSON.stringify({ userId: user?._id || null, ...getFilterFromURL() }));
+                    setState({ ...state, isLoading: true });
+                } else {
                     try {
                         setState({ ...state, data: JSON.parse(event.data), isLoading: false });
                     } catch {
-                        setState({ ...state, isLoading: false });   
+                        setState({ ...state, isLoading: false });
                     }
                 }
-            } catch{}
+            } catch { }
         });
 
         return () => {
@@ -70,8 +66,8 @@ export default function Games() {
         };
     }, [])
 
-    function refreshLobbyList(){
-        socket!.current!.send(JSON.stringify({userId: user?._id, ...getFilterFromURL()}));
+    function refreshLobbyList() {
+        socket!.current!.send(JSON.stringify({ userId: user?._id, ...getFilterFromURL() }));
         setState({ ...state, isLoading: true });
     }
 
@@ -102,7 +98,7 @@ export default function Games() {
 
     return (
         <main className="flex gap-2 flex-col h-full p-2">
-            <main className="relative w-full h-full grid 2xl:grid-cols-6 xl:grid-cols-4 lg:grid-cols-3 md:grid-cols-2 grid-cols-1 gap-2 p-3 overflow-y-auto">
+            <main className="relative w-full h-full grid 2xl:grid-cols-6 xl:grid-cols-4 lg:grid-cols-3 md:grid-cols-2 grid-cols-1 gap-5 p-3 overflow-y-auto">
                 {loading && state.isLoading && <Loading />}
                 {!state.isLoading && !state.isError && state.data.data.map((lobby: Ilobby, index: number) => (
                     <React.Fragment key={index}>
@@ -174,7 +170,7 @@ export default function Games() {
 
 
             <RightSideBar className="border-sky-600" open={open} onClose={() => setOpen(!open)}>
-                <SideBarContent onClose={() => setOpen(!open)} onLoading={setLoading}/>
+                <SideBarContent onClose={() => setOpen(!open)} onLoading={setLoading} />
             </RightSideBar>
 
             <RightSideBar className="border-green-600" open={openPrivate} onClose={() => setOpenPrivate(!openPrivate)}>
@@ -316,11 +312,11 @@ function FilterSideBarContent({ onClose }: Readonly<{ onClose?: () => void }>) {
 
     function setFilterByParam(key: string, value: any) {
         console.log(filter, (filter as any)[key])
-        if((filter as any)[key] === value){
+        if ((filter as any)[key] === value) {
             delete (filter as any)[key];
             console.log(filter, (filter as any)[key])
             setFilter({ ...filter });
-        }else{
+        } else {
             setFilter({ ...filter, [key]: value });
         }
     }

@@ -7,8 +7,9 @@ export function sortRummyCards(rummy: Icard[], autoSort?: boolean, sortType: "nu
 }
 
 export function placeCardToIndex(playerCards: Icard[], index: number, card: Icard): Icard[] {
-    playerCards.splice(index + 1, 0, card);
-    playerCards.splice(playerCards.indexOf(card), 1);
+    playerCards = [...playerCards.slice(0, index + 1).filter((c) => c.rank !== card.rank || c.suit !== card.suit || c.pack !== card.pack)]
+        .concat(card)
+        .concat([...playerCards.slice(index + 1).filter((c) => c.rank !== card.rank || c.suit !== card.suit || c.pack !== card.pack)]);
     return playerCards;
 }
 
@@ -24,7 +25,7 @@ export function drawCard(playerCards: Icard[], drawedCard: Icard): Icard[] {
 }
 
 export function playCard(playerCards: Icard[], playingCards: Icard[]): { playerCards: Icard[], playedCards: Icard[] } {
-    playerCards = playerCards.filter(card => {return !playingCards.find(pCard => { return pCard.rank === card.rank && pCard.suit === card.suit && pCard.pack === card.pack })});
-    playingCards = playingCards.sort((a, b) => a.rank - b.rank); 
+    playerCards = playerCards.filter(card => { return !playingCards.find(pCard => { return pCard.rank === card.rank && pCard.suit === card.suit && pCard.pack === card.pack }) });
+    playingCards = playingCards.sort((a, b) => a.rank - b.rank);
     return { playerCards, playedCards: playingCards };
 }

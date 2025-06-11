@@ -1,6 +1,6 @@
 
 import { Schema, model } from "mongoose";
-import Joi from "joi";
+import Joi, { custom } from "joi";
 
 const lobbySchema = new Schema(
     {
@@ -21,6 +21,9 @@ const lobbySchema = new Schema(
                 name: {
                     type: String,
                 },
+                customId: {
+                    type: String,
+                }
             },
             default: []
         }],

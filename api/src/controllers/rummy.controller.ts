@@ -274,7 +274,9 @@ export default class RummyController implements Controller {
 
         game.playerCards[playerId] = game.playerCards[playerId].concat(game.droppedCards[game.droppedCards.length - 1].card);
         game.droppedCards.splice(game.droppedCards.length - 1, 1);
-        game.droppedCards[game.droppedCards.length - 1].droppedBy = "";
+        try {
+            game.droppedCards[game.droppedCards.length - 1].droppedBy = "";
+        } catch {}
         game.drawedCard.lastDrawedBy = playerId;
         await this.game.replaceOne({ _id: gameId }, game, { runValidators: true });
         res.send({ message: "Card drawn!" });
@@ -435,6 +437,24 @@ export default class RummyController implements Controller {
             return;
         }
 
+        if(game.playedCards.filter((meld: any) => meld.playedBy === playerId).length === 0) {
+            res.status(403).send({ error: ERROR.INVALID_SEQUENCE });
+            return;
+        }
+
+        let value = 0;
+        game.playedCards.forEach((meld: any) => {
+            if (meld.playedBy === playerId) {
+                meld.cards.forEach((card: any) => {
+                    value += card.value;
+                });
+            }
+        });
+        if(value < 51) {
+            res.status(403).send({ error: ERROR.MIN_51_VALUE });
+            return;
+        }
+
         const body = req.body;
         if (!body.placeCard) {
             res.status(400).send({ error: ERROR.NO_CARD_PLAYED });
@@ -461,7 +481,7 @@ export default class RummyController implements Controller {
 
         const melds = dealer.rankingMelds(playedCards);
         let joker;
-        if (melds.completedDeck[melds.completedDeck.length - 1].isJoker) {
+        if (melds.completedDeck[melds.completedDeck.length - 1].isJoker && !body.placeCard.isJoker) {
             joker = melds.completedDeck.pop();
             joker!.rank = 50;
             game.playerCards[playerId] = game.playerCards[playerId].concat(joker);

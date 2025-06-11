@@ -22,16 +22,17 @@ export default class GameHistoryService {
         if (!game) return { error: ERROR.GAME_NOT_FOUND };
         const player = await this.user.findOne({ _id: player_id });
         if (!player) return { error: ERROR.USER_NOT_FOUND };
-        const lobby = await this.lobby.findOne({ game_id }).populate("users", "customId username settings");
+        const lobby = await this.lobby.findOne({ game_id }).populate("users", "customId username settings").lean();
         if (!lobby) return { error: ERROR.LOBBY_NOT_FOUND };
 
-        if (player.gameHistory.length >= 8) {
+        if (player.gameHistory.length >= 20) {
             try {
                 const oldestHistory = await this.gameHistory.aggregate(
                     [{ $match: { gameId: { $in: player.gameHistory } } }, { $sort: { date: 1 } }, { $limit: 1 }]
                 );
                 await this.gameHistory.deleteOne({ _id: oldestHistory[0]._id });
-
+                player.gameHistory = player.gameHistory.filter((history) => history.toString() !== oldestHistory[0].gameId.toString());
+                await player.save();
             } catch {
                 //TODO        
             }
@@ -41,6 +42,8 @@ export default class GameHistoryService {
             player.gameHistory.push(new mongoose.Types.ObjectId(game_id));
             player.numberOfGames++;
             await player.save();
+
+            const users = (lobby.users as any[]).concat(lobby.bots as any);
 
             const gameHistory = {
                 gameId: game_id,
@@ -53,20 +56,21 @@ export default class GameHistoryService {
                     }
                 },
                 type: lobby.settings?.cardType,
-                players: (lobby.users as any[]).concat(lobby.bots as any),
+                users: users,
                 date: new Date(),
                 _id: new mongoose.Types.ObjectId(),
                 position: lobby.users.concat(lobby.bots as any).map((user: any) => { return { player: user.customId, position: 0 } }),
                 rank: lobby.users.concat(lobby.bots as any).map((user: any) => { return { player: user.customId, rank: 0 } }),
             };
 
-            console.log("Saving game history", gameHistory);
+
+
 
             await this.gameHistory.create(gameHistory);
             return { message: "History saved!" };
         }
 
-        const gameHistory = await this.gameHistory.findOne({ gameId: game_id });
+        const gameHistory = await this.gameHistory.findOne({ gameId: game_id }).populate("users", "customId username settings");
 
         if (!gameHistory) {
             return { error: ERROR.GAME_HISTORY_NOT_FOUND };
@@ -80,7 +84,6 @@ export default class GameHistoryService {
                 droppedCards: game.droppedCards
             }
         };
-
         await this.gameHistory.replaceOne({ gameId: game_id }, gameHistory, { runValidators: true });
         return { message: "History saved!" };
     };
@@ -132,7 +135,7 @@ export class GameHistorySolitaire extends GameHistoryService {
                         shuffledCards: game.shuffledCards,
                     }
                 },
-                players: (lobby.users as any[]).concat(lobby.bots as any),
+                users: (lobby.users as any[]).concat(lobby.bots as any),
                 date: new Date(),
                 position: lobby.users.map((user: any, index: number) => { return { player: user.customId, position: 0 } }),
                 rank: lobby.users.map((user: any, index: number) => { return { player: user.customId, rank: 0 } }),

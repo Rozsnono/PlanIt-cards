@@ -70,7 +70,7 @@ export default function Game() {
     const [dragEnter, setDragEnter] = useState<number | null>(null);
     const [error, setError] = useState<string | null>(null);
 
-    function startDrag(e: Icard, e2: Icard[]) {
+    function startDrag(e: Icard, e2: Icard[] | null) {
         setTimeout(() => { setDraggedCard(e); setDraggedPack(e2) }, 0);
     }
 

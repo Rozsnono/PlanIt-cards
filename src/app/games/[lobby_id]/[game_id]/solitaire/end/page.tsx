@@ -76,7 +76,7 @@ export default function End() {
                 {data.isError && <div>Error</div>}
                 {data.isSuccess && !data.isLoading && !data.isError && data.data &&
                     data.data.players.map((l: any, index: number) => (
-                        <PlayerCard key={index} playerInfo={l} rank={l.rank} gain={data.data.rank.find((c) => c.player === l.customId).rank} pos={data.data.position.find((c) => c.player === l.customId).position} ></PlayerCard>
+                        <PlayerCard key={index} playerInfo={l} rank={l.rank} gain={data.data.rank.find((c: any) => c.player === l.customId).rank} pos={data.data.position.find((c: any) => c.player === l.customId).position} ></PlayerCard>
                     ))
                 }
             </div>

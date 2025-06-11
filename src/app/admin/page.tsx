@@ -5,12 +5,14 @@ import { UserContext } from "@/contexts/user.context";
 import { Igame } from "@/interfaces/interface";
 import { AdminService } from "@/services/admin.service";
 import { useRouter } from "next/navigation";
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { useContext, useState } from "react";
 import { useQuery } from "react-query";
 import Image from "next/image";
 import Icon from "@/assets/icons";
 import CardsUrls from "@/contexts/cards.context";
+import { IP } from "@/enums/ip.enum";
+import LineChart, { BarChart, DoughnutChart, PolarChart, TestChart } from "./components/chart";
 
 export default function AdminPage() {
     const { user } = useContext(UserContext);
@@ -18,9 +20,44 @@ export default function AdminPage() {
 
     const router = useRouter();
 
-    // if(!user?.auth.includes('ADMIN')) {router.back(); return <></>}
+    const socket = useRef<WebSocket | null>(null);
+    const [state, setState] = useState({
+        isLoading: true,
+        isError: false,
+        data: {} as any,
+    });
 
-    const data = useQuery('users', async () => { return adminService.getAllGames() });
+
+    useEffect(() => {
+        socket.current = new WebSocket(IP.ADMINSOCKET);
+        setState({ ...state, isLoading: true });
+
+
+        socket!.current!.addEventListener('open', (event: any) => {
+            console.log('WebSocket is connected');
+            socket!.current!.send(JSON.stringify({ type: 'getAllGames' }));
+            try {
+                setState({ ...state, data: JSON.parse(event.data as any), isLoading: false });
+            } catch {
+                setState({ ...state, isLoading: false });
+            }
+        });
+
+        socket!.current!.addEventListener('message', (event) => {
+            console.log('WebSocket message received:', event);
+            try {
+                setState({ ...state, data: JSON.parse(event.data as any), isLoading: false });
+            } catch {
+                setState({ ...state, isLoading: false });
+            }
+        });
+
+        return () => {
+            socket!.current!.close();
+        };
+    }, [])
+
+    // if(!user?.auth.includes('ADMIN')) {router.back(); return <></>}
 
     const [selectedGame, setSelectedGame] = useState<any | null>(null);
 
@@ -53,65 +90,52 @@ export default function AdminPage() {
         });
     }
 
+    const labels = ['Jan', 'Feb', 'Mar', 'Apr'];
+    const data = [10, 20, 30, 25];
+
+    console.log(state.data);
+
     return (
         <main className="flex gap-2 h-full">
             <main className="w-full rounded-md p-3 h-full text-zinc-200 relative flex gap-2 overflow-y-auto">
-                <div className="w-1/4 flex flex-col gap-2">
-                    {data.isLoading && <Loader></Loader>}
-                    {data.isError && <div>Error</div>}
-                    {data.isSuccess && !data.isLoading && !data.isError && data.data && data.data.map((l: any, index: number) => (
-                        <span key={index} className="cursor-pointer" onClick={() => { setSelectedGame(l); console.log(l) }}>
-                            <LobbyCard lobbyDatas={l as any} lobbyNumber={index} isAdmin></LobbyCard>
-                        </span>
-                    ))}
+                <div className="flex flex-col gap-2 w-full">
+                    <div className="flex justify-between items-center">
+                        <div className="text-xl p-2 flex gap-2 items-center">
+                            <Icon name="card" stroke></Icon>
+                            Players
+                        </div>
+                    </div>
+                    <hr />
+                    {state.isLoading && <Loader></Loader>}
+                    {state.isError && <div>Error</div>}
+                    {state.data.users &&
+                        <div className="flex flex-col gap-2 p-2 rounded-lg bg-zinc-800">
+                            <LineChart labels={state.data.users.labels} data={state.data.users.data} datasets={{ label: 'Registered user', borderColor: '#acacac', backgroundColor: '#5e5e5e' }} />
+                        </div>
+                    }
                 </div>
+                <div className="flex flex-col gap-2 w-full">
+                    <div className="flex justify-between items-center">
+                        <div className="text-xl p-2 flex gap-2 items-center">
+                            <Icon name="card" stroke></Icon>
+                            Games
+                        </div>
+                    </div>
+                    <hr />
+                    <div className="flex flex-col gap-2 h-full overflow-y-auto max-w-full">
+                        {state.isLoading && <Loader></Loader>}
+                        {state.isError && <div>Error</div>}
 
-                <div className="w-full">
-                    {selectedGame &&
-                        <div key={selectedGame.game_id} className="bg-zinc-800 p-2 rounded-md flex flex-col gap-2">
-                            {
-                                selectedGame.game_id && selectedGame.game_id.playerCards &&
-                                Object.values(selectedGame.game_id.playerCards).map((cards: any, index: number) => (
-                                    <div key={index} className="flex gap-2">
-                                        <div onClick={() => { setNextTurn(Object.keys(selectedGame.game_id.playerCards)[index]) }} className="w-1/6 overflow-x-auto flex items-center justify-center gap-1 cursor-pointer bg-zinc-700 text-gray-200 text-sm rounded-lg p-2 hover:bg-zinc-600">
-                                            {
-                                                selectedGame.game_id.currentPlayer && selectedGame.game_id.currentPlayer.playerId === Object.keys(selectedGame.game_id.playerCards)[index] &&
-                                                <div className="bg-green-400 text-zinc-800 p-1 rounded-lg"></div>
-                                            }
-                                            {(selectedGame.users.find((u: any) => { return u._id === Object.keys(selectedGame.game_id.playerCards)[index] }) || { username: "Bot" + index }).username}
-                                        </div>
-                                        <div className="w-full flex gap-1 overflow-x-auto">
-
-                                            {cards.map((card: any, i: number) => (
-                                                <React.Fragment key={i}>
-                                                    <div onClick={() => { removeCard(Object.keys(selectedGame.game_id.playerCards)[index], index, card) }} className={`cursor-pointer w-12 overflow-visible hover:cursor-pointer group rounded-lg duration-200`}>
-                                                        <Image className="border-2 border-transparent group-hover:border-green-400 rounded-lg" style={{ width: "3rem", maxWidth: "3rem" }} loading="eager" src={"/assets/cards/" + selectedGame.settings.cardType + '/' + (selectedGame.settings.cardType.toLowerCase() === 'rummy' ? new CardsUrls().getCardUrl(card.name) : new CardsUrls().getUnoCardUrl(card.name))} width={100} height={100} alt={new CardsUrls().getCardUrl(card.name)}></Image>
-                                                    </div>
-                                                </React.Fragment>
-                                            ))}
-                                        </div>
-                                        <div className="w-1/6 flex">
-                                            <div className="">
-                                                {
-                                                    cardName[index] && cardName[index].length > 1 &&
-                                                    <div className={`cursor-pointer w-12 overflow-visible hover:cursor-pointer group rounded-lg duration-200`}>
-                                                        <Image className="border-2 border-transparent group-hover:border-green-400 rounded-lg" style={{ width: "3rem", maxWidth: "3rem" }} loading="eager" src={"/assets/cards/" + selectedGame.settings.cardType + '/' + (selectedGame.settings.cardType.toLowerCase() === 'rummy' ? new CardsUrls().getCardUrl(cardName[index]) : new CardsUrls().getUnoCardUrl(cardName[index]))} width={100} height={100} alt={new CardsUrls().getCardUrl(cardName[index])}></Image>
-                                                    </div>
-                                                }
-                                            </div>
-                                            <div className="w-full flex gap-1">
-                                                <input onChange={(e) => { setCardName(prev => ({ ...prev, [index]: e.target.value })) }} value={cardName[index]} type="text" className="disabled:cursor-default bg-zinc-700 border border-zinc-900 text-gray-200 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 flex w-full p-2 h-min" />
-                                                <button onClick={() => { addCard(Object.keys(selectedGame.game_id.playerCards)[index], index) }} className="w-min p-2 flex justify-center items-center bg-zinc-700 hover:bg-zinc-600 rounded-lg "><Icon name={"add"}></Icon></button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))
-                            }
-                            <div className="flex gap-2">
-                                <button onClick={saveModifications} className="w-full p-2 flex justify-center items-center bg-emerald-700 hover:bg-emerald-600 rounded-lg ">Save modifications</button>
+                        {state.data.users &&
+                            <div className="flex flex-row gap-2 p-2 rounded-lg bg-zinc-800 w-1/2 max-w-full">
+                                <DoughnutChart labels={['Games', 'Lobbies']} data={[state.data.game_number, state.data.lobby_number]} datasets={{ label: 'Count', colors: ['#5e5e5e', '#8c8c8c'] }} />
+                                <PolarChart labels={state.data.types.labels} data={state.data.types.data} datasets={{ label: 'Lobby types', borderColor: ['#54545d', '#9f9fa9', '#0084d1'], backgroundColor: ['#e7000b', '#9f9fa9', '#0084d1'] }} />
                             </div>
-                        </div>}
+                        }
+                    </div>
                 </div>
+
+                <TestChart/>
             </main>
         </main>
     )

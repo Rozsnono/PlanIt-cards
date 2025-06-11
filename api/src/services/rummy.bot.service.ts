@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { Icard } from "../interfaces/interface";
 import { RummyDealer } from "./dealer.services";
 
@@ -8,9 +9,6 @@ const ThinkTimeByDifficulty = {
 }
 
 export class RummyBot {
-    static Difficulty = {
-        EASY: 'easy',
-    };
 
     difficulty: "easy" | "medium" | "hard" = "easy";
     name = 'RummyBot';
@@ -67,7 +65,7 @@ export class RummyBot {
 
         if (this.playerCards.length > 0) {
             const dropCard = this.dropCard();
-            this.droppedCards.push({ droppebBy: this.name, card: dropCard });
+            this.droppedCards.push({ droppebBy: "68359c77bb13b4cb0d42d95f", card: dropCard, _id: new mongoose.Types.ObjectId() });
             this.playerCards = this.playerCards.filter((card: Icard) => JSON.stringify(card) != JSON.stringify(dropCard));
         } else {
             throw new Error('No cards to drop');

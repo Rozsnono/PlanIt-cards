@@ -117,54 +117,57 @@ export class RummyDealer extends CardDealer {
             return ERROR.MAX_13_CARDS;
         }
 
-        const sameRankSuits = [deck[0].suit];
-        const isSameRank = deck.every((card, index) => {
-            if (index === 0) return true;
-            if (sameRankSuits.includes(card.suit)) return false;
-            if (card.rank === deck[index - 1].rank || card.isJoker) { sameRankSuits.push(card.suit) }
-            return card.rank === deck[index - 1].rank || card.isJoker;
-        });
-
-        const isValidSequence = this.isValidSequence(deck);
+        const isSameRank = this.isValidSet(deck);
+        const isValidSequence = this.isValidSequence(deck, false) || this.isValidSequence(deck, true);
         if (isSameRank || isValidSequence) return "Valid";
         return ERROR.INVALID_SEQUENCE;
     }
 
-    private isValidSequence(deck: Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number, value: number }>): boolean {
-        const tryWithRanks = (cards: typeof deck, aceHigh: boolean) => {
-            const sortedDeck = [...cards].map(card => ({
-                ...card,
-                rank: card.rank === 14 && aceHigh ? 14 : 1
-            })).sort((a, b) => (a.isJoker ? -1 : b.isJoker ? 1 : a.rank - b.rank));
+    private isValidSet(deck: Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number, value: number }>): boolean {
+        const sortedDeck = [...deck].sort((a, b) => a.rank - b.rank || a.suit.localeCompare(b.suit));
+        const sameRankSuits = [sortedDeck[0].suit];
+        const isSameRank = sortedDeck.every((card, index) => {
+            if (index === 0) return true;
+            if (sameRankSuits.includes(card.suit) && !card.isJoker) { return false };
+            if (card.rank === sortedDeck[index - 1].rank && !card.isJoker) { sameRankSuits.push(card.suit) }
+            return card.rank === sortedDeck[index - 1].rank || card.isJoker;
+        });
+        return isSameRank;
+    }
 
-            const suit = sortedDeck.find(card => !card.isJoker)?.suit;
-            const isSameSuit = sortedDeck.every(card => card.isJoker || card.suit === suit);
 
-            if (!isSameSuit) return false;
+    private isValidSequence(cards: Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number, value: number }>, aceHigh: boolean): boolean {
+        const sortedDeck = [...cards].map(card => ({
+            ...card,
+            rank: card.rank === 14 ? (aceHigh ? 1 : 14) : card.rank,
+        })).sort((a, b) => (a.isJoker ? -1 : b.isJoker ? 1 : a.rank - b.rank));
 
-            let jokerCount = sortedDeck.filter(card => card.isJoker).length;
-            let lastRank = null;
+        const suit = sortedDeck.find(card => !card.isJoker)?.suit;
+        const isSameSuit = sortedDeck.every(card => card.isJoker || card.suit === suit);
 
-            for (const card of sortedDeck) {
-                if (card.isJoker) continue;
+        if (!isSameSuit) return false;
 
-                if (lastRank !== null) {
-                    const gap = card.rank - lastRank - 1;
+        let jokerCount = sortedDeck.filter(card => card.isJoker).length;
+        let lastRank = null;
 
-                    if (gap > jokerCount) {
-                        return false;
-                    }
+        
+        for (const card of sortedDeck) {
+            if (card.isJoker) continue;
 
-                    jokerCount -= gap;
+            if (lastRank !== null) {
+                const gap = card.rank - lastRank - 1;
+
+                if (gap > jokerCount) {
+                    return false;
                 }
 
-                lastRank = card.rank;
+                jokerCount -= gap;
             }
 
-            return true;
-        };
+            lastRank = card.rank;
+        }
 
-        return tryWithRanks(deck, false) || tryWithRanks(deck, true);
+        return true;
     }
 
     public isValidToNext(playedCards: { playedBy: string, cards: any[] }[], playerId: string) {
@@ -186,8 +189,17 @@ export class RummyDealer extends CardDealer {
         if (deck.length === 0) return { completedDeck: [] };
 
         const jokers = deck.filter(card => card.isJoker);
-        const nonJokers = deck.filter(card => !card.isJoker);
+        let nonJokers = deck.filter(card => !card.isJoker);
         nonJokers.sort((a, b) => a.rank - b.rank);
+        if(nonJokers[nonJokers.length - 1].rank === 14 && nonJokers[nonJokers.length - 2].rank !== 13) {
+            nonJokers = nonJokers.map(card => {
+                if (card.rank === 14) {
+                    return { ...card, rank: 1, value: 1 }; // Convert Ace to 1
+                }
+                return card;
+            });
+            nonJokers.sort((a, b) => a.rank - b.rank);
+        }
 
         if (jokers.length === 0) return { completedDeck: nonJokers };
 
@@ -237,17 +249,17 @@ export class SolitaireDealer extends CardDealer {
         return playerCards;
     }
 
-    public validatePlace(placingCards: Icard[], placedCards: Icard[] ): boolean {
-        if(placedCards.length === 0 && placingCards[0].rank == 13) return true;
-        if(placedCards[placedCards.length - 1].rank - 1 !== placingCards[0].rank) return false;
-        if(placedCards[placedCards.length - 1].suit === placingCards[0].suit) return false;
+    public validatePlace(placingCards: Icard[], placedCards: Icard[]): boolean {
+        if (placedCards.length === 0 && placingCards[0].rank == 13) return true;
+        if (placedCards[placedCards.length - 1].rank - 1 !== placingCards[0].rank) return false;
+        if (placedCards[placedCards.length - 1].suit === placingCards[0].suit) return false;
         return true;
     }
 
     public validatePlay(playingCard: Icard, playedCards: Icard[]): boolean {
-        if(playedCards.length === 0 && playingCard.rank == 1) return true;
-        if(playedCards[playedCards.length - 1].rank + 1 !== playingCard.rank) return false;
-        if(playedCards[playedCards.length - 1].suit !== playingCard.suit) return false;
+        if (playedCards.length === 0 && playingCard.rank == 1) return true;
+        if (playedCards[playedCards.length - 1].rank + 1 !== playingCard.rank) return false;
+        if (playedCards[playedCards.length - 1].suit !== playingCard.suit) return false;
         return true;
     }
 }

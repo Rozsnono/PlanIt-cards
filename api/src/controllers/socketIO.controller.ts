@@ -6,17 +6,21 @@ import { ERROR } from '../enums/error.enum';
 import { GameChecker } from '../services/game.service';
 import GameHistoryService from '../services/history.services';
 import { Ilobby } from '../interfaces/interface';
+import userModel from '../models/user.model';
 
 export default class SocketIO {
     private wss = new WebSocketServer({ port: 8080 });
     private wssTables = new WebSocketServer({ port: 8081 });
+    private wssAdmin = new WebSocketServer({ port: 8082 });
     private lobby = lobbyModel.lobbyModel;
     private game = gameModel.gameModel;
+    private user = userModel.userModel;
 
     constructor() {
 
         this.wssConnectionStart();
         this.wssTableConntectionStart();
+        this.wssAdminConnectionStart();
 
     }
 
@@ -76,6 +80,80 @@ export default class SocketIO {
                 console.log('Client disconnected');
             });
         });
+    }
+
+    private async wssAdminConnectionStart() {
+        this.wssAdmin.on('connection', (ws: WebSocket) => {
+
+            // Send initial data to the connected client
+            ws.on('connect', async () => {
+                ws.send(JSON.stringify(await this.getAdminDatas()));
+            });
+
+            // Handle WebSocket message received from client
+            ws.on('message', async () => {
+                ws.send(JSON.stringify(await this.getAdminDatas()));
+            });
+
+            // Handle WebSocket close event
+            ws.on('close', () => {
+                console.log('Client disconnected');
+            });
+        });
+
+        const watchingGame = this.game.watch([], { fullDocument: 'updateLookup' });
+        const watchingLobby = this.lobby.watch([], { fullDocument: 'updateLookup' });
+        const watchingUser = this.user.watch([], { fullDocument: 'updateLookup' });
+
+        watchingUser.on('change', async () => {
+            this.wssAdmin.clients.forEach(async (client) => {
+                if (client.readyState === WebSocket.OPEN) {
+                    client.send(JSON.stringify(await this.getAdminDatas()));
+                }
+            });
+        });
+
+        watchingLobby.on('change', async () => {
+            this.wssAdmin.clients.forEach(async (client) => {
+                if (client.readyState === WebSocket.OPEN) {
+                    client.send(JSON.stringify(await this.getAdminDatas()));
+                }
+            });
+        });
+    }
+
+    private async getAdminDatas(): Promise<{ lobby_number: number, game_number: number, users: { total: number, data: any, labels: any }, types: { data: any, labels: any } }> {
+        const lobbies = await this.lobby.find({}).populate("users", 'firstName lastName email username customId rank settings').exec();
+        const games = await this.game.find({}).exec();
+        const users = await this.user.find({}).exec();
+
+        const userCountsByMonth = users.reduce<Record<string, number>>((acc, user) => {
+            const monthKey = user.createdAt.toISOString().slice(0, 7); // "YYYY-MM"
+
+            acc[monthKey] = (acc[monthKey] || 0) + 1;
+            return acc;
+        }, {});
+
+
+        const returnData = {
+            lobby_number: lobbies.length,
+            game_number: games.length,
+            users: {
+                total: users.length,
+                data: Object.values(userCountsByMonth),
+                labels: Object.keys(userCountsByMonth)
+            },
+            types: {
+                labels: ['UNO', 'RUMMY', 'SOLITAIRE'],
+                data: [
+                    lobbies.filter((lobby: any) => lobby.settings?.cardType === 'UNO').length,
+                    lobbies.filter((lobby: any) => lobby.settings?.cardType === 'RUMMY').length,
+                    lobbies.filter((lobby: any) => lobby.settings?.cardType === 'SOLITAIRE').length
+                ]
+            }
+        }
+        console.log(returnData);
+        return returnData;
     }
 
     private async wssTableConntectionStart() {

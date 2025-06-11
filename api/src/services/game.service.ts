@@ -114,6 +114,7 @@ export class GameChecker {
         const players = lobby.users.map(u => u._id).concat(lobby.bots.map(bot => bot._id)).map(id => id.toString());
         currentPlayer = this.getNextPlayer(players, currentPlayer);
         game.currentPlayer = { playerId: currentPlayer, time: new Date().getTime() };
+        console.log(game);
         await this.game.replaceOne({ _id: game._id }, game, { runValidators: true });
     }
 
@@ -267,7 +268,7 @@ export class GameChecker {
 
     public calculatePoints(position: any, maxPoints: number) {
         const step = maxPoints / ((position.length - 1) == 0 ? 1 : position.length - 1);
-        return position.map((p: any, i: number) => { return { player: p.player, rank: Math.max(0, Math.round(maxPoints - (p.position - 1) * step)) } });
+        return position.map((p: any, i: number) => { return { player: p.player, rank: Math.max(0, Math.round(maxPoints - (p.pos - 1) * step)) } });
     }
 
     public getPositions(playerCards: any) {

@@ -64,7 +64,7 @@ export default class LobbyController implements Controller {
     }
 
     private getAllLobby = async (req: Request, res: Response) => {
-        const lobbies = await this.lobby.find().populate("users", "customId username rank settings").populate("game_id");
+        const lobbies = await this.lobby.find().populate("users", "customId username rank settings").populate("game_id").populate("createdBy", "customId username rank settings").sort({ createdAt: -1 });
         res.send(lobbies);
     }
 

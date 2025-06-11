@@ -1,11 +1,17 @@
 Redesign end
 Redesign replay
 Do replay on UNO
+Replay not working
 RUMMY bots fixes
-Pick up card
  EASY -> Place after less than 4 cards ✅
  MEDIUM -> Place from the start but only 1 at once ✅
  HARD -> Place from start and place any, checking cards to drop
+JOKER bug RUMMY 
+ACE problem (in sequale wrong place) ✅
+Validator error with ACE, (KING, ACE, TWO) ✅
+Pick up card ✅
 New admin panel
+UNO bugs
+Tutorial ✅
 Quality of life
-Solitaire bugs
+Solitaire bugs ✅

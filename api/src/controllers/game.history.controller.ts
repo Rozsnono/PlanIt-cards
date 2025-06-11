@@ -23,6 +23,10 @@ export default class GameHistoryController implements Controller {
             this.getHistoryByUser(req, res).catch(next);
         });
 
+        this.router.delete("/game_history", hasAuth([Auth["ADMIN"]]), (req, res, next) => {
+            this.removeAllHistory(req, res).catch(next);
+        });
+
     }
 
     private getHistory = async (req: Request, res: Response) => {
@@ -75,5 +79,16 @@ export default class GameHistoryController implements Controller {
         const positions = Object.values(allCards).map((cards: any) => { return cards.reduce((sum: any, obj: any) => { return sum + obj.value }, 0) });
         const sorted = positions.sort((a: any, b: any) => b + a);
         return sorted.indexOf(allCards[id].reduce((sum: any, obj: any) => { return sum + obj.value }, 0)) + 1;
+    }
+
+    private removeAllHistory = async (req: Request, res: Response) => {
+        const players = await this.user.updateMany({}, { $set: { gameHistory: [] } });
+        const games = await this.gameHistory.deleteMany({});
+        if (players && games) {
+            res.send({ message: "All game history removed successfully!" });
+        }
+        else {
+            res.status(500).send({ error: "An error occurred while removing game history." });
+        }
     }
 }

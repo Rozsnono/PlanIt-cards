@@ -37,7 +37,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
                 <QueryClientProvider client={queryClient}>
 
-                    <body className={`bg-zinc-800 duration-200 relative h-screen`}>
+                    <body className={`bg-zinc-900 duration-200 relative h-screen`}>
                         <StarBackground></StarBackground>
                         {(path.includes('end')) && <Navbar></Navbar>}
                         {(!path.includes('login') && !path.includes('register') && !path.includes('rummy') && !path.includes('uno') && !path.includes('solitaire')) && <Navbar></Navbar>}

@@ -22,12 +22,11 @@ const gameHistorySchema = new Schema(
             default: {},
             readonly: true
         },
-        players: {
-            type: Array,
+        users: [{
+            type: Object,
             default: [],
             readonly: true,
-            ref: "user"
-        },
+        }],
         position: {
             type: Array,
             default: null, 
