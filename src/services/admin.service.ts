@@ -4,7 +4,7 @@ export class AdminService {
     constructor() { }
 
     public async getAllGames() {
-        const response = await fetch(`/api/lobby/get/all`, {
+        const response = await fetch(`/api/lobby/get/games`, {
             method: "GET",
             headers: {
                 'Content-Type': 'application/json',
@@ -51,6 +51,55 @@ export class AdminService {
                 Authorization: `Bearer ${getCookie("token")}`
             },
             body: JSON.stringify({ playerId: playerId })
+        });
+
+        return await response.json();
+    }
+
+    public async getPlayers(filter: any) {
+        const response = await fetch(`/api/players?${filter}`, {
+            method: "GET",
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${getCookie("token")}`
+            },
+        });
+
+        return await response.json();
+    }
+
+    public async createPlayer(body: any) {
+        const response = await fetch(`/api/players`, {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${getCookie("token")}`
+            },
+            body: JSON.stringify(body)
+        });
+
+        return await response.json();
+    }
+
+    public async deletePlayer(id: string) {
+        const response = await fetch(`/api/players/${id}`, {
+            method: "DELETE",
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${getCookie("token")}`
+            },
+        });
+
+        return await response.json();
+    }
+
+    public async deleteAllHistories() {
+        const response = await fetch(`/api/game_history`, {
+            method: "DELETE",
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${getCookie("token")}`
+            },
         });
 
         return await response.json();

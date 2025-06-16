@@ -1,0 +1,21 @@
+.cardParent {
+    .cardSelect {
+        display: none;
+
+        &:hover {
+            display: flex;
+        }
+    }
+
+    &:hover {
+        .cardSelect {
+            display: flex;
+        }
+    }
+
+    &:focus-within {
+        .cardSelect {
+            display: none;
+        }
+    }
+}

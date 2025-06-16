@@ -1,12 +1,16 @@
 Redesign end
 Redesign replay
 Do replay on UNO
-Replay not working
+Profile
+Friends
+Replay not working ✅
+Refreshing not working
 RUMMY bots fixes
  EASY -> Place after less than 4 cards ✅
  MEDIUM -> Place from the start but only 1 at once ✅
- HARD -> Place from start and place any, checking cards to drop
-JOKER bug RUMMY 
+ HARD -> Place from start and place any, checking cards to drop, draw from dropped
+JOKER bug RUMMY (JOKER PLAYING)
+ACE problem (value 1 in set) ✅
 ACE problem (in sequale wrong place) ✅
 Validator error with ACE, (KING, ACE, TWO) ✅
 Pick up card ✅

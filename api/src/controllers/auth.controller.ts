@@ -1,6 +1,6 @@
 import { Request, Response, Router } from "express";
 import Controller from "../interfaces/controller_interface";
-import userModel from "../models/user.model"
+import userModel from "../models/player.model"
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { getIDfromToken, hasAuth } from "../middleware/middleware";
@@ -61,7 +61,7 @@ export default class AuthController implements Controller {
             const result = await bcrypt.compare(body.code, user.registraionCode);
             if (result) {
                 user.registraionCode = '';
-                const hex = Array.from((body.firstName + body.lastName)).map((char: any) => char.charCodeAt(0).toString(16)).join('');
+                const hex = Array.from((body.firstName + body.lastName)).map((char: any) => char.charCodeAt(0).toString(16)).join('').slice(0, 10);
                 body["customId"] = hex + new mongoose.Types.ObjectId().toString().slice(0, 6);
                 const userS = new UserSettings();
                 body["settings"] = {

@@ -105,17 +105,20 @@ export class GameService {
         return res;
     }
 
-    public getDataFromWebsocket(object: any, socket: any, data: object): { lobby: any, game: any, playerCards: any, game_over?: boolean } | null {
+    public getDataFromWebsocket(object: any, socket: any, data: object): { lobby: any, game: any, playerCards: any, game_over?: boolean, refresh?: boolean } | null {
         console.log("getDataFromWebsocket", object);
         if (object.refresh) {
             socket.send(JSON.stringify(data));
-            return null;
+            return {lobby: null, game: null, playerCards: null, refresh: true};
         }
         if (object.game_over) {
-            return { game_over: true, lobby: object.lobby, game: object.game, playerCards: object.playerCard } as any;
+            return { game_over: true, lobby: null, game: null, playerCards: null } as any;
+        }
+        if (!object.game){
+            return { lobby: object.lobby, game: null, playerCards: null } as any;
         }
         if (!object.lobby) return null;
-        return { lobby: object.lobby, game: object.game, playerCards: object.playerCard };
+        return { lobby: object.lobby, game: object.game, playerCards: object.game.playerCards } as any;
     }
 
     public async putCard(lobbyId: string, body: { playedCards: { playedBy: string, cards: Icard[] }, placeCard: Icard }) {

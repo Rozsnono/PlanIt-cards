@@ -61,10 +61,19 @@ export default class LobbyController implements Controller {
             this.getAllLobby(req, res).catch(next);
         });
 
+        this.router.get("/lobby/get/games", hasAuth([Auth["ADMIN"]]), (req, res, next) => {
+            this.getAllGames(req, res).catch(next);
+        });
+
     }
 
     private getAllLobby = async (req: Request, res: Response) => {
         const lobbies = await this.lobby.find().populate("users", "customId username rank settings").populate("game_id").populate("createdBy", "customId username rank settings").sort({ createdAt: -1 });
+        res.send(lobbies);
+    }
+
+    private getAllGames = async (req: Request, res: Response) => {
+        const lobbies = await this.lobby.find({ $nor: [{ game_id: null }] }).populate("users", "customId username rank settings").populate("game_id").populate("createdBy", "customId username rank settings").sort({ createdAt: -1 });
         res.send(lobbies);
     }
 
@@ -80,7 +89,7 @@ export default class LobbyController implements Controller {
         body["_id"] = new mongoose.Types.ObjectId();
         body["users"] = [new mongoose.Types.ObjectId(userid)];
         body["createdBy"] = new mongoose.Types.ObjectId(userid);
-        body["bots"] = (body.settings.fillWithRobots ? Array.from({ length: body.settings.numberOfRobots }, (_, i) => { return { name: new Bot().getRobotName(body.settings.robotsDifficulty, i), _id: 'bot' + i, customId: 'bot-'+i } }) : []);
+        body["bots"] = (body.settings.fillWithRobots ? Array.from({ length: body.settings.numberOfRobots }, (_, i) => { return { name: new Bot().getRobotName(body.settings.robotsDifficulty, i), _id: 'bot' + i, customId: 'bot-' + i } }) : []);
         const newLobby = new this.lobby(body);
         await newLobby.save();
         res.send({ _id: newLobby._id });

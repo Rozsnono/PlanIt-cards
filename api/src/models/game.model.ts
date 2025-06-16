@@ -12,6 +12,15 @@ const gameSchema = new Schema(
             type: { playerId: { type: String, required: true }, time: { type: Number, required: true } },
             default: null,
         },
+        secretSettings: {
+            readonly: true,
+            type: {
+                timeLimit: { type: Number, required: true, default: 180 },
+            },
+            default: {
+                timeLimit: 180
+            }
+        },
         playerCards: {
             type: Object,
             readonly: true

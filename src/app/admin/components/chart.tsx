@@ -15,7 +15,7 @@ import {
     BarElement,
 } from 'chart.js';
 import { color } from 'chart.js/helpers';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect } from 'react';
 import { Bar, Doughnut, Line, PolarArea } from 'react-chartjs-2';
 
 ChartJS.defaults.color = '#fff'; // Set default text color for all charts
@@ -50,7 +50,7 @@ export default function LineChart({ labels, data, datasets }: { labels: string[]
     const options = {
         responsive: true,
         plugins: {
-            legend: { position: 'top' as const },
+            legend: { display: false },
             title: {
                 display: false,
             },
@@ -61,13 +61,21 @@ export default function LineChart({ labels, data, datasets }: { labels: string[]
                 title: {
                     display: false,
                 },
+                grid: {
+                    display: true,
+                    color: '#ffffff50'
+                }
             },
             y: {
                 title: {
-                    display: true,
+                    display: false,
                     text: datasets?.label || 'Values',
                 },
                 beginAtZero: true,
+                grid: {
+                    display: true,
+                    color: '#ffffff50'
+                }
             },
         }
     };
@@ -98,9 +106,7 @@ export function DoughnutChart({ labels, data, datasets }: { labels: string[]; da
     const options = {
         responsive: true,
         plugins: {
-            legend: {
-                position: 'top' as const,
-            },
+            legend: { display: false },
         },
     };
 
@@ -124,7 +130,7 @@ export function BarChart({ labels, data, datasets }: { labels: string[]; data: n
     const options = {
         responsive: true,
         plugins: {
-            legend: { position: 'top' as const },
+            legend: { display: false },
             title: {
                 display: false,
             },
@@ -135,17 +141,26 @@ export function BarChart({ labels, data, datasets }: { labels: string[]; data: n
                 title: {
                     display: false,
                 },
+                grid: {
+                    display: false,
+                    color: '#ffffff50'
+                },
             },
             y: {
                 title: {
                     display: false,
                 },
                 beginAtZero: true,
+                grid: {
+                    display: false,
+                    color: '#ffffff50'
+                },
+                display: false,
             },
         }
     };
 
-    return <Bar data={chartData} options={options} />;
+    return <Bar data={chartData as any} options={options} />;
 }
 
 export function PolarChart({ labels, data, datasets }: { labels: string[]; data: number[], datasets?: { label: string, borderColor: string | string[], backgroundColor: string | string[] } }) {
@@ -165,7 +180,7 @@ export function PolarChart({ labels, data, datasets }: { labels: string[]; data:
     const options = {
         responsive: true,
         plugins: {
-            legend: { position: 'top' as const },
+            legend: { display: false },
             title: {
                 display: false,
             },
@@ -187,81 +202,35 @@ export function PolarChart({ labels, data, datasets }: { labels: string[]; data:
     return <PolarArea data={chartData} options={options} />;
 }
 
+export function ChartCards({ title, labels, data, datasets, type }: { title: string, type: 'line' | 'doughnut' | 'bar' | 'polar', labels: string[]; data: number[], datasets?: { label: string, borderColor: string, backgroundColor: string } }) {
 
-export function TestChart() {
-    const chartRef = useRef<any>(null);
-    const [gradientFills, setGradientFills] = useState<string[]>([]);
-
-    const labels = ['Hétfő', 'Kedd', 'Szerda', 'Csütörtök', 'Péntek'];
-
-    const rawDatasets = [
-        {
-            label: 'Adatsor 1',
-            data: [120, 190, 300, 250, 220],
-            borderColor: 'rgba(255, 99, 132, 1)',
-            pointRadius: 4,
-            tension: 0.4,
-            fill: true
-        },
-        {
-            label: 'Adatsor 2',
-            data: [100, 180, 280, 210, 190],
-            borderColor: 'rgba(54, 162, 235, 1)',
-            pointRadius: 4,
-            tension: 0.4,
-            fill: true
+    function GetChart() {
+        switch (type) {
+            case 'line':
+                return <LineChart labels={labels} data={data} datasets={datasets} />;
+            case 'doughnut':
+                return <DoughnutChart labels={labels} data={data} datasets={datasets} />;
+            case 'bar':
+                return <BarChart labels={labels} data={data} datasets={datasets} />;
+            case 'polar':
+                return <PolarChart labels={labels} data={data} datasets={datasets} />;
+            default:
+                return null;
         }
-    ];
-
-    // Gradient létrehozás (1x a chart mount után)
-    useEffect(() => {
-        const chart = chartRef.current;
-        if (!chart) return;
-
-        const ctx = chart.ctx;
-        const areaHeight = chart.chartArea.bottom;
-
-        const gradients = rawDatasets.map((ds) => {
-            const gradient = ctx.createLinearGradient(0, 0, 0, areaHeight);
-            gradient.addColorStop(0, ds.borderColor.replace('1)', '0.4)'));
-            gradient.addColorStop(1, ds.borderColor.replace('1)', '0)'));
-            return gradient;
-        });
-
-        setGradientFills(gradients);
-    }, []);
-
-    const data = {
-        labels,
-        datasets: rawDatasets.map((ds, i) => ({
-            ...ds,
-            backgroundColor: gradientFills[i] || 'transparent'
-        }))
-    };
-
-    const options = {
-        responsive: true,
-        plugins: {
-            legend: {
-                display: false // ❌ Legend teljesen ki van kapcsolva
-            },
-            tooltip: {
-                enabled: true,
-                position: 'nearest',
-                yAlign: 'top',
-                xAlign: 'left'
-            }
-        },
-        scales: {
-            y: {
-                beginAtZero: true
-            }
-        }
-    };
+    }
 
     return (
-        <div className="w-full max-w-3xl mx-auto">
-            <Line ref={chartRef} data={data} options={options} />
+        <div className="flex justify-center items-center gap-4">
+            <div className="bg-zinc-800 p-4 rounded-lg chart-card-shadow w-[32rem] h-[32rem] flex flex-col ">
+                <h2 className="text-lg font-semibold mb-2">{title}</h2>
+                <div className="h-[24rem] w-full flex justify-center items-center">
+                    <GetChart />
+                </div>
+                <div className="text-sm text-zinc-400 mt-2">
+                    {datasets?.label && <span>{datasets.label}</span>}
+                    <span className="text-zinc-500"> - {labels.length} data points</span>
+                </div>
+            </div>
         </div>
     );
 }

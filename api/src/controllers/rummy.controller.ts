@@ -92,7 +92,7 @@ export default class RummyController implements Controller {
         await newGame.save();
         lobby.game_id = newGame._id;
         await lobby.save();
-        await this.gameHistoryService.saveHistory(playerId, lobby.game_id)
+        await this.gameHistoryService.savingHistory(playerId, lobby.game_id)
         res.send({ message: "Game started!", game_id: newGame._id });
     };
 
@@ -141,7 +141,7 @@ export default class RummyController implements Controller {
 
         game.currentPlayer = { playerId: nextPlayer, time: new Date().getTime() };
         await this.game.replaceOne({ _id: gameId }, game, { runValidators: true });
-        await this.gameHistoryService.saveHistory(playerId, gameId)
+        await this.gameHistoryService.savingHistory(playerId, gameId)
         res.send({ message: "Next turn!" });
     };
 
@@ -190,7 +190,7 @@ export default class RummyController implements Controller {
         game.currentPlayer = { playerId: nextPlayer, time: new Date().getTime() };
 
         await this.game.replaceOne({ _id: gameId }, game, { runValidators: true });
-        this.gameHistoryService.saveHistory(playerId, gameId);
+        await this.gameHistoryService.savingHistory(playerId, gameId);
         res.send({ message: "Next turn!" });
 
     }
@@ -276,7 +276,7 @@ export default class RummyController implements Controller {
         game.droppedCards.splice(game.droppedCards.length - 1, 1);
         try {
             game.droppedCards[game.droppedCards.length - 1].droppedBy = "";
-        } catch {}
+        } catch { }
         game.drawedCard.lastDrawedBy = playerId;
         await this.game.replaceOne({ _id: gameId }, game, { runValidators: true });
         res.send({ message: "Card drawn!" });
@@ -437,7 +437,7 @@ export default class RummyController implements Controller {
             return;
         }
 
-        if(game.playedCards.filter((meld: any) => meld.playedBy === playerId).length === 0) {
+        if (game.playedCards.filter((meld: any) => meld.playedBy === playerId).length === 0) {
             res.status(403).send({ error: ERROR.INVALID_SEQUENCE });
             return;
         }
@@ -450,7 +450,7 @@ export default class RummyController implements Controller {
                 });
             }
         });
-        if(value < 51) {
+        if (value < 51) {
             res.status(403).send({ error: ERROR.MIN_51_VALUE });
             return;
         }

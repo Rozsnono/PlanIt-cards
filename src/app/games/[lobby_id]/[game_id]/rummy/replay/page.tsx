@@ -34,7 +34,7 @@ export default function Game() {
                 <div className="flex justify-center items-center w-full h-full absolute py-8">
                     <div className="border border-[#cccccc10] rounded-md w-2/3 h-2/3 flex flex-wrap gap-10 z-50 p-1" >
                         {
-                            gameHistory.data.turns[turn].playedCards && gameHistory.data.turns[turn].playedCards.map((e: { playedBy: string, cards: Icard[] }, i: number) => {
+                            gameHistory.data.turns[turn].playedCards && user && gameHistory.data.turns[turn].playedCards.map((e: { playedBy: string, cards: Icard[] }, i: number) => {
                                 return (
                                     <div key={i} className={`flex gap-1 h-min group`}>
                                         {
@@ -78,33 +78,30 @@ export default function Game() {
                 <div className="absolute top-0 left-2 h-full flex flex-col justify-between items-center">
                     <div></div>
                     {
-                        gameHistory.data.players.filter((u: any, i: number) => { return i % 2 === 0 && u._id !== user?.customId }).map((user: any, j: number) => {
-                            return (
-                                <div key={j} className="w-16 h-16 relative group cursor-pointer">
-                                    {
-                                        user.name.split(' ').length > 1 ?
-                                            <div style={{ color: getColorByInitials(user).text, backgroundColor: getColorByInitials(user).background }} className="w-16 h-16 rounded-full flex text-zinc-300 items-center justify-center">
-                                                {getUserInitialsByName(user.name)}
-                                            </div>
-                                            :
-                                            <div className="w-16 h-16 rounded-full flex text-zinc-300 items-center justify-center bg-zinc-500 border">
-                                                <Icon name="robot" size={32} stroke></Icon>
-                                            </div>
+                        gameHistory.data.users.filter((u: any, i: number) => { return i % 2 === 0 && u._id !== user?.customId }).map((user: any, j: number) => {
+                            if (!user.username) {
+                                return <></>
+                            }
+                            else {
+                                return (
+                                    <div key={j} className="w-16 h-16 relative group cursor-pointer">
+                                        <div style={{ color: getColorByInitials(user).text, backgroundColor: getColorByInitials(user).background }} className="w-16 h-16 rounded-full flex text-zinc-300 items-center justify-center">
+                                            {getUserInitialsByName(user.firstName + " " + user.lastName)}
+                                        </div>
+                                        <div>
+                                            <p className="text-zinc-300 text-center">{user.firstName + " " + user.lastName}</p>
+                                        </div>
 
-                                    }
-                                    <div>
-                                        <p className="text-zinc-300 text-center">{user.name}</p>
-                                    </div>
+                                        <div className="absolute rounded-full w-8 h-8 top-0 group-hover:top-[3.5rem] left-4 bg-blue-500 hover:bg-blue-400 opacity-0 group-hover:opacity-100 flex justify-center items-center duration-200">
+                                            <Icon name="add-friend"></Icon>
+                                        </div>
+                                        <div className="absolute rounded-full w-8 h-8 top-0 group-hover:top-[5rem] left-4 bg-sky-500 hover:bg-sky-400 opacity-0 group-hover:opacity-100 flex justify-center items-center duration-200">
+                                            <Icon name="info"></Icon>
+                                        </div>
 
-                                    <div className="absolute rounded-full w-8 h-8 top-0 group-hover:top-[3.5rem] left-4 bg-blue-500 hover:bg-blue-400 opacity-0 group-hover:opacity-100 flex justify-center items-center duration-200">
-                                        <Icon name="add-friend"></Icon>
                                     </div>
-                                    <div className="absolute rounded-full w-8 h-8 top-0 group-hover:top-[5rem] left-4 bg-sky-500 hover:bg-sky-400 opacity-0 group-hover:opacity-100 flex justify-center items-center duration-200">
-                                        <Icon name="info"></Icon>
-                                    </div>
-
-                                </div>
-                            )
+                                )
+                            }
                         })
                     }
                     <div></div>
@@ -113,20 +110,15 @@ export default function Game() {
                 <div className="absolute top-0 right-2 h-full flex flex-col justify-between items-center">
                     <div></div>
                     {
-                        gameHistory.data.players.filter((u: any, i: number) => { return i % 2 === 1 && u._id !== user?.customId }).map((user: any, j: number) => {
+                        gameHistory.data.users.filter((u: any, i: number) => { return i % 2 === 1 && u._id !== user?.customId }).map((user: any, j: number) => {
                             return (
                                 <div key={j} className="w-16 h-16 relative group cursor-pointer">
-                                    {
-                                        user.name.split(' ').length > 1 ?
-                                            <div style={{ color: getColorByInitials(user).text, backgroundColor: getColorByInitials(user).background }} className="w-16 h-16 rounded-full flex text-zinc-300 items-center justify-center">
-                                                {getUserInitialsByName(user.name)}
-                                            </div>
-                                            :
-                                            <div className="w-16 h-16 rounded-full flex text-zinc-300 items-center justify-center bg-zinc-500 border">
-                                                <Icon name="robot" size={32} stroke></Icon>
-                                            </div>
-
-                                    }
+                                    {/* <div style={{ color: getColorByInitials(user).text, backgroundColor: getColorByInitials(user).background }} className="w-16 h-16 rounded-full flex text-zinc-300 items-center justify-center">
+                                        {getUserInitialsByName(user.firstName + " " + user.lastName)}
+                                    </div> */}
+                                    <div>
+                                        <p className="text-zinc-300 text-center">{user.firstName + " " + user.lastName}</p>
+                                    </div>
                                     <div>
                                         <p className="text-zinc-300 text-center">{user.name}</p>
                                     </div>
@@ -135,7 +127,7 @@ export default function Game() {
                                         <Icon name="add-friend"></Icon>
                                     </div>
                                     <div className="absolute rounded-full w-8 h-8 top-0 group-hover:top-[5rem] left-4 bg-sky-500 hover:bg-sky-400 opacity-0 group-hover:opacity-100 flex justify-center items-center duration-200">
-                                        <Icon name="info"></Icon>
+                                        <Icon name="info"   ></Icon>
                                     </div>
 
                                 </div>
@@ -147,7 +139,7 @@ export default function Game() {
 
                 <div className="flex gap-1 w-full absolute bottom-0 p-2 justify-center">
                     {
-                        gameHistory.data.turns[turn].playerCards.map((card: any, i: number) => {
+                        gameHistory.data.turns[turn].playerCards[user!._id].map((card: any, i: number) => {
                             return (
                                 <React.Fragment key={i}>
                                     <div draggable className={`cursor-pointer w-12 overflow-visible hover:cursor-grab group rounded-lg duration-200`}>

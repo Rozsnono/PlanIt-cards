@@ -10,7 +10,7 @@ const gameHistorySchema = new Schema(
         gameId: {
             type: Schema.Types.ObjectId,
             required: true,
-            ref: "game" 
+            ref: "game"
         },
         lobbyId: {
             type: Schema.Types.ObjectId,
@@ -29,7 +29,7 @@ const gameHistorySchema = new Schema(
         }],
         position: {
             type: Array,
-            default: null, 
+            default: null,
             nullable: true
         },
         rank: {
@@ -37,12 +37,16 @@ const gameHistorySchema = new Schema(
             default: null,
             nullable: true
         },
+        type: {
+            type: String,
+            required: true,
+        },
         date: {
             type: Date,
             default: Date.now,
             readonly: true
         }
-    },  
+    },
     { versionKey: false },
 );
 

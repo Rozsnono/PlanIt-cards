@@ -10,6 +10,7 @@ import Loader from "@/components/loader.component";
 import { GameService } from "@/services/game.service";
 import LobbyService from "@/services/lobby.service";
 import LobbySettings from "@/components/lobby/lobby.settings.component";
+import ProfileService from "@/services/profile.service";
 const lobbyService = new LobbyService();
 const gameService = new GameService("rummy");
 
@@ -24,23 +25,22 @@ export default function LobbyId() {
 
     useEffect(() => {
         const socket = lobbyService.connectWebSocket(lobby_id as string, user!._id, (data: any) => {
-            if (data.game) {
-                router.push(`/games/${lobby_id}/${data.lobby.game_id}/${data.lobby.settings.cardType.toLocaleLowerCase()}`);
-            } else if (data.game_id) {
-                router.push(`/games/${lobby_id}/${data.lobby.game_id}/${data.settings.cardType.toLocaleLowerCase()}`);
-            } else if (data.status) {
+            if (data.status) {
                 lobbyService.joinLobby(lobby_id as string).then((data2: any) => {
                     if (data2.error) {
                         router.replace("/games");
                     }
-                    console.log(data2);
                     setLobby(data2);
                     setForm(data2.settings);
                 });
+            }
+            if (!data.lobby) return;
+
+            if (data.lobby.game_id) {
+                router.push(`/games/${lobby_id}/${data.lobby.game_id}/${data.lobby.settings.cardType.toLocaleLowerCase()}`);
             } else {
-                console.log(data);
-                setLobby(data);
-                setForm(data.settings);
+                setLobby(data.lobby);
+                setForm(data.lobby.settings);
             }
         });
 
@@ -53,6 +53,7 @@ export default function LobbyId() {
     function sendChat(e: any) {
         e.preventDefault();
         const chat = e.target.chat.value;
+        if (!chat || chat.trim() === "") return;
         e.target.chat.value = "";
         lobbyService.sendChatMessage(lobby_id as string, user!.username, chat);
     }
@@ -132,7 +133,7 @@ export default function LobbyId() {
                             {
                                 lobby.chat.map((message, i) => (
                                     <div key={i} className="flex gap-2">
-                                        <span className="text-zinc-500 w-[6rem]">{message.sender}:</span>
+                                        <span className={`${message.sender === user?.username ? 'text-sky-500' : 'text-zinc-500'} w-[6rem]`}>{message.sender}:</span>
                                         <span className="w-full">{message.message}</span>
                                     </div>
                                 ))
@@ -328,7 +329,7 @@ function PlayerCard({ playerData, loading, bot, createdBy, removePlayer, mutePla
                             <Icon name="unmute" />
                         </div>
                     }
-                    <div className="p-2 rounded-full bg-blue-500 hover:bg-blue-400 w-fit h-fit cursor-pointer">
+                    <div onClick={() => { new ProfileService().createFriendRequest(playerData.customId) }} className="p-2 rounded-full bg-blue-500 hover:bg-blue-400 w-fit h-fit cursor-pointer">
                         <Icon name="add-friend" />
                     </div>
                     <Link href={`/profile/${playerData.customId}`} className="p-2 rounded-full bg-sky-500 hover:bg-sky-400 w-fit h-fit">

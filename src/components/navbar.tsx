@@ -94,7 +94,7 @@ export default function Navbar({ clear }: { clear?: boolean }) {
         <React.Fragment>
 
             <main className="fixed top-3 left-0 w-screen z-[100] max-h-[4.2rem] flex justify-center">
-                <main className="xl:w-3/4 w-[90%] rounded-xl bg-zinc-900 border-2 border-zinc-600 z-50 select-none z-[100] max-h-[4.2rem] relative" >
+                <main className={`"xl:w-3/4 w-[90%] rounded-xl bg-zinc-900 border-2  z-50 select-none z-[100] max-h-[4.2rem] relative" ${user?.auth.includes('ADMIN') ? 'border-red-600' : 'border-zinc-600'}`} >
                     <div className="flex justify-between items-center p-4 pe-8 ps-4">
                         <div className="flex items-center justify-center gap-4 text-zinc-100 max-h-[4.2rem]">
                             <Image src={"/assets/logo.png"} alt='Logo' width={120} height={100}></Image>

@@ -1,5 +1,3 @@
-
-
 .widget {
 
   ::-webkit-scrollbar {
@@ -219,7 +217,7 @@ input[type='range']::-webkit-slider-thumb {
 }
 
 
-.scaling{
+.scaling {
   animation: scale 1s ease-in-out infinite alternate;
 }
 
@@ -233,3 +231,6 @@ input[type='range']::-webkit-slider-thumb {
   }
 }
 
+.chart-card-shadow {
+  box-shadow: 5px 5px 5px 0px #0000005f, -5px -5px 5px 0px #ffffff1f;
+}

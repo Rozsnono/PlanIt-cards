@@ -51,7 +51,7 @@ export default function ProfilePage() {
                 <div className="w-full gap-2 flex flex-col h-full p-2">
                     {!GameHistory.isLoading && GameHistory.data && GameHistory.data.map((game: any, i: number) => {
                         return (
-                            <GameReplays link={`/games/${game.lobbyId}/${game.gameId}/replay`} key={i} pos={game.position.find((p: any) => p.player = user.customId) || {position: 0}} type={game.type} date={game.date}></GameReplays>
+                            <GameReplays link={`/games/${game.lobbyId}/${game.gameId}/${game.type ? game.type.toLowerCase() : ''}/replay`} key={i} pos={game.position.find((p: any) => p.player = user._id)} type={game.type} date={game.date}></GameReplays>
                         )
                     })}
                     {
@@ -100,7 +100,7 @@ export default function ProfilePage() {
                                 {getRankName(player.data.rank).title}
                             </div>}
 
-                        <div className="font-thin text-md">{player.data.rank} {getRankName(player.data.rank).max && "/"} <span className="text-[0.7rem]">{getRankName(player.data.rank).max}</span></div>
+                        <div className="font-thin text-md">{player.data.rank} {getRankName(player.data.rank).max && "/"} <span className="text-[0.7rem]">{getRankName(player.data.rank).max + 1}</span></div>
                     </div>
                     <div className="flex gap-2 flex-wrap font-thin relative">
                         <div className="rounded-full h-2 w-full bg-gray-500 absolute"></div>
@@ -114,7 +114,7 @@ export default function ProfilePage() {
                         {
                             player.data.achievements.map((achievement: any, i: number) => {
                                 return (
-                                    <Achievements key={i} imageSrc={achievement.image}  name={achievement.name} description={achievement.description}></Achievements>
+                                    <Achievements key={i} imageSrc={achievement.image} name={achievement.name} description={achievement.description}></Achievements>
                                 )
                             })
                         }
@@ -165,13 +165,14 @@ function GameReplays({ pos, type, date, link }: { pos: any, type: string, date: 
                 return "/assets/images/rummy.png";
         }
     }
+    const { user } = useContext(UserContext);
 
     return (
         <div className={`w-full bg-zinc-700 rounded-md p-3 text-zinc-200 flex justify-between ${pos == 1 ? "border border-green-700" : ""}`}>
-            <Image className="hidden md:flex" src={getGameTypeImage()} width={100} height={100} alt={type}></Image>
+            <Image className="hidden md:flex" src={getGameTypeImage()} width={100} height={100} alt={'cardType'}></Image>
             <div className="flex flex-col gap-3 items-center justify-center">
                 <div className="text-2xl">
-                    #{pos.position}
+                    #{pos.pos}
                 </div>
             </div>
             <div className="flex flex-col gap-3 items-center justify-center">

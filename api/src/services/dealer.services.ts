@@ -191,7 +191,7 @@ export class RummyDealer extends CardDealer {
         const jokers = deck.filter(card => card.isJoker);
         let nonJokers = deck.filter(card => !card.isJoker);
         nonJokers.sort((a, b) => a.rank - b.rank);
-        if(nonJokers[nonJokers.length - 1].rank === 14 && nonJokers[nonJokers.length - 2].rank !== 13) {
+        if(nonJokers[nonJokers.length - 1].rank === 14 && nonJokers[nonJokers.length - 2].rank < 13) {
             nonJokers = nonJokers.map(card => {
                 if (card.rank === 14) {
                     return { ...card, rank: 1, value: 1 }; // Convert Ace to 1

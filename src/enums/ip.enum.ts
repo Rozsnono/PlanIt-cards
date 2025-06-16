@@ -3,4 +3,5 @@ export enum IP {
     WEBSOCKET = "ws://192.168.0.13:8080",
     LOBBYSOCKET = "ws://192.168.0.13:8081",
     ADMINSOCKET = "ws://192.168.0.13:8082",
+    ADMINGAMESOCKET = "ws://192.168.0.13:8085",
 }

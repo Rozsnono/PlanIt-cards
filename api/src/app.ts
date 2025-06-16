@@ -6,10 +6,11 @@ import http from 'http';
 import dotenv from 'dotenv';
 import AuthController from "./controllers/auth.controller";
 import SocketIO from "./controllers/socketIO.controller";
-import userModel from "./models/user.model";
+import userModel from "./models/player.model";
 import lobbyModel from "./models/lobby.model";
 import gameModel from "./models/game.model";
 import gameHistoryModel from "./models/game.history.model";
+import { LogService } from "./services/log.service";
 
 const { MONGO_URL = "mongodb+srv://admin:admin@planit-card.0lrdm.mongodb.net/planitdb?retryWrites=true&w=majority&appName=Planit-card" } = process.env;
 
@@ -31,7 +32,7 @@ export default class App {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const port: number | any = process.env.PORT || 8000;
             server.listen(port, "0.0.0.0", function () {
-                console.log('Server is running on port ' + port);
+                new LogService().consoleLog('Server is running on port ' + port, 'AppService');
             });
             const s = new SocketIO();
             s.monitorCollectionChanges();
@@ -48,11 +49,12 @@ export default class App {
     private async connectToTheDatabase() {
         mongoose.set("strictQuery", true);
         try {
-            console.log("Connecting to the database...")
-            await mongoose.connect(MONGO_URL, { serverSelectionTimeoutMS: 5000});
-            console.log("Connected to the database");
+            new LogService().consoleLog("Connecting to the database...", 'AppService');
+            await mongoose.connect(MONGO_URL, { serverSelectionTimeoutMS: 5000 });
+            new LogService().consoleLog("Connected to the database successfully.", 'AppService');
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (error: unknown | undefined | any) {
+            new LogService().consoleLog("Failed to connect to the database.", 'AppService');
             console.log({ message: error.message });
         }
 
@@ -60,5 +62,6 @@ export default class App {
         lobbyModel.lobbyModel.init();
         gameModel.gameModel.init();
         gameHistoryModel.gameHistoryModel.init();
+        
     }
 }

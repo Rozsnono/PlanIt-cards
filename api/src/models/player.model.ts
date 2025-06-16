@@ -12,7 +12,8 @@ export const userSchema = new Schema(
         customId: {
             type: String, 
             readonly: true,
-            unique: true
+            unique: true,
+            nullable: true,
         },
         firstName: {
             type: String,
@@ -78,6 +79,7 @@ export const userSchema = new Schema(
         friends: {
             type: Array<Schema.Types.ObjectId>(),
             default: [],
+            ref: "user",
         },
         peddingFriends: {
             type: Array<Schema.Types.ObjectId>(),

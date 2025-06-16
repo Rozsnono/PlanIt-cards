@@ -3,9 +3,11 @@ import gameModel from "../models/game.model";
 import lobbyModel from "../models/lobby.model";
 import { RummyDealer, UnoDealer } from "./dealer.services";
 import { RummyBot } from "./rummy.bot.service";
-import userModel from "../models/user.model";
+import userModel from "../models/player.model";
 import { achievements } from "../cards/achievements";
 import { UnoBot } from "./uno.bot.service";
+import mongoose from "mongoose";
+import { LogService } from "./log.service";
 
 export class GameChecker {
 
@@ -42,7 +44,7 @@ export class GameChecker {
     }
 
     public async forceNextTurn(LobbygameId: string) {
-        const lobby = await this.lobby.findOne({ game_id: LobbygameId });
+        const lobby = await this.lobby.findOne({ game_id: new mongoose.Types.ObjectId(LobbygameId) });
         if (!lobby) {
             console.error("Lobby not found");
             return;
@@ -85,7 +87,6 @@ export class GameChecker {
 
         await this.game.replaceOne({ _id: gameId }, game, { runValidators: true });
         // this.gameHistoryService.saveHistory(playerId, gameId);
-        console.log("Forced turn")
 
     }
     private nextPlayer(users: string[], current: string, bots?: string[]): string {
@@ -114,19 +115,17 @@ export class GameChecker {
         const players = lobby.users.map(u => u._id).concat(lobby.bots.map(bot => bot._id)).map(id => id.toString());
         currentPlayer = this.getNextPlayer(players, currentPlayer);
         game.currentPlayer = { playerId: currentPlayer, time: new Date().getTime() };
-        console.log(game);
+        new LogService().consoleLog(`Bot ${bot.name} played with ${bot.thinkingTime}ms thinking time`, 'RummyBotService');
         await this.game.replaceOne({ _id: game._id }, game, { runValidators: true });
     }
 
     public playWithBotsUno = async (game: any, lobby: Ilobby, currentPlayer: string) => {
-        console.log("Bot playing!")
         const bot = new UnoBot(currentPlayer, 'easy', game.playerCards[currentPlayer], game.droppedCards, game.playedCards, game.shuffledCards, game.drawedCard);
         const { droppedCards, playerCards, drawedCard } = bot.play();
         game.playerCards[currentPlayer] = playerCards;
         game.droppedCards = droppedCards;
         game.drawedCard = drawedCard;
         const waitingTime = bot.thinkingTime;
-        console.log("Waiting for " + waitingTime + "ms");
         await this.wait(waitingTime);
         const players = lobby.users.map(u => u._id).concat(lobby.bots.map(bot => bot._id)).map(id => id.toString());
 
@@ -168,7 +167,6 @@ export class GameChecker {
         game.currentPlayer = { playerId: currentPlayer, time: new Date().getTime() };
         await this.lobby.replaceOne({ _id: lobby._id }, lobby, { runValidators: true });
         await this.game.replaceOne({ _id: game._id }, game, { runValidators: true });
-        console.log("Bot played!")
     }
 
     public setRankByPosition = async (globby: Ilobby) => {
@@ -195,7 +193,6 @@ export class GameChecker {
             }
             body.achievements = await this.checkAnchievements(player, game);
             const res = await this.player.replaceOne({ _id: body._id }, body, { runValidators: true });
-            console.log(res.modifiedCount);
         }
     }
 
@@ -221,7 +218,6 @@ export class GameChecker {
                 body.numberOfGames[new Date().toISOString()].losses++;
             }
             const res = await this.player.replaceOne({ _id: body._id }, body, { runValidators: true });
-            console.log(res.modifiedCount);
         }
     }
 
@@ -243,7 +239,6 @@ export class GameChecker {
             body.numberOfGames[new Date().toISOString()].losses++;
         }
         const res = await this.player.replaceOne({ _id: body._id }, body, { runValidators: true });
-        console.log(res.modifiedCount);
     }
 
     private async checkAnchievements(player: any, game: any) {
@@ -268,7 +263,7 @@ export class GameChecker {
 
     public calculatePoints(position: any, maxPoints: number) {
         const step = maxPoints / ((position.length - 1) == 0 ? 1 : position.length - 1);
-        return position.map((p: any, i: number) => { return { player: p.player, rank: Math.max(0, Math.round(maxPoints - (p.pos - 1) * step)) } });
+        return position.map((p: any, i: number) => { return { player: p.player, rank: Math.max(0, Math.round(maxPoints - (p.pos - 1) * step)) - (maxPoints / 2) } });
     }
 
     public getPositions(playerCards: any) {

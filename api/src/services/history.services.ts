@@ -1,5 +1,5 @@
 import gameHistoryModel from "../models/game.history.model";
-import userModel from "../models/user.model";
+import userModel from "../models/player.model";
 import gameModel from "../models/game.model";
 import mongoose from "mongoose";
 import { ERROR } from "../enums/error.enum";
@@ -17,7 +17,6 @@ export default class GameHistoryService {
 
 
     public saveHistory = async (player_id: string, game_id: string) => {
-
         const game = await this.game.findOne({ _id: game_id });
         if (!game) return { error: ERROR.GAME_NOT_FOUND };
         const player = await this.user.findOne({ _id: player_id });
@@ -66,8 +65,8 @@ export default class GameHistoryService {
 
 
 
-            await this.gameHistory.create(gameHistory);
             return { message: "History saved!" };
+            await this.gameHistory.create(gameHistory);
         }
 
         const gameHistory = await this.gameHistory.findOne({ gameId: game_id }).populate("users", "customId username settings");
@@ -84,7 +83,7 @@ export default class GameHistoryService {
                 droppedCards: game.droppedCards
             }
         };
-        await this.gameHistory.replaceOne({ gameId: game_id }, gameHistory, { runValidators: true });
+        // await this.gameHistory.replaceOne({ gameId: game_id }, gameHistory, { runValidators: true });
         return { message: "History saved!" };
     };
 
@@ -107,6 +106,116 @@ export default class GameHistoryService {
         });
         return { message: "Position saved!" };
     }
+
+    public async savingHistory(player_id: string, game_id: string) {
+        const game = await this.game.findOne({ _id: game_id });
+        if (!game) return { error: ERROR.GAME_NOT_FOUND };
+        const player = await this.user.findOne({ _id: player_id });
+        if (!player) return { error: ERROR.USER_NOT_FOUND };
+        const lobby = await this.lobby.findOne({ game_id }).populate("users", "customId username settings rank firstName lastName").lean();
+        if (!lobby) return { error: ERROR.LOBBY_NOT_FOUND };
+
+        if (player.gameHistory.length >= 8) {
+            try {
+                const oldestHistory = await this.gameHistory.aggregate(
+                    [{ $match: { gameId: { $in: player.gameHistory } } }, { $sort: { date: 1 } }, { $limit: 1 }]
+                );
+                await this.gameHistory.deleteOne({ _id: oldestHistory[0]._id });
+                player.gameHistory = player.gameHistory.filter((history) => history.toString() !== oldestHistory[0].gameId.toString());
+                await player.save();
+            } catch {
+                //TODO
+            }
+        }
+
+        const history = await this.gameHistory.findOne({ gameId: game_id });
+        if (!history) {
+            player.gameHistory.push(new mongoose.Types.ObjectId(game_id));
+            await player.save();
+
+            const users = (lobby.users as any[]).concat(lobby.bots as any);
+            const newHistory = {
+                gameId: game_id,
+                lobbyId: lobby._id,
+                turns: {
+                    1: {
+                        playerCards: game.playerCards,
+                        playedCards: game.playedCards,
+                        droppedCards: game.droppedCards
+                    }
+                },
+                type: lobby.settings?.cardType,
+                users: users,
+                date: new Date(),
+                _id: new mongoose.Types.ObjectId(),
+                position: lobby.users.concat(lobby.bots as any).map((user: any) => { return { player: user.customId, position: 0 } }),
+                rank: lobby.users.concat(lobby.bots as any).map((user: any) => { return { player: user.customId, rank: 0 } }),
+            }
+            await this.gameHistory.create(newHistory);
+            return { message: "History created!", code: 200 };
+        }
+        else {
+            history.turns = {
+                ...history.turns,
+                [Object.keys(history.turns).length + 1]: {
+                    playerCards: game.playerCards,
+                    playedCards: game.playedCards,
+                    droppedCards: game.droppedCards
+                }
+            };
+            await this.gameHistory.replaceOne({ gameId: game_id }, history, { runValidators: true });
+            return { message: "History updated!", code: 201 };
+        }
+    }
+
+    public async getStatsForHistory(game_id: string, maxPoints: number) {
+        const histories = await this.gameHistory.find({ gameId: game_id }).populate("users", "customId username settings firstName lastName").lean();
+        if (!histories) return { error: ERROR.GAME_HISTORY_NOT_FOUND };
+        const game = await this.game.findOne({ _id: game_id });
+        if (!game) return { error: ERROR.GAME_NOT_FOUND };
+        const lobby = await this.lobby.findOne({ game_id });
+        if (!lobby) return { error: ERROR.LOBBY_NOT_FOUND };
+
+        const gc = new GameChecker();
+        const lastTurn: any = Object.values(histories[0].turns)[Object.values(histories[0].turns).length - 1];
+        const positions = gc.getPositions(lastTurn.playerCards);
+        const rank = gc.calculatePoints(positions, maxPoints);
+
+        histories.forEach(async (history: any) => {
+            history.position = positions;
+            history.rank = rank;
+            history.turns = {
+                ...history.turns,
+                [Object.keys(history.turns).length + 1]: {
+                    playerCards: game.playerCards,
+                    playedCards: game.playedCards,
+                    droppedCards: game.droppedCards
+                }
+            }
+            await this.gameHistory.replaceOne({ _id: history._id }, history, { runValidators: true });
+        });
+
+        if (!lobby.settings?.unranked) {
+            positions.forEach(async (position: any) => {    
+                if (position.player.includes("bot")) return; // Skip bots
+                const player = await this.user.findById(position.player);
+                if (player) {
+                    player.rank += histories[0].rank.find((r: any) => r.player === position.player)?.rank || 0;
+                    await player.save();
+                }
+            })
+        }
+
+        await game.deleteOne({ _id: game_id });
+        if (lobby) {
+            lobby.game_id = null;
+            await lobby.save();
+        }
+
+        return { message: "Stats updated!", code: 200 };
+
+    }
+
 }
 
 export class GameHistorySolitaire extends GameHistoryService {

@@ -3,7 +3,7 @@ import Controller from "../interfaces/controller_interface";
 import { hasAuth } from "../middleware/middleware";
 import { Auth } from "../enums/auth.enum";
 import gameHistoryModel from "../models/game.history.model";
-import userModel from "../models/user.model";
+import userModel from "../models/player.model";
 import gameModel from "../models/game.model";
 
 
@@ -33,13 +33,6 @@ export default class GameHistoryController implements Controller {
         const player_id = req.params.id;
         const game_id = req.params.game_id;
 
-        const game = await this.game.findOne({ _id: game_id });
-
-        if (!game) {
-            res.status(404).send({ error: "Game not found!" });
-            return;
-        }
-
         const player = await this.user.findOne({ customId: player_id });
 
         if (!player) {
@@ -67,7 +60,7 @@ export default class GameHistoryController implements Controller {
             return;
         }
 
-        const gameHistory = await this.gameHistory.find({ gameId: { $in: player.gameHistory } });
+        const gameHistory = await this.gameHistory.find({ gameId: { $in: player.gameHistory } }).sort({ date: -1 });
         if (!gameHistory) {
             res.status(404).send({ error: "Game history not found!" });
             return;

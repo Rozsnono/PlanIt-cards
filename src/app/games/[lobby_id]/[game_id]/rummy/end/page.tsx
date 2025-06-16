@@ -24,12 +24,13 @@ export default function End() {
     const data = useQuery('game-history', async () => { return gameSerivce.getGameHistory(user!.customId, game_id!.toString()) });
 
     function getPosition(position: number) {
+        console.log("Position: ", position);
         switch (position) {
-            case 0:
-                return "1:st";
             case 1:
-                return "2:nd";
+                return "1:st";
             case 2:
+                return "2:nd";
+            case 3:
                 return "3:rd";
             default:
                 return position + ":th";
@@ -66,9 +67,9 @@ export default function End() {
 
                 {data.isLoading && <Loader></Loader>}
                 {data.isError && <div>Error</div>}
-                {data.isSuccess && !data.isLoading && !data.isError && data.data && data.data.lobby &&
-                    data.data.players.map((l: any, index: number) => (
-                        <Players place={getPosition(data.data.position)} key={index} playerInfo={{ firstName: l.firstName, lastName: l.lastName, customId: l.customId, rank: l.rank }}></Players>
+                {data.isSuccess && !data.isLoading && !data.isError && data.data &&
+                    data.data.users.filter((u: any) => u.settings).map((l: any, index: number) => (
+                        <Players rankGain={data.data.rank.find((p: any) => p.player == l._id).rank} place={getPosition(data.data.position.find((p: any) => p.player == l._id).pos)} key={index} playerInfo={{ username: l.username, customId: l.customId, rank: l.rank, settings: l.settings }}></Players>
                     ))
                 }
             </div>
@@ -76,7 +77,7 @@ export default function End() {
     )
 }
 
-function Players({ playerInfo, place }: { playerInfo: any, place: string }) {
+function Players({ playerInfo, place, rankGain }: { playerInfo: any, place: string, rankGain?: number }) {
 
     return (
         <div className="rounded-lg w-full h-full bg-zinc-800 flex flex-col p-4 justify-between gap-3">
@@ -114,11 +115,12 @@ function Players({ playerInfo, place }: { playerInfo: any, place: string }) {
                             {getRankName(playerInfo.rank).title}
                         </h2>
                         <div className="flex gap-1 items-center">
-                            <div className="text-lg font-bold">+ 20</div>
+                            <div className="text-lg font-bold">+ {rankGain}</div>
                         </div>
                         <div className="flex gap-2 flex-wrap font-thin relative w-full">
                             <div className="rounded-full h-2 w-full bg-gray-500 absolute"></div>
-                            <div style={{ width: `${getCurrentRank(playerInfo.rank)}%` }} className="rounded-full h-2 bg-green-400 z-50"></div>
+                            <div style={{ width: `${getCurrentRank(playerInfo.rank)}%` }} className="rounded-full h-2 bg-green-400 z-50 animate-pulse duration-300"></div>
+                            <div style={{ width: `${getCurrentRank(playerInfo.rank - (rankGain||0))}%` }} className="rounded-full h-2 bg-emerald-600 z-50 absolute"></div>
                         </div>
                     </div>
 

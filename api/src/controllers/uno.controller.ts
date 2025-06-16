@@ -81,7 +81,7 @@ export default class UnoController implements Controller {
         await newGame.save();
         lobby.game_id = newGame._id;
         await lobby.save();
-        await this.gameHistoryService.saveHistory(playerId, lobby.game_id)
+        await this.gameHistoryService.savingHistory(playerId, lobby.game_id)
         res.send({ message: "Game started!", game_id: newGame._id });
     };
 
@@ -150,7 +150,7 @@ export default class UnoController implements Controller {
         await this.lobby.replaceOne({ _id: lobbyId }, lobby, { runValidators: true });
         game.currentPlayer = { playerId: nextPlayer, time: new Date().getTime() };
         await this.game.replaceOne({ _id: gameId }, game, { runValidators: true });
-        await this.gameHistoryService.saveHistory(playerId, gameId)
+        await this.gameHistoryService.savingHistory(playerId, gameId)
         res.send({ message: "Next turn!" });
     };
 
@@ -181,7 +181,7 @@ export default class UnoController implements Controller {
         game.currentPlayer = { playerId: nextPlayer, time: new Date().getTime() };
 
         await this.game.replaceOne({ _id: gameId }, game, { runValidators: true });
-        this.gameHistoryService.saveHistory(playerId, gameId);
+        await this.gameHistoryService.savingHistory(playerId, gameId);
         this.nextTurn(req, res);
 
     }

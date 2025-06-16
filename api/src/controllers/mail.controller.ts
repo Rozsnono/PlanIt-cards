@@ -1,6 +1,7 @@
 import { Router } from "express";
 import Controller from "../interfaces/controller_interface";
 import nodemailer from "nodemailer";
+import { LogService } from "../services/log.service";
 
 const { GMAIL_USER = "rozsnono@gmail.com", GMAIL_PASS = "bysj jgwc oaol bnjk" } = process.env;
 
@@ -61,15 +62,15 @@ export default class MailController implements Controller {
                 to: to,
                 subject: subject,
                 html: this.htmlTemplate(text, link),
-            }, function (error, info) {
+            }, function (error) {
                 if (error) {
                     console.log("Error: ", error);
                 }
-                console.log("Email sent: " + info);
+                new LogService().consoleLog('Registration email successfully sent', 'EmailService');
             }
             );
             return true;
-        } catch (error: any) {
+        } catch {
             return false;
         }
     }

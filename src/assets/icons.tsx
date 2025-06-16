@@ -1,14 +1,14 @@
-export default function Icon({ name, size = 18, stroke, strokeWidth = 2 }: { name: string, size?: number, stroke?: boolean, strokeWidth?: number }) {
+export default function Icon({ name, size = 18, stroke, strokeWidth = 2, className, onClick }: { onClick?: ()=>void, name: string, size?: number, stroke?: boolean, strokeWidth?: number, className?: string }) {
 
     if (stroke) {
         return (
-            <svg width={size} height={size} fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <svg onClick={onClick} className={className}  width={size} height={size} fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 {getIcon(name)}
             </svg>
         );
     }
     return (
-        <svg width={size} height={size} fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <svg onClick={onClick} className={className} width={size} height={size} fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             {getIcon(name)}
         </svg>
     );

@@ -12,7 +12,7 @@ import Image from "next/image";
 import Icon from "@/assets/icons";
 import CardsUrls from "@/contexts/cards.context";
 import { IP } from "@/enums/ip.enum";
-import LineChart, { BarChart, DoughnutChart, PolarChart, TestChart } from "./components/chart";
+import LineChart, { BarChart, ChartCards, DoughnutChart, PolarChart } from "./components/chart";
 
 export default function AdminPage() {
     const { user } = useContext(UserContext);
@@ -90,52 +90,24 @@ export default function AdminPage() {
         });
     }
 
-    const labels = ['Jan', 'Feb', 'Mar', 'Apr'];
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     const data = [10, 20, 30, 25];
 
-    console.log(state.data);
+
 
     return (
         <main className="flex gap-2 h-full">
             <main className="w-full rounded-md p-3 h-full text-zinc-200 relative flex gap-2 overflow-y-auto">
-                <div className="flex flex-col gap-2 w-full">
-                    <div className="flex justify-between items-center">
-                        <div className="text-xl p-2 flex gap-2 items-center">
-                            <Icon name="card" stroke></Icon>
-                            Players
-                        </div>
+                {state.isLoading && <Loader></Loader>}
+                {state.isError && <div>Error</div>}
+                {state.data.users &&
+                    <div className="flex flex-wrap gap-5 p-2 rounded-lg w-full">
+                        <ChartCards title="Registered users" type="bar" labels={state.data.users.labels.map((l) => `${l.split('-')[0]} ${months[parseInt(l.split('-')[1]) - 1]}.`)} data={state.data.users.data} datasets={{ label: 'Registered user', borderColor: '#acacac', backgroundColor: '#5e5e5e' }} />
+                        <ChartCards title="Games and Lobbies" type="doughnut" labels={['Games', 'Lobbies']} data={[state.data.game_number, state.data.lobby_number]} datasets={{ label: 'Count', colors: ['#5e5e5e', '#8c8c8c'] }} />
+                        <ChartCards title="Game types" type="polar" labels={state.data.types.labels} data={state.data.types.data} datasets={{ label: 'Lobby count', borderColor: ['#54545d', '#9f9fa9', '#0084d1'], backgroundColor: ['#e7000b', '#9f9fa9', '#0084d1'] }} />
                     </div>
-                    <hr />
-                    {state.isLoading && <Loader></Loader>}
-                    {state.isError && <div>Error</div>}
-                    {state.data.users &&
-                        <div className="flex flex-col gap-2 p-2 rounded-lg bg-zinc-800">
-                            <LineChart labels={state.data.users.labels} data={state.data.users.data} datasets={{ label: 'Registered user', borderColor: '#acacac', backgroundColor: '#5e5e5e' }} />
-                        </div>
-                    }
-                </div>
-                <div className="flex flex-col gap-2 w-full">
-                    <div className="flex justify-between items-center">
-                        <div className="text-xl p-2 flex gap-2 items-center">
-                            <Icon name="card" stroke></Icon>
-                            Games
-                        </div>
-                    </div>
-                    <hr />
-                    <div className="flex flex-col gap-2 h-full overflow-y-auto max-w-full">
-                        {state.isLoading && <Loader></Loader>}
-                        {state.isError && <div>Error</div>}
+                }
 
-                        {state.data.users &&
-                            <div className="flex flex-row gap-2 p-2 rounded-lg bg-zinc-800 w-1/2 max-w-full">
-                                <DoughnutChart labels={['Games', 'Lobbies']} data={[state.data.game_number, state.data.lobby_number]} datasets={{ label: 'Count', colors: ['#5e5e5e', '#8c8c8c'] }} />
-                                <PolarChart labels={state.data.types.labels} data={state.data.types.data} datasets={{ label: 'Lobby types', borderColor: ['#54545d', '#9f9fa9', '#0084d1'], backgroundColor: ['#e7000b', '#9f9fa9', '#0084d1'] }} />
-                            </div>
-                        }
-                    </div>
-                </div>
-
-                <TestChart/>
             </main>
         </main>
     )
