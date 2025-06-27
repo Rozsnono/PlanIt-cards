@@ -1,6 +1,7 @@
 import WebSocket, { WebSocketServer } from 'ws';
 import lobbyModel from '../models/lobby.model';
 import gameModel from '../models/game.model';
+import jwt from 'jsonwebtoken';
 import mongoose from 'mongoose';
 import { ERROR } from '../enums/error.enum';
 import { GameChecker } from '../services/game.service';
@@ -9,11 +10,17 @@ import { Igame, Ilobby } from '../interfaces/interface';
 import userModel from '../models/player.model';
 import { LogService } from '../services/log.service';
 
+const { ACCESS_TOKEN_SECRET = "secret" } = process.env;
+
+
 export default class SocketIO {
-    private wss = new WebSocketServer({ port: 8080 });
-    private wssTables = new WebSocketServer({ port: 8081 });
-    private wssAdmin = new WebSocketServer({ port: 8082 });
-    private wssAdminGame = new WebSocketServer({ port: 8085 });
+    private websockets: { [websocketName: string]: WebSocketServer } = {
+        gameSocket: new WebSocketServer({ port: 8080 }),
+        tableSocket: new WebSocketServer({ port: 8081 }),
+        adminSocket: new WebSocketServer({ port: 8082 }),
+        adminGameSocket: new WebSocketServer({ port: 8085 }),
+        playerDataSocket: new WebSocketServer({ port: 8090 }),
+    };
     private lobby = lobbyModel.lobbyModel;
     private game = gameModel.gameModel;
     private user = userModel.userModel;
@@ -23,7 +30,7 @@ export default class SocketIO {
 
         this.logService.consoleLog('SocketIO initialized', 'SocketIOService');
 
-        this.logService.consoleLog('Starting WebSocket servers on ports 8080, 8081, 8082, and 8085', 'SocketIOService');
+        this.logService.consoleLog('Starting WebSocket servers on ports 8080, 8081, 8082, 8085, 8090', 'SocketIOService');
         this.wssConnectionStart();
         this.wssTableConntectionStart();
         this.wssAdminConnectionStart();
@@ -33,7 +40,7 @@ export default class SocketIO {
     }
 
     private async wssConnectionStart() {
-        this.wss.on('connection', (ws: WebSocket) => {
+        this.websockets.gameSocket.on('connection', (ws: WebSocket) => {
 
             // Handle WebSocket message received from client
             ws.on('message', async (id: string) => {
@@ -162,7 +169,7 @@ export default class SocketIO {
     }
 
     private async wssAdminConnectionStart() {
-        this.wssAdmin.on('connection', (ws: WebSocket) => {
+        this.websockets.adminSocket.on('connection', (ws: WebSocket) => {
 
             // Send initial data to the connected client
             ws.on('connect', async () => {
@@ -179,7 +186,7 @@ export default class SocketIO {
         const watchingUser = this.user.watch([], { fullDocument: 'updateLookup' });
 
         watchingUser.on('change', async () => {
-            this.wssAdmin.clients.forEach(async (client) => {
+            this.websockets.adminSocket.clients.forEach(async (client) => {
                 if (client.readyState === WebSocket.OPEN) {
                     client.send(JSON.stringify(await this.getAdminDatas()));
                 }
@@ -187,7 +194,7 @@ export default class SocketIO {
         });
 
         watchingLobby.on('change', async () => {
-            this.wssAdmin.clients.forEach(async (client) => {
+            this.websockets.adminSocket.clients.forEach(async (client) => {
                 if (client.readyState === WebSocket.OPEN) {
                     client.send(JSON.stringify(await this.getAdminDatas()));
                 }
@@ -229,7 +236,7 @@ export default class SocketIO {
     }
 
     private async wssAdminGameConntectionStart() {
-        this.wssAdminGame.on('connection', (ws: WebSocket) => {
+        this.websockets.adminGameSocket.on('connection', (ws: WebSocket) => {
 
             // Send initial data to the connected client
             ws.on('connect', async () => {
@@ -251,7 +258,7 @@ export default class SocketIO {
         const watchingGame = this.game.watch([], { fullDocument: 'updateLookup' });
 
         watchingGame.on('change', async (change) => {
-            this.wssAdminGame.clients.forEach(async (client) => {
+            this.websockets.adminGameSocket.clients.forEach(async (client) => {
                 if (client.readyState === WebSocket.OPEN) {
                     client.send(JSON.stringify(change.fullDocument));
                 }
@@ -260,7 +267,7 @@ export default class SocketIO {
     }
 
     private async wssTableConntectionStart() {
-        this.wssTables.on('connection', async (ws: WebSocket) => {
+        this.websockets.tableSocket.on('connection', async (ws: WebSocket) => {
 
             ws.send(JSON.stringify(await this.getLobbies));
 
@@ -312,7 +319,7 @@ export default class SocketIO {
     private gameHistoryS = new GameHistorySolitaire();
 
     public async monitorCollectionChanges() {
-
+        this.logService.consoleLog('Starting to monitor collection changes', 'SocketIOService');
         const options = { fullDocument: 'updateLookup' }
 
         const watching = this.game.watch([], options);
@@ -324,17 +331,14 @@ export default class SocketIO {
                     if (lobby) {
                         switch (lobby.settings?.cardType) {
                             case "RUMMY":
-                                this.gameChecker.setRankByPosition(lobby! as any);
                                 this.gameHistory.getStatsForHistory(change.fullDocument._id, 40);
                                 break;
 
                             case "UNO":
-                                this.gameChecker.setRankByPositionUno(lobby! as any);
                                 this.gameHistory.getStatsForHistory(change.fullDocument._id, 40);
                                 break;
 
                             case "SOLITAIRE":
-                                this.gameChecker.setRankInSolitaire(lobby! as any);
                                 this.gameHistoryS.savePosition(lobby!._id.toString(), change.fullDocument._id, 10);
                                 break;
 
@@ -346,7 +350,7 @@ export default class SocketIO {
                 }
             } catch { }
 
-            this.wss.clients.forEach(async (client) => {
+            this.websockets.gameSocket.clients.forEach(async (client) => {
                 if (client.readyState === WebSocket.OPEN) {
                     try {
                         if (Object.values(change.fullDocument.playerCards).find((array: any) => array.length === 0)) {
@@ -375,14 +379,13 @@ export default class SocketIO {
 
             try {
                 const lobby = await this.lobby.findOne({ _id: change.fullDocument._id }).populate("users", 'firstName lastName email username customId rank settings').exec();
-                console.log('Lobby change detected:', lobby!.game_id);
-                this.wss.clients.forEach((client) => {
+                this.websockets.gameSocket.clients.forEach((client) => {
                     if (client.readyState === 1) {
                         client.send(JSON.stringify({ lobby: lobby }));
                     }
                 });
             } catch {
-                this.wss.clients.forEach((client) => {
+                this.websockets.gameSocket.clients.forEach((client) => {
                     if (client.readyState === 1) {
                         client.send("DELETED");
                     }
@@ -393,7 +396,7 @@ export default class SocketIO {
         const lobbyWatching = this.lobby.watch([], options);
 
         lobbyWatching.on('change', async () => {
-            this.wssTables.clients.forEach((client) => {
+            this.websockets.tableSocket.clients.forEach((client) => {
                 if (client.readyState === 1) {
                     client.send(JSON.stringify({ refresh: true }));
                 }
@@ -406,6 +409,26 @@ export default class SocketIO {
 
         chatWatching.on('error', (error) => {
             console.error('Error in lobby Change Stream:', error);
+        });
+
+
+        this.logService.consoleLog('Monitoring player changes started', 'SocketIOService');
+        const userWatching = this.user.watch([
+            {
+                $match: {
+                    operationType: 'update',
+                    'updateDescription.updatedFields.peddingFriends': { $exists: true }
+                }
+            }
+        ], { fullDocument: 'updateLookup' });
+        userWatching.on('change', async (change) => {
+            const player = await this.user.findOne({ customId: change.fullDocument.customId }).populate("peddingFriends", "customId firstName lastName username rank settings").exec();
+            const token = jwt.sign({ _id: player!._id, username: player!.username, firstName: player!.firstName, lastName: player!.lastName, auth: player!.auth, numberOfGames: player!.numberOfGames, rank: player!.rank, email: player!.email, customId: player!.customId, peddingFriends: player!.peddingFriends.length, settings: player!.settings }, ACCESS_TOKEN_SECRET);
+            this.websockets.playerDataSocket.clients.forEach((client) => {
+                if (client.readyState === 1) {
+                    client.send(JSON.stringify({ peddingFriends: player!.peddingFriends, token: token, customId: player!.customId }));
+                }
+            });
         });
 
 
@@ -434,5 +457,23 @@ export default class SocketIO {
                 })
             }
         }, 1000)
+    }
+
+    public async stopInterval() {
+        if (this.interval) {
+            clearInterval(this.interval);
+            this.logService.consoleLog('SocketIO interval stopped', 'SocketIOService');
+        }
+    }
+
+    public async closeWebsockets() {
+        for (const key in this.websockets) {
+            if (this.websockets[key]) {
+                this.websockets[key].close(() => {
+                    this.logService.consoleLog(`WebSocket server on port ${this.websockets[key].options.port} closed`, 'SocketIOService');
+                });
+            }
+        }
+        await this.stopInterval();
     }
 }

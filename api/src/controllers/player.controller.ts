@@ -43,6 +43,10 @@ export default class PlayerController implements Controller {
         this.router.post("/players/friend", hasAuth([Auth["PLAYER.GET.INFO"]]), (req, res, next) => {
             this.createFriendRequest(req, res).catch(next);
         })
+
+        this.router.post("/players/friend/accept", hasAuth([Auth["PLAYER.GET.INFO"]]), (req, res, next) => {
+            this.acceptFriendRequest(req, res).catch(next);
+        });
     }
 
     private createFriendRequest = async (req: Request, res: Response) => {
@@ -72,10 +76,46 @@ export default class PlayerController implements Controller {
             res.status(409).send({ error: ERROR.AN_ERROR_OCCURRED });
             return;
         }
+        friend.peddingFriends.push(new mongoose.Types.ObjectId(player._id));
+        await friend.save();
+        res.send({ message: "Friend request sent successfully!" });
+    }
+
+    private acceptFriendRequest = async (req: Request, res: Response) => {
+        const body = req.body;
+        const id = await getIDfromToken(req);
+
+        if (!body.customId) {
+            res.status(400).send({ error: ERROR.AN_ERROR_OCCURRED });
+            return;
+        }
+
+        const player = await this.user.findOne({ _id: id });
+
+        if (!player) {
+            res.status(404).send({ error: ERROR.USER_NOT_FOUND });
+            return;
+        }
+
+        const friend = await this.user.findOne({ customId: body.customId });
+
+        if (!friend) {
+            res.status(404).send({ error: ERROR.USER_NOT_FOUND });
+            return;
+        }
+
+        if (player.friends.includes(new mongoose.Types.ObjectId(friend._id))) {
+            res.status(409).send({ error: ERROR.AN_ERROR_OCCURRED });
+            return;
+        }
 
         player.friends.push(new mongoose.Types.ObjectId(friend._id));
+        friend.friends.push(new mongoose.Types.ObjectId(player._id));
+        player.peddingFriends = player.peddingFriends.filter((f) => f.toString() !== friend._id.toString());
         await player.save();
-        res.send({ message: "Friend request sent successfully!" });
+        await friend.save();
+
+        res.send({ message: "Friend request accepted successfully!" });
     }
 
     private createPlayer = async (req: Request, res: Response) => {

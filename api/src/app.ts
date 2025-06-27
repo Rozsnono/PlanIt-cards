@@ -12,7 +12,7 @@ import gameModel from "./models/game.model";
 import gameHistoryModel from "./models/game.history.model";
 import { LogService } from "./services/log.service";
 
-const { MONGO_URL = "mongodb+srv://admin:admin@planit-card.0lrdm.mongodb.net/planitdb?retryWrites=true&w=majority&appName=Planit-card" } = process.env;
+const { MONGO_URL = 'mongodb+srv://admin:admin@planitcards.rmxdeyd.mongodb.net/planitdb?retryWrites=true&w=majority&appName=PlanitCards' } = process.env;
 
 
 

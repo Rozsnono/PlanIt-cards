@@ -74,7 +74,7 @@ export default class UnoController implements Controller {
         // deal the cards
         body["playerCards"] = dealer.dealCards(lobby?.users.concat(lobby?.bots.map((bot: any) => { return bot._id }) as any), 8);
         body["currentPlayer"] = { playerId: lobby?.users[0], time: new Date().getTime() };
-        body["drawedCard"] = { lastDrawedBy: lobby?.users[0] };
+        body["drawedCard"] = { lastDrawedBy: null };
         body["droppedCards"] = [{ droppedBy: '', card: dealer.drawCard(1)[0] }];
         body["_id"] = new mongoose.Types.ObjectId();
         const newGame = new this.game(body);
@@ -111,40 +111,41 @@ export default class UnoController implements Controller {
         switch (game.droppedCards[game.droppedCards.length - 1].card.rank) {
             case 15:
                 //Reverse
-                lobby.users = lobby.users.reverse();
-                lobby.bots = lobby.bots.reverse();
-                nextPlayer = this.nextPlayer(lobby.users.map(id => { return id.toString() }), game.currentPlayer.playerId.toString(), lobby.bots && lobby.bots.map((bot: any) => bot._id.toString()));
+                game.playerCards = Object.fromEntries(
+                    Object.entries(game.playerCards).reverse()
+                );
+                nextPlayer = this.nextPlayer(Object.keys(game.playerCards), game.currentPlayer.playerId.toString());
                 game.droppedCards[game.droppedCards.length - 1].droppedBy = nextPlayer;
                 break;
             case 16:
                 //Skip
-                nextPlayer = this.nextPlayer(lobby.users.map(id => { return id.toString() }), game.currentPlayer.playerId.toString(), lobby.bots && lobby.bots.map((bot: any) => bot._id.toString()));
+                nextPlayer = this.nextPlayer(Object.keys(game.playerCards), game.currentPlayer.playerId.toString());
                 game.droppedCards[game.droppedCards.length - 1].droppedBy = nextPlayer;
-                nextPlayer = this.nextPlayer(lobby.users.map(id => { return id.toString() }), nextPlayer.toString(), lobby.bots && lobby.bots.map((bot: any) => bot._id.toString()));
+                nextPlayer = this.nextPlayer(Object.keys(game.playerCards), nextPlayer.toString());
                 break;
             case 18:
                 //Draw 2
-                nextPlayer = this.nextPlayer(lobby.users.map(id => { return id.toString() }), game.currentPlayer.playerId.toString(), lobby.bots && lobby.bots.map((bot: any) => bot._id.toString()));
+                nextPlayer = this.nextPlayer(Object.keys(game.playerCards), game.currentPlayer.playerId.toString());
                 game.playerCards[nextPlayer] = game.playerCards[nextPlayer].concat(new UnoDealer(game.shuffledCards).drawCard(2));
                 game.droppedCards[game.droppedCards.length - 1].droppedBy = nextPlayer;
-                nextPlayer = this.nextPlayer(lobby.users.map(id => { return id.toString() }), nextPlayer.toString(), lobby.bots && lobby.bots.map((bot: any) => bot._id.toString()));
+                nextPlayer = this.nextPlayer(Object.keys(game.playerCards), nextPlayer.toString());
                 break;
             case 20:
                 //Wild Draw 4
-                nextPlayer = this.nextPlayer(lobby.users.map(id => { return id.toString() }), game.currentPlayer.playerId.toString(), lobby.bots && lobby.bots.map((bot: any) => bot._id.toString()));
+                nextPlayer = this.nextPlayer(Object.keys(game.playerCards), game.currentPlayer.playerId.toString());
                 game.playerCards[nextPlayer] = game.playerCards[nextPlayer].concat(new UnoDealer(game.shuffledCards).drawCard(4));
                 game.droppedCards[game.droppedCards.length - 1].droppedBy = nextPlayer;
-                nextPlayer = this.nextPlayer(lobby.users.map(id => { return id.toString() }), nextPlayer.toString(), lobby.bots && lobby.bots.map((bot: any) => bot._id.toString()));
+                nextPlayer = this.nextPlayer(Object.keys(game.playerCards), nextPlayer.toString());
                 break;
             case 21:
                 //Wild Draw 4
-                nextPlayer = this.nextPlayer(lobby.users.map(id => { return id.toString() }), game.currentPlayer.playerId.toString(), lobby.bots && lobby.bots.map((bot: any) => bot._id.toString()));
+                nextPlayer = this.nextPlayer(Object.keys(game.playerCards), game.currentPlayer.playerId.toString());
                 game.playerCards[nextPlayer] = game.playerCards[nextPlayer].concat(new UnoDealer(game.shuffledCards).drawCard(4));
                 game.droppedCards[game.droppedCards.length - 1].droppedBy = nextPlayer;
-                nextPlayer = this.nextPlayer(lobby.users.map(id => { return id.toString() }), nextPlayer.toString(), lobby.bots && lobby.bots.map((bot: any) => bot._id.toString()));
+                nextPlayer = this.nextPlayer(Object.keys(game.playerCards), nextPlayer.toString());
                 break;
             default:
-                nextPlayer = this.nextPlayer(lobby.users.map(id => { return id.toString() }), game.currentPlayer.playerId.toString(), lobby.bots && lobby.bots.map((bot: any) => bot._id.toString()));
+                nextPlayer = this.nextPlayer(Object.keys(game.playerCards), game.currentPlayer.playerId.toString());
                 break;
         }
         await this.lobby.replaceOne({ _id: lobbyId }, lobby, { runValidators: true });
@@ -177,7 +178,7 @@ export default class UnoController implements Controller {
         game.playerCards[playerId] = game.playerCards[playerId].concat(new UnoDealer(game.shuffledCards).drawCard(1));
         game.droppedCards[game.droppedCards.length - 1].droppedBy = playerId;
 
-        const nextPlayer = this.nextPlayer(lobby.users.map(id => { return id.toString() }), game.currentPlayer.playerId.toString(), lobby.bots && lobby.bots.map((bot: any) => bot._id.toString()));
+        const nextPlayer = this.nextPlayer(Object.keys(game.playerCards), game.currentPlayer.playerId.toString());
         game.currentPlayer = { playerId: nextPlayer, time: new Date().getTime() };
 
         await this.game.replaceOne({ _id: gameId }, game, { runValidators: true });
@@ -215,6 +216,10 @@ export default class UnoController implements Controller {
         }
         const dealer = new UnoDealer(game.shuffledCards);
         game.playerCards[playerId] = game.playerCards[playerId].concat(dealer.drawCard(1));
+        if (game.shuffledCards.length === 0) {
+            // reshuffle the dropped cards into the deck
+            game.shuffledCards = dealer.reShuffleDeck(game.droppedCards.slice(game.droppedCards.length - 1).map((d: any) => d.card));
+        }
         game.droppedCards[game.droppedCards.length - 1].droppedBy = playerId;
         game.shuffledCards = dealer.deck;
         game.drawedCard.lastDrawedBy = playerId;
@@ -223,13 +228,7 @@ export default class UnoController implements Controller {
         this.nextTurn(req, res);
     };
 
-    private nextPlayer(users: string[], current: string, bots?: string[]): string {
-        if (bots && bots?.includes(current)) {
-            return bots.indexOf(current) === bots.length - 1 ? users[0] : bots[bots.indexOf(current) + 1];
-        }
-        if (bots?.length && users.indexOf(current) === users.length - 1) {
-            return bots ? bots[0] : users[0];
-        }
+    private nextPlayer(users: string[], current: string): string {
         return users[users.indexOf(current) + 1 === users.length ? 0 : users.indexOf(current) + 1];
     }
 

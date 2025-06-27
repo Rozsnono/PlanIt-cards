@@ -38,7 +38,9 @@ export class AuthService {
     }
 
     private saveInCookie(data: string, remember: boolean = false) {
-        document.cookie = `token=${data}; expires=${new Date(new Date().setDate(new Date().getDate() + (remember ? 7 : 0))).toString()} path=/`;
+        const time = new Date(new Date().setDate(new Date().getDate() + (remember ? 7 : 0))).toUTCString();
+        const cookie = `token=${encodeURIComponent(data)}; expires=${time}; path=/;`;
+        document.cookie = cookie;
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

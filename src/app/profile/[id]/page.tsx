@@ -49,7 +49,7 @@ export default function ProfilePage() {
                     Replays
                 </div>
                 <div className="w-full gap-2 flex flex-col h-full p-2">
-                    {!GameHistory.isLoading && GameHistory.data && GameHistory.data.map((game: any, i: number) => {
+                    {!GameHistory.isLoading && GameHistory.data.length > 0 && GameHistory.data.map((game: any, i: number) => {
                         return (
                             <GameReplays link={`/games/${game.lobbyId}/${game.gameId}/${game.type ? game.type.toLowerCase() : ''}/replay`} key={i} pos={game.position.find((p: any) => p.player = user._id)} type={game.type} date={game.date}></GameReplays>
                         )
@@ -112,6 +112,7 @@ export default function ProfilePage() {
                     <h1>Achievements</h1>
                     <div className="grid 2xl:grid-cols-9 xl:grid-cols-6 grid-cols-4 gap-2 max-h-[40vh] overflow-y-auto">
                         {
+                            player.data.achievements &&
                             player.data.achievements.map((achievement: any, i: number) => {
                                 return (
                                     <Achievements key={i} imageSrc={achievement.image} name={achievement.name} description={achievement.description}></Achievements>
@@ -121,7 +122,7 @@ export default function ProfilePage() {
 
                     </div>
                     {
-                        player.data.achievements.length == 0 &&
+                        !player.data.achievements &&
                         <div className="text-zinc-400 text-center w-full h-full flex items-center justify-center">
                             No achievements found
                         </div>
@@ -133,6 +134,7 @@ export default function ProfilePage() {
                     <h1>Friends</h1>
                     <div className="flex gap-2 flex-wrap">
                         {
+                            player.data.friends &&
                             player.data.friends.map((friend: any, i: number) => {
                                 return (
                                     <Link key={i} href={`/profile/${friend.customId}`}>
@@ -142,7 +144,7 @@ export default function ProfilePage() {
                             })
                         }
                         {
-                            player.data.friends.length == 0 &&
+                            !player.data.friends &&
                             <div className="text-zinc-400 text-center w-full h-full flex items-center justify-center">
                                 No friends found
                             </div>

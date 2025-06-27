@@ -24,11 +24,11 @@ const nextConfig = {
         return [
           {
             source: '/api/:path*',
-            destination: 'http://192.168.0.13:8000/api/:path*',
+            destination: 'http://192.168.0.113:8000/api/:path*',
           },
           {
             source: '/auth/:path*',
-            destination: 'http://192.168.0.13:8000/auth/:path*',
+            destination: 'http://192.168.0.113:8000/auth/:path*',
           },
         ];
       },

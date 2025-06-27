@@ -85,6 +85,17 @@ export class UnoDealer extends CardDealer {
         super(cards);
     }
 
+    public reShuffleDeck(deck: Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number, value: number }>): Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number, value: number }> {
+        let currentIndex = deck.length, randomIndex;
+        while (currentIndex !== 0) {
+            randomIndex = Math.floor(Math.random() * currentIndex);
+            currentIndex--;
+            [deck[currentIndex], deck[randomIndex]] = [deck[randomIndex], deck[currentIndex]];
+        }
+        this.deck = deck;
+        return deck;
+    }
+
     public validateDrop(droppedCards: Array<{ name: string; rank: number; suit: string; isJoker?: boolean; pack: number; value: number; }>, droppedCard: { name: string; rank: number; suit: string; isJoker?: boolean; pack: number; }): boolean {
         if (droppedCards.length === 0) {
             return true;
@@ -150,7 +161,7 @@ export class RummyDealer extends CardDealer {
         let jokerCount = sortedDeck.filter(card => card.isJoker).length;
         let lastRank = null;
 
-        
+
         for (const card of sortedDeck) {
             if (card.isJoker) continue;
 
@@ -191,7 +202,7 @@ export class RummyDealer extends CardDealer {
         const jokers = deck.filter(card => card.isJoker);
         let nonJokers = deck.filter(card => !card.isJoker);
         nonJokers.sort((a, b) => a.rank - b.rank);
-        if(nonJokers[nonJokers.length - 1].rank === 14 && nonJokers[nonJokers.length - 2].rank < 13) {
+        if (nonJokers[nonJokers.length - 1].rank === 14 && nonJokers[nonJokers.length - 2].rank < 13) {
             nonJokers = nonJokers.map(card => {
                 if (card.rank === 14) {
                     return { ...card, rank: 1, value: 1 }; // Convert Ace to 1

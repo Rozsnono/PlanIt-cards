@@ -317,7 +317,6 @@ export default class SolitaireController implements Controller {
         await this.GameHistorySolitaire.saveHistory(playerId, lobby.game_id);
 
         if (!game.playedCards.map(c => c.cards).find(c => c.length != 0) && game.droppedCards.length === 0 && game.shuffledCards.length === 0) {
-            await new GameChecker().setRankInSolitaire(lobby as any);
             await this.GameHistorySolitaire.savePosition(lobbyId, gameId, 10);
             res.send({ info: "Game Over!" });
             return;

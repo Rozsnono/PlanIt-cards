@@ -11,6 +11,7 @@ import React from "react";
 import { useContext, useState } from "react";
 import { useQuery } from "react-query";
 import CardsUrls from "@/contexts/cards.context";
+import GameUser, { GameBot } from "@/components/user/game.user.component";
 
 export default function Game() {
 
@@ -26,23 +27,33 @@ export default function Game() {
     if (gameHistory.isLoading) return <Loader></Loader>;
     if (gameHistory.isError) return null;
 
+    function getCurrentTurn(): {
+        playerCards: { [player_id: string]: Icard[] },
+        playedCards: { playedBy: string, cards: Icard[] }[],
+        droppedCards: { playerId: string, card: Icard }[],
+    } | null {
+        const currentTurn = gameHistory.data?.turns[turn];
+        if (currentTurn) {
+            return currentTurn;
+        }
+        return null;
+    }
 
     return (
-        <main className="flex bg-[#3f3f46c0] w-full min-h-screen rounded-md p-3 relative select-none">
+        <main className="flex w-full h-full rounded-md p-3 relative select-none">
 
             <main className="bg-green-800 rounded-md w-full relative flex justify-center items-center">
                 <div className="flex justify-center items-center w-full h-full absolute py-8">
-                    <div className="border border-[#cccccc10] rounded-md w-2/3 h-2/3 flex flex-wrap gap-10 z-50 p-1" >
+                    <div className="border border-[#cccccc10] rounded-md w-2/3 h-2/3 flex flex-wrap gap-10 z-50 p-1">
                         {
-                            gameHistory.data.turns[turn].playedCards && user && gameHistory.data.turns[turn].playedCards.map((e: { playedBy: string, cards: Icard[] }, i: number) => {
+                            getCurrentTurn()!.playedCards.map((e: { playedBy: string, cards: Icard[] }, i: number) => {
                                 return (
                                     <div key={i} className={`flex gap-1 h-min group`}>
                                         {
                                             e.cards.map((card: Icard, j: number) => {
                                                 return (
                                                     <div key={j} className="w-8 h-16 relative group cursor-pointer overflow-visible">
-                                                        <Image className={`card-animation w-16 max-w-16 rounded-md border border-transparent ${e.playedBy === user?._id ? ' group-hover:border-green-500' : ""} `} key={j} src={"/assets/cards/rummy/" + new CardsUrls().getCardUrl(card.name)} width={70} height={60} alt={new CardsUrls().getCardUrl(card.name)}></Image>
-                                                        {j === 0 && <div className="opacity-0 group-hover:opacity-100 absolute group-hover:bottom-[-3.6rem] bottom-0 left-0 w-16 z-[-1] duration-200">{e.playedBy}</div>}
+                                                        <Image className={`card-animation w-16 max-w-16 rounded-md border border-transparent`} key={j} src={"/assets/cards/rummy/" + new CardsUrls().getCardUrl(card.name)} width={70} height={60} alt={new CardsUrls().getCardUrl(card.name)}></Image>
                                                     </div>
                                                 )
                                             })
@@ -55,22 +66,22 @@ export default function Game() {
                 </div>
 
                 <div className="flex gap-10  w-full absolute top-2 p-2 justify-center">
-                    <div className="flex relative cursor-pointer">
+                    <div className="flex relative">
                         <div className="2xl:w-[5rem] lg:w-[4.7rem] md:w-[3.7rem] 2xl:h-[7.6rem] lg:h-[7rem] md:h-[6rem] border border-zinc-400 rounded-md"></div>
                         <Image className="absolute top-1 left-1" draggable={false} src={"/assets/cards/rummy/gray_back.png"} width={140} height={100} alt="card"></Image>
-                        <Image draggable={false} className="absolute border-2 border-transparent hover:border-green-500 rounded-lg" src={"/assets/cards/rummy/gray_back.png"} width={140} height={110} alt="card"></Image>
+                        <Image draggable={false} className="absolute border-2 border-transparent rounded-lg" src={"/assets/cards/rummy/gray_back.png"} width={140} height={110} alt="card"></Image>
                     </div>
 
-                    <div className="flex relative">
+                    <div className="flex relative" >
                         <div className="2xl:w-[5rem] lg:w-[4.7rem] md:w-[4.7rem] 2xl:h-[7.6rem] lg:h-[7rem] md:h-[7rem] border border-zinc-400 rounded-md"></div>
 
                         {
-                            gameHistory.data.turns[turn].droppedCards.length > 1 &&
-                            <Image className="absolute left-1 top-1 rotate-1" draggable={false} src={"/assets/cards/rummy/" + new CardsUrls().getCardUrl(gameHistory.data.turns[turn].droppedCards[gameHistory.data.turns[turn].droppedCards.length - 2].card.name)} width={140} height={100} alt="card"></Image>
+                            getCurrentTurn()!.droppedCards.length > 1 &&
+                            <Image className="absolute left-1 top-1 rotate-1" draggable={false} src={"/assets/cards/rummy/" + new CardsUrls().getCardUrl(getCurrentTurn()!.droppedCards[getCurrentTurn()!.droppedCards.length - 2].card.name)} width={140} height={100} alt="card"></Image>
                         }
                         {
-                            gameHistory.data.turns[turn].droppedCards.length > 0 &&
-                            <Image className="absolute right-1 bottom-1 rotate-12 border border-transparent hover:border-green-300 rounded-lg cursor-pointer" src={"/assets/cards/rummy/" + new CardsUrls().getCardUrl(gameHistory.data.turns[turn].droppedCards[gameHistory.data.turns[turn].droppedCards.length - 1].card.name)} width={140} height={100} alt="card"></Image>
+                            getCurrentTurn()!.droppedCards.length > 0 &&
+                            <Image className="absolute right-1 bottom-1 rotate-12 border border-transparent rounded-lg" src={"/assets/cards/rummy/" + new CardsUrls().getCardUrl(getCurrentTurn()!.droppedCards[getCurrentTurn()!.droppedCards.length - 1].card.name)} width={140} height={100} alt="card"></Image>
                         }
                     </div>
                 </div>
@@ -78,30 +89,11 @@ export default function Game() {
                 <div className="absolute top-0 left-2 h-full flex flex-col justify-between items-center">
                     <div></div>
                     {
-                        gameHistory.data.users.filter((u: any, i: number) => { return i % 2 === 0 && u._id !== user?.customId }).map((user: any, j: number) => {
-                            if (!user.username) {
-                                return <></>
-                            }
-                            else {
-                                return (
-                                    <div key={j} className="w-16 h-16 relative group cursor-pointer">
-                                        <div style={{ color: getColorByInitials(user).text, backgroundColor: getColorByInitials(user).background }} className="w-16 h-16 rounded-full flex text-zinc-300 items-center justify-center">
-                                            {getUserInitialsByName(user.firstName + " " + user.lastName)}
-                                        </div>
-                                        <div>
-                                            <p className="text-zinc-300 text-center">{user.firstName + " " + user.lastName}</p>
-                                        </div>
-
-                                        <div className="absolute rounded-full w-8 h-8 top-0 group-hover:top-[3.5rem] left-4 bg-blue-500 hover:bg-blue-400 opacity-0 group-hover:opacity-100 flex justify-center items-center duration-200">
-                                            <Icon name="add-friend"></Icon>
-                                        </div>
-                                        <div className="absolute rounded-full w-8 h-8 top-0 group-hover:top-[5rem] left-4 bg-sky-500 hover:bg-sky-400 opacity-0 group-hover:opacity-100 flex justify-center items-center duration-200">
-                                            <Icon name="info"></Icon>
-                                        </div>
-
-                                    </div>
-                                )
-                            }
+                        gameHistory.data.users.filter((u, i) => { return i % 2 === 0 && u._id !== user?._id }).map((user, j) => {
+                            return (
+                                // <GameUser key={j} user={user} currentPlayer={''}></GameUser>
+                                <></>
+                            )
                         })
                     }
                     <div></div>
@@ -110,27 +102,10 @@ export default function Game() {
                 <div className="absolute top-0 right-2 h-full flex flex-col justify-between items-center">
                     <div></div>
                     {
-                        gameHistory.data.users.filter((u: any, i: number) => { return i % 2 === 1 && u._id !== user?.customId }).map((user: any, j: number) => {
+                        gameHistory.data.users.filter((u, i) => { return i % 2 === 1 && u._id !== user?._id }).map((user, j) => {
                             return (
-                                <div key={j} className="w-16 h-16 relative group cursor-pointer">
-                                    {/* <div style={{ color: getColorByInitials(user).text, backgroundColor: getColorByInitials(user).background }} className="w-16 h-16 rounded-full flex text-zinc-300 items-center justify-center">
-                                        {getUserInitialsByName(user.firstName + " " + user.lastName)}
-                                    </div> */}
-                                    <div>
-                                        <p className="text-zinc-300 text-center">{user.firstName + " " + user.lastName}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-zinc-300 text-center">{user.name}</p>
-                                    </div>
-
-                                    <div className="absolute rounded-full w-8 h-8 top-0 group-hover:top-[3.5rem] left-4 bg-blue-500 hover:bg-blue-400 opacity-0 group-hover:opacity-100 flex justify-center items-center duration-200">
-                                        <Icon name="add-friend"></Icon>
-                                    </div>
-                                    <div className="absolute rounded-full w-8 h-8 top-0 group-hover:top-[5rem] left-4 bg-sky-500 hover:bg-sky-400 opacity-0 group-hover:opacity-100 flex justify-center items-center duration-200">
-                                        <Icon name="info"   ></Icon>
-                                    </div>
-
-                                </div>
+                                // <GameUser key={j} user={user} currentPlayer={''}></GameUser>
+                                <></>
                             )
                         })
                     }
@@ -139,42 +114,57 @@ export default function Game() {
 
                 <div className="flex gap-1 w-full absolute bottom-0 p-2 justify-center">
                     {
-                        gameHistory.data.turns[turn].playerCards[user!._id].map((card: any, i: number) => {
+                        getCurrentTurn()!.playerCards[user!._id].map((card, i) => {
                             return (
                                 <React.Fragment key={i}>
-                                    <div draggable className={`cursor-pointer w-12 overflow-visible hover:cursor-grab group rounded-lg duration-200`}>
-                                        <Image className="border-2 border-transparent group-hover:border-green-400 rounded-lg" style={{ width: "6rem", maxWidth: "6rem" }} loading="eager" src={"/assets/cards/rummy/" + new CardsUrls().getCardUrl(card.name)} width={100} height={100} alt={new CardsUrls().getCardUrl(card.name)}></Image>
+                                    <div
+                                        className={`w-12 overflow-visible group rounded-lg duration-200`}>
+                                        <Image draggable={false} className={`border-2 border-transparent rounded-lg`} style={{ width: "6rem", maxWidth: "6rem" }} loading="eager" src={"/assets/cards/rummy/" + new CardsUrls().getCardUrl(card.name)} width={100} height={100} alt={new CardsUrls().getCardUrl(card.name)}></Image>
                                     </div>
                                 </React.Fragment>
                             )
                         })
                     }
 
-                    <div className="absolute right-10 bottom-4 flex justify-center items-center gap-3">
-                        <div onClick={() => { setTurn(turn => turn > 1 ? turn - 1 : turn) }} className="w-[2rem] h-[2rem] rounded-full border-2 border-green-300 text-green-300 hover:border-green-100 hover:text-green-100 flex justify-center items-center cursor-pointer duration-100">
-                            <Icon name="arrow-left" size={24}></Icon>
-                        </div>
-                        <div className="w-[2rem] h-[2rem] rounded-full border-y-2 border-green-300 text-green-300 flex justify-center items-center cursor-pointer duration-100">
-                            {turn}
-                        </div>
-                        <div onClick={() => { setTurn(turn => turn < Object.keys(gameHistory.data.turns).length ? turn + 1 : turn) }} className="w-[2rem] h-[2rem] rounded-full border-2 border-green-300 text-green-300 hover:border-green-100 hover:text-green-100 flex justify-center items-center cursor-pointer duration-100">
-                            <Icon name="arrow-right" size={24}></Icon>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="absolute top-2 left-2">
-                    <div className="flex justify-center items-center text-xl text-emerald-600 gap-1">
-                        <div className="animate-pulse">
-                            <Icon name="watch" size={24}></Icon>
-                        </div>
-                        Replay
-                    </div>
                 </div>
 
                 <div className="w-full h-full flex justify-center items-center">
                     <div className="p-10 border-[2rem] border-[#ffffff10] rounded-full h-[30rem] w-[30rem] flex justify-center items-center">
                         <Image loading="eager" src={"/assets/icon.png"} width={300} height={300} draggable={false} alt="" className="opacity-10"></Image>
+                    </div>
+                </div>
+
+                <div className="absolute top-5 left-[5rem]">
+                    <div className="flex items-center gap-1 text-xl text-green-300">
+                        <Icon name="watch" className="animate-pulse" size={24}></Icon>
+                        Replay
+                    </div>
+                </div>
+
+                <div className="absolute bottom-5 left-5">
+                    <div className="flex items-center gap-1 text-xl text-green-300">
+                        <Icon name="users" className="animate-pulse" size={24}></Icon>
+                        Players: {gameHistory.data.users.length}
+                    </div>
+
+                    <div className="flex items-center gap-1 text-xl text-green-300">
+                        <Icon name="settings" className="animate-pulse" size={24}></Icon>
+                        Turn: {turn}
+                    </div>
+                </div>
+
+                <div className="absolute bottom-5 right-5">
+                    <div className="flex items-center gap-1 text-xl text-green-300">
+                        <Icon name="arrow-left" className={`cursor-pointer ${turn > 1 ? 'hover:animate-pulse ' : 'text-green-700'}`} size={48} onClick={() => {
+                            if (turn > 1) {
+                                setTurn(turn - 1);
+                            }
+                        }}></Icon>
+                        <Icon name="arrow-right" className={`cursor-pointer ${turn - 1 < Object.values(gameHistory.data.turns).length - 1 ? 'hover:animate-pulse ' : 'text-green-700'}`} size={48} onClick={() => {
+                            if (turn - 1 < Object.values(gameHistory.data.turns).length - 1) {
+                                setTurn(turn + 1);
+                            }
+                        }}></Icon>
                     </div>
                 </div>
             </main>

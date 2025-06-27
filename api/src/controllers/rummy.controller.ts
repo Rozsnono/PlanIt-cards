@@ -137,7 +137,7 @@ export default class RummyController implements Controller {
             return;
         }
 
-        const nextPlayer = this.nextPlayer(lobby.users.map(id => { return id.toString() }), game.currentPlayer.playerId.toString(), lobby.bots && lobby.bots.map((bot: any) => bot._id.toString()));
+        const nextPlayer = this.nextPlayer(Object.keys(game.playerCards), game.currentPlayer.playerId.toString());
 
         game.currentPlayer = { playerId: nextPlayer, time: new Date().getTime() };
         await this.game.replaceOne({ _id: gameId }, game, { runValidators: true });
@@ -185,8 +185,8 @@ export default class RummyController implements Controller {
             res.status(403).send({ error: ERROR.MIN_51_VALUE });
             return;
         }
+        const nextPlayer = this.nextPlayer(Object.keys(game.playerCards), game.currentPlayer.playerId.toString());
 
-        const nextPlayer = this.nextPlayer(lobby.users.map(id => { return id.toString() }), game.currentPlayer.playerId.toString(), lobby.bots && lobby.bots.map((bot: any) => bot._id.toString()));
         game.currentPlayer = { playerId: nextPlayer, time: new Date().getTime() };
 
         await this.game.replaceOne({ _id: gameId }, game, { runValidators: true });
@@ -283,13 +283,7 @@ export default class RummyController implements Controller {
 
     }
 
-    private nextPlayer(users: string[], current: string, bots?: string[]): string {
-        if (bots && bots?.includes(current)) {
-            return bots.indexOf(current) === bots.length - 1 ? users[0] : bots[bots.indexOf(current) + 1];
-        }
-        if (bots?.length && users.indexOf(current) === users.length - 1) {
-            return bots ? bots[0] : users[0];
-        }
+    private nextPlayer(users: string[], current: string): string {
         return users[users.indexOf(current) + 1 === users.length ? 0 : users.indexOf(current) + 1];
     }
 

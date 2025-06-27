@@ -4,7 +4,7 @@ import ErrorModal from "@/components/error.modal";
 import Loader from "@/components/loader.component";
 import { SettingsContext } from "@/contexts/settings.context";
 import { UserContext } from "@/contexts/user.context";
-import { dropCard, placeCardToIndex, playCard, sortRummyCards } from "@/functions/card.function";
+import { dropCard, placeCardToIndex, playCard, sortUnoCards } from "@/functions/card.function";
 import { getColorByInitials, getUserInitials } from "@/functions/user.function";
 import { Icard, Igame, Ilobby } from "@/interfaces/interface";
 import { GameService, UnoService } from "@/services/game.service";
@@ -223,7 +223,7 @@ export default function Game() {
 
                 <div className="flex gap-1 w-full absolute bottom-0 p-2 justify-center">
                     {
-                        sortRummyCards(playerCards, settings?.autoSort, sortType).map((card, i) => {
+                        sortUnoCards(playerCards, true, 'abc').map((card, i) => {
                             return (
                                 <React.Fragment key={i}>
                                     <div draggable className={`cursor-pointer w-12 overflow-visible hover:cursor-grab group rounded-lg duration-200 ${checkIfCardIsSelected(card) ? 'border-green-400 translate-y-[-1rem]' : ''} ${draggedCard && JSON.stringify(draggedCard) === JSON.stringify(card) ? 'opacity-10' : ''}`}>
@@ -239,16 +239,7 @@ export default function Game() {
                         })
                     }
 
-                    <div className="absolute left-16 bottom-4 flex justify-center items-center gap-3">
-                        <div onClick={() => { setSortType('abc') }} className="w-[4rem] h-[4rem] rounded-full border border-blue-300 text-blue-300 hover:border-sky-100 hover:text-sky-100 flex justify-center items-center cursor-pointer duration-100">
-                            <Icon name="sort-abc" size={24}></Icon>
-                        </div>
-                        <div onClick={() => { setSortType('num') }} className="w-[4rem] h-[4rem] rounded-full border border-blue-300 text-blue-300 hover:border-sky-100 hover:text-sky-100 flex justify-center items-center cursor-pointer duration-100">
-                            <Icon name="sort-num" size={24}></Icon>
-                        </div>
-                    </div>
-
-                    {
+                    {/* {
                         game.currentPlayer.playerId == user?._id && !nextTurnLoader &&
                         <div key={timer} className={`absolute right-10 h-[5rem] w-[5rem] justify-center items-center flex rounded-full border-2 border-lime-300 bottom-4`}
                             style={{ background: `conic-gradient(#bef264 ${360 - ((timer) * 360 / 180)}deg, transparent 0deg)` }}
@@ -256,6 +247,15 @@ export default function Game() {
                             <div className="w-[4.5rem] h-[4.5rem] bg-rose-900 rounded-full border-2 flex items-center justify-center text-zinc-200 border-lime-300 text-xl cursor-pointer group duration-100">
                                 <span className="group-hover:opacity-0 group-hover:hidden flex opacity-100 duration-100">{180 - timer > 0 ? 180 - timer : 0}s</span>
                                 <span className="group-hover:opacity-100 group-hover:flex hidden opacity-0 duration-100"><Icon name="check-empty" size={44}></Icon></span>
+                            </div>
+                        </div>
+                    } */}
+
+                    {
+                        game.currentPlayer.playerId == user?._id && !nextTurnLoader &&
+                        <div key={timer} style={{ width: `${Math.floor(75 - (timer / 180) * 75)}%`, backgroundColor: `${timer > 150 ? '#ec003f' : '#9ae600'}` }} className="absolute -top-10 h-4 bg-emerald-500 rounded-xl duration-200">
+                            <div className="absolute -top-6 w-full flex justify-center items-center text-sm text-zinc-200">
+                                {180 - timer}s
                             </div>
                         </div>
                     }

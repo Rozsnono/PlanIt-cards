@@ -26,23 +26,6 @@ export class GameChecker {
     constructor() {
     }
 
-    public startInterval(gameId: string) {
-        if (this.intervals[gameId]) { return; }
-        if (this.lastTimes[gameId] === 0) { return; }
-        this.intervals[gameId] = setInterval(() => {
-            if (this.lastTimes[gameId] === undefined) { }
-            if (this.lastTimes[gameId] === 0) { return; }
-            if (new Date().getTime() - this.lastTimes[gameId] >= this.time * 1000) {
-                this.stopInterval(gameId);
-                this.forceNextTurn(gameId);
-            }
-        }, 10000);
-    }
-
-    public stopInterval(gameId: string) {
-        clearInterval(this.intervals[gameId]);
-    }
-
     public async forceNextTurn(LobbygameId: string) {
         const lobby = await this.lobby.findOne({ game_id: new mongoose.Types.ObjectId(LobbygameId) });
         if (!lobby) {
@@ -125,15 +108,23 @@ export class GameChecker {
         game.playerCards[currentPlayer] = playerCards;
         game.droppedCards = droppedCards;
         game.drawedCard = drawedCard;
+        game.shuffledCards.slice(game.shuffledCards.indexOf(drawedCard), 1);
+        if (game.shuffledCards.length === 0) {
+            // reshuffle the dropped cards into the deck
+            game.shuffledCards = new UnoDealer(game.shuffledCards).reShuffleDeck(game.droppedCards.slice(game.droppedCards.length - 1).map((d: any) => d.card));
+        }
         const waitingTime = bot.thinkingTime;
         await this.wait(waitingTime);
-        const players = lobby.users.map(u => u._id).concat(lobby.bots.map(bot => bot._id)).map(id => id.toString());
+        const players = Object.keys(game.playerCards);
+
 
         switch (game.droppedCards[game.droppedCards.length - 1].card.rank) {
             case 15:
                 //Reverse
-                lobby.users = lobby.users.reverse();
-                lobby.bots = lobby.bots.reverse();
+                game.playerCards = Object.fromEntries(
+                    Object.entries(game.playerCards).reverse()
+                );
+                players.reverse();
                 currentPlayer = this.getNextPlayer(players, currentPlayer);
                 break;
             case 16:
@@ -169,78 +160,6 @@ export class GameChecker {
         await this.game.replaceOne({ _id: game._id }, game, { runValidators: true });
     }
 
-    public setRankByPosition = async (globby: Ilobby) => {
-        const game = await this.game.findOne({ _id: globby.game_id });
-        if (!game) return;
-        const positions = this.getPositions(game.playerCards);
-        for (const id of globby.users) {
-            const player = await this.player.findOne({ _id: id._id });
-            if (!player) return;
-            const body: any = player;
-            if (!globby.settings?.unranked) {
-                body.rank += this.calculatePoints(positions, 20);
-            }
-            const date = new Date().toISOString().split('T')[0];
-            if (body.numberOfGames === undefined || Number.isNaN(body.numberOfGames)) body.numberOfGames = {};
-            if (typeof body.numberOfGames[date] === 'undefined') {
-                body.numberOfGames = { ...body.numberOfGames, [date]: { wins: 0, losses: 0 } };
-            }
-
-            if (positions.find((pos: any) => pos.player === id._id.toString())!.pos === 1) {
-                body.numberOfGames[date].wins++;
-            } else {
-                body.numberOfGames[date].losses++;
-            }
-            body.achievements = await this.checkAnchievements(player, game);
-            const res = await this.player.replaceOne({ _id: body._id }, body, { runValidators: true });
-        }
-    }
-
-    public setRankByPositionUno = async (globby: Ilobby) => {
-        const game = await this.game.findOne({ _id: globby.game_id });
-        if (!game) return;
-        const positions = this.getPositions(game.playerCards);
-        for (const id of globby.users) {
-            const player = await this.player.findOne({ _id: id });
-            if (!player) return;
-            const body: any = player;
-
-            if (!globby.settings?.unranked) {
-                body.rank += this.calculatePoints(positions, 20);
-            }
-            if (body.numberOfGames === undefined) body.numberOfGames = {};
-            if (typeof body.numberOfGames[new Date().toISOString()] === 'undefined') {
-                body.numberOfGames = { ...body.numberOfGames, [new Date().toISOString()]: { wins: 0, losses: 0 } };
-            }
-            if (positions.find((pos: any) => pos.player === id._id)!.pos === 1) {
-                body.numberOfGames[new Date().toISOString()].wins++;
-            } else {
-                body.numberOfGames[new Date().toISOString()].losses++;
-            }
-            const res = await this.player.replaceOne({ _id: body._id }, body, { runValidators: true });
-        }
-    }
-
-    public setRankInSolitaire = async (globby: Ilobby) => {
-        const game = await this.game.findOne({ _id: globby.game_id });
-        if (!game) return;
-        const id = globby.users[0];
-        const player = await this.player.findOne({ _id: id });
-        if (!player) return;
-        const body: any = player;
-        body.rank += this.calculatePoints([{ pos: 1, player: id }], 10);
-        if (body.numberOfGames === undefined) body.numberOfGames = {};
-        if (typeof body.numberOfGames[new Date().toISOString()] === 'undefined') {
-            body.numberOfGames = { ...body.numberOfGames, [new Date().toISOString()]: { wins: 0, losses: 0 } };
-        }
-        if (true) {
-            body.numberOfGames[new Date().toISOString()].wins++;
-        } else {
-            body.numberOfGames[new Date().toISOString()].losses++;
-        }
-        const res = await this.player.replaceOne({ _id: body._id }, body, { runValidators: true });
-    }
-
     private async checkAnchievements(player: any, game: any) {
         const playerAchievements = player.achievements || [];
         for (const achievement of achievements) {
@@ -253,14 +172,6 @@ export class GameChecker {
     }
 
 
-    // public calculatePoints(rank: number, totalPlayers: number, maxPoints: number) {
-    //     if (rank < 1 || rank > totalPlayers) {
-    //         return 0;
-    //     }
-    //     const step = maxPoints / (totalPlayers - 1);
-    //     return Math.max(0, Math.round(maxPoints - (rank - 1) * step));
-    // }
-
     public calculatePoints(position: any, maxPoints: number) {
         const step = maxPoints / ((position.length - 1) == 0 ? 1 : position.length - 1);
         return position.map((p: any, i: number) => { return { player: p.player, rank: Math.max(0, Math.round(maxPoints - (p.pos - 1) * step)) - (maxPoints / 2) } });
@@ -270,7 +181,7 @@ export class GameChecker {
         const p: { pos: number, player: string }[] =
             Object.values(playerCards).map((cards: any, i: number) => {
                 return {
-                    player: Object.keys(playerCards)[i], pos: cards.reduce((sum: any, obj: any) => { return sum + obj.value }, 0)
+                    player: Object.keys(playerCards)[i], pos: cards.reduce((sum: any, obj: any) => { return sum + obj.value })
                 }
             });
         const sorted = p.sort((a: any, b: any) => a.pos - b.pos).map((p: any, i: number) => {

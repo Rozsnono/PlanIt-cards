@@ -140,7 +140,7 @@ function UserHeader({ isLogged, user }: { isLogged: boolean, user: Iplayer }) {
                 <div style={{ backgroundColor: getColorByInitials().background, color: getColorByInitials().text }} className='min-h-8 min-w-8 rounded-full flex items-center justify-center bg-red-600 opacity-70 group-hover:opacity-100 text-zinc-100 duration-100 '>
                     {getUserInitials()}
                 </div>
-                <div className="flex items-center gap-2 text-zinc-300 group-hover:text-white duration-100 cursor-pointer">
+                <div className="flex items-center gap-2 text-zinc-300 group-hover:text-white duration-100 cursor-pointer relative">
                     <div className="text-lg ">{user!.firstName} {user!.lastName}</div>
                     <Icon name='arrow-down'></Icon>
                 </div>
@@ -154,8 +154,8 @@ function UserHeader({ isLogged, user }: { isLogged: boolean, user: Iplayer }) {
                         <button className="bg-zinc-700 hover:bg-zinc-600 text-zinc-400 w-full rounded-lg p-2 more-modal-input text-left flex gap-1 items-center relative">
                             <Icon name="users" size={16}></Icon> Friends
                             {
-                                typeof user?.peddingFriends === "number" && user?.peddingFriends > 0 &&
-                                <div className='absolute top-[-0.1rem] right-[-0.1rem] w-2 h-2 bg-red-400 rounded-full '></div>
+                                typeof user.peddingFriends === "number" && user?.peddingFriends > 0 &&
+                                <div className='absolute top-[-0.1rem] right-[-0.1rem] w-2 h-2 bg-red-400 rounded-full animate-ping duration-400'></div>
                             }
                         </button>
                     </Link>

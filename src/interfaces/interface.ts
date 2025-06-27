@@ -18,7 +18,7 @@ export interface Iplayer {
     };
     auth: string[];
     friends: string[];
-    peddingFriends: string[] | number;
+    peddingFriends: any[] | number;
     customId: string;
     settings: {
         backgroundColor: string;
