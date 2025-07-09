@@ -1,8 +1,8 @@
-export default function Icon({ name, size = 18, stroke, strokeWidth = 2, className, onClick }: { onClick?: ()=>void, name: string, size?: number, stroke?: boolean, strokeWidth?: number, className?: string }) {
+export default function Icon({ name, size = 18, stroke, strokeWidth = 2, className, onClick }: { onClick?: () => void, name: string, size?: number, stroke?: boolean, strokeWidth?: number, className?: string }) {
 
     if (stroke) {
         return (
-            <svg onClick={onClick} className={className}  width={size} height={size} fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <svg onClick={onClick} className={className} width={size} height={size} fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 {getIcon(name)}
             </svg>
         );
@@ -443,6 +443,37 @@ function getIcon(name: string) {
                     <path d="M4 16a9 9 0 0 0 8.065 5c3.533 0 6.522-2.037 7.995-5"></path>
                     <path d="M20.06 20v-4"></path>
                     <path d="M16.67 16h3.39"></path>
+                </>
+            )
+        }
+
+        case "tutorial": {
+            return (
+                <>
+                    <path d="M2 6.5 12 4l10 2.5L12 9 2 6.5Z"></path>
+                    <path d="M6.5 8v4.985S9 14.5 12 14.5s5.5-1.515 5.5-1.515V8"></path>
+                    <path d="M3.5 7v11"></path>
+                    <path d="M5 17H2v3h3v-3Z"></path>
+                </>
+            )
+        }
+
+        case "trophy": {
+            return (
+                <>
+                    <path d="M12 15c3.314 0 6-2.765 6-6.176V2H6v6.824C6 12.234 8.686 15 12 15Z"></path>
+                    <path d="M6 10.5v-5H2c0 3.333 2 5 4 5Z" clipRule="evenodd"></path>
+                    <path d="M18 10.5v-5h4c0 3.333-2 5-4 5Z" clipRule="evenodd"></path>
+                    <path d="M12 15v3"></path>
+                    <path d="m7.5 21 1.845-3h5.176l1.979 3h-9Z"></path>
+                </>
+            )
+        }
+
+        case "mode": {
+            return (
+                <>
+                    <path d="M9.5 2h9L13 9h7.5l-12 13 2.5-9.5H4L9.5 2Z"></path>
                 </>
             )
         }

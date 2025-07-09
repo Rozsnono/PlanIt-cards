@@ -69,6 +69,7 @@ export class GameChecker {
         game.currentPlayer = { playerId: nextPlayer, time: new Date().getTime() };
 
         await this.game.replaceOne({ _id: gameId }, game, { runValidators: true });
+        return true;
         // this.gameHistoryService.saveHistory(playerId, gameId);
 
     }

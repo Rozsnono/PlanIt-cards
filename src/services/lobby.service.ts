@@ -70,6 +70,23 @@ export default class LobbyService {
         return response.json();
     }
 
+    public async kickFromLobby(lobbyId: string, userId: string) {
+        const response = await fetch(`/api/kick`, {
+            method: "PUT",
+            body: JSON.stringify({ _id: lobbyId, player_id: userId }),
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${getCookie("token")}`
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error("Failed to kick player from lobby");
+        }
+
+        return response.json();
+    }
+
     public connectWebSocket(lobbyId: string, userId: string, onMessage: (data: any) => void) {
         const socket = new WebSocket(IP.WEBSOCKET);
 

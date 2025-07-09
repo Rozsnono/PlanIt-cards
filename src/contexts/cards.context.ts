@@ -1,7 +1,11 @@
 
 export default class CardsUrls {
     public getCardUrl(card: string) {
-        return `${card.toUpperCase()}.png`;
+        try {
+            return `${card.toUpperCase()}.png`;
+        } catch {
+            return `back.png`;
+        }
     }
 
     public getUnoCardUrl(card: string) {

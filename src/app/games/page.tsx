@@ -96,6 +96,16 @@ export default function Games() {
         }, 100);
     }
 
+    async function creatingLobby(form: any) {
+        try {
+            const result = await lobbyService.createLobby(form);
+            router.push(`/games/${result._id}`);
+        } catch (error) {
+            console.error("Error creating lobby:", error);
+        }
+    }
+
+
     return (
         <main className="flex gap-2 flex-col h-full p-2">
             <main className="relative w-full h-full grid 2xl:grid-cols-6 xl:grid-cols-4 lg:grid-cols-3 md:grid-cols-2 grid-cols-1 gap-5 p-3 overflow-y-auto">
@@ -126,7 +136,7 @@ export default function Games() {
             }
 
             <div className="fixed right-8 bottom-8">
-                <button onClick={() => setOpen(true)} className="bg-sky-600 text-white p-2 px-2 rounded-full hover:bg-sky-500 w-16 h-16 duration-200 flex items-center justify-center relative group">
+                <button onClick={() => creatingLobby({ numberOfPlayers: 4, cardType: 'RUMMY', fillWithRobots: true, numberOfRobots: 3, robotsDifficulty: 'EASY' })} className="bg-sky-600 text-white p-2 px-2 rounded-full hover:bg-sky-500 w-16 h-16 duration-200 flex items-center justify-center relative group">
                     <div className="flex items-center justify-center z-50">
                         <Icon name="add" />
                     </div>

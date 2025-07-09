@@ -3,7 +3,7 @@ import Controller from "../interfaces/controller_interface";
 import nodemailer from "nodemailer";
 import { LogService } from "../services/log.service";
 
-const { GMAIL_USER = "rozsnono@gmail.com", GMAIL_PASS = "bysj jgwc oaol bnjk" } = process.env;
+const { GMAIL_USER = "planitcards@gmail.com", GMAIL_PASS = "zbfv vihy lmph dcfc" } = process.env;
 
 
 export default class MailController implements Controller {

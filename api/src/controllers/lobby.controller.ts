@@ -57,6 +57,10 @@ export default class LobbyController implements Controller {
             this.muteUser(req, res).catch(next);
         });
 
+        this.router.put("/kick", hasAuth([Auth["JOIN.LOBBY"]]), (req, res, next) => {
+            this.kickFromLobby(req, res).catch(next);
+        })
+
         this.router.get("/lobby/get/all", hasAuth([Auth["ADMIN"]]), (req, res, next) => {
             this.getAllLobby(req, res).catch(next);
         });
@@ -157,6 +161,24 @@ export default class LobbyController implements Controller {
         }
     };
 
+    private kickFromLobby = async (req: Request, res: Response) => {
+        const body = req.body;
+        const id = body._id;
+        const lobby = await this.lobby.findOne({ _id: id });
+        if (lobby) {
+            const userid = await getIDfromToken(req);
+            if (lobby.createdBy!.toString() !== userid) {
+                res.status(403).send({ error: ERROR.AN_ERROR_OCCURRED });
+                return;
+            }
+            lobby.users = lobby.users.filter((p) => p.toString() !== body.player_id.toString());
+            await this.lobby.replaceOne({ _id: id }, lobby, { runValidators: true });
+            res.send({ message: "OK" });
+        } else {
+            res.status(400).send({ error: ERROR.AN_ERROR_OCCURRED });
+        }
+    }
+
     private getLobbyById = async (req: Request, res: Response) => {
         const id = req.params.id;
         const lobby = await this.lobby.findOne({ _id: id }).populate("users");
@@ -226,8 +248,17 @@ export default class LobbyController implements Controller {
         const body = req.body;
         const id = body._id;
         const lobby = await this.lobby.findById(id);
+        if (!lobby) {
+            res.status(400).send({ error: ERROR.AN_ERROR_OCCURRED });
+            return;
+        }
+        delete body._id; // Remove _id from body to prevent validation errors
+        lobby.settings = body;
+
+        lobby.bots = (lobby.settings!.fillWithRobots ? Array.from({ length: lobby.settings!.numberOfRobots }, (_, i) => { return { name: new Bot().getRobotName(lobby.settings!.robotsDifficulty as any, i), _id: 'bot' + i, customId: 'bot-' + i } }) : []) as any;
+
         if (lobby) {
-            await this.lobby.replaceOne({ _id: id }, { ...lobby, settings: body }, { runValidators: true });
+            await this.lobby.replaceOne({ _id: id }, lobby, { runValidators: true });
             res.send({ message: "OK" });
         } else {
             res.status(400).send({ error: ERROR.AN_ERROR_OCCURRED });

@@ -73,6 +73,11 @@ export default function ProfilePage() {
                             <button className="text-zinc-300 bg-zinc-900 text-sm w-max hover:bg-zinc-950 rounded-lg flex items-center gap-1 p-2" ><Icon name="pen" size={16}></Icon> Edit profile</button>
                         }
 
+                        {
+                            player.data.customId != user?.customId &&
+                            <button onClick={()=>{profileService.createFriendRequest(player.data.customId)}} className="text-zinc-300 bg-zinc-900 text-sm w-max hover:bg-zinc-950 rounded-lg flex items-center gap-1 p-2" ><Icon name="add" size={16}></Icon> Add friend</button>
+                        }
+
                     </div>
                 </div>
 

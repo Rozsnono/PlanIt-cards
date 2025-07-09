@@ -38,7 +38,7 @@ export class AuthService {
     }
 
     private saveInCookie(data: string, remember: boolean = false) {
-        const time = new Date(new Date().setDate(new Date().getDate() + (remember ? 7 : 0))).toUTCString();
+        const time = new Date(new Date().setDate(new Date().getDate() + (remember ? 7 : 1))).toUTCString();
         const cookie = `token=${encodeURIComponent(data)}; expires=${time}; path=/;`;
         document.cookie = cookie;
     }

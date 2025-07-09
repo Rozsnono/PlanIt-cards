@@ -246,6 +246,7 @@ export class GameHistorySolitaire extends GameHistoryService {
                 },
                 users: (lobby.users as any[]).concat(lobby.bots as any),
                 date: new Date(),
+                type: lobby.settings?.cardType,
                 position: lobby.users.map((user: any, index: number) => { return { player: user.customId, position: 0 } }),
                 rank: lobby.users.map((user: any, index: number) => { return { player: user.customId, rank: 0 } }),
             }

@@ -5,6 +5,7 @@ import ErrorModal from "@/components/error.modal";
 import Loader from "@/components/loader.component";
 import CardsUrls from "@/contexts/cards.context";
 import { UserContext } from "@/contexts/user.context";
+import { IP } from "@/enums/ip.enum";
 import { Icard, Igame, Ilobby } from "@/interfaces/interface";
 import { SolitaireService } from "@/services/game.service";
 import Image from "next/image"
@@ -30,7 +31,7 @@ export default function Game() {
     const [lobby, setLobby] = useState<Ilobby | null>(null);
 
     useEffect(() => {
-        const socket = new WebSocket("ws://192.168.0.13:8080");
+        const socket = new WebSocket(IP.WEBSOCKET);
 
         socket.addEventListener('open', () => {
             console.log('WebSocket is connected');

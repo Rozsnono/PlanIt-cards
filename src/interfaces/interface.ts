@@ -46,6 +46,7 @@ export interface Ilobby {
         unranked: boolean;
         fillWithRobots: boolean;
         numberOfRobots?: number | null;
+        robotsDifficulty?: "EASY" | "MEDIUM" | "HARD";
         cardType: "UNO" | "RUMMY" | "SOLITAIRE";
     }
     chat: Imessage[];

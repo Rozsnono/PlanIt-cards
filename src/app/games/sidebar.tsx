@@ -4,8 +4,8 @@ export default function RightSideBar({ children, title, open, onClose, className
 
 
     return (
-        <main className={`w-[40rem] h-screen p-4 rounded-lg fixed ${open ? 'right-0' : 'right-[-40rem]'} top-0 flex flex-col duration-500 z-[1000]`} >
-            <main className={"w-full h-full border-2 border-zinc-500 bg-zinc-900 pt-6 flex flex-col p-4 rounded-lg " + className}>
+        <main className={`w-[40rem] h-screen p-4 rounded-lg fixed ${open ? 'right-0' : 'right-[-40rem]'} top-0 flex flex-col duration-500 z-[1000] bg-zinc-900 ring ring-zinc-700/70`} >
+            <main className={"w-full h-full border-2 border-purple-500/40 bg-gradient-to-br from-purple-700/20 to-indigo-800/20 pt-6 flex flex-col p-4 rounded-lg " + className}>
                 {
                     title &&
                     <div className="w-full flex justify-between items-center">

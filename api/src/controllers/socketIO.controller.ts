@@ -74,6 +74,7 @@ export default class SocketIO {
                             }
                         ]);
 
+                        console.log(inGame);
                         if (inGame.length == 1) {
                             const inGameObj: any = inGame[0];
                             if (await this.checkIfGameIsOver(inGameObj, inLobby.settings!.cardType)) {
@@ -162,7 +163,7 @@ export default class SocketIO {
             case 'UNO':
                 return Object.values(game.playerCards).some((cards: any[]) => cards.length === 0);
             case 'SOLITAIRE':
-                return game.playedCards.some((played: any) => played.cards.length > 0) && game.droppedCards.length === 0;
+                return game.playedCards.every((played: any) => played.cards.length == 0) && game.shuffledCards.length === 0;
             default:
                 return false;
         }
@@ -440,7 +441,7 @@ export default class SocketIO {
             const games = await this.game.find({ 'currentPlayer.time': { $exists: true } }).exec();
             const lobbies = await this.lobby.find({ game_id: { $in: games.map(game => game._id) } }).exec();
             if (games.length > 0) {
-                games.forEach((game) => {
+                games.forEach(async (game) => {
                     const time = new Date().getTime() - game.currentPlayer.time
                     const type = lobbies.find(lobby => lobby.game_id.toString() === game._id.toString())?.settings?.cardType || 'RUMMY';
                     switch (type) {
@@ -448,7 +449,14 @@ export default class SocketIO {
                             if (time > 1000 * ((game.secretSettings?.timeLimit) || 180)) {
                                 //Time is up!
                                 this.logService.consoleLog(`Game ${game._id} is still active, forcing next turn. Time limit: ${game.secretSettings?.timeLimit || 180}. Time: ${time / 1000}`, 'SocketIOService');
-                                new GameChecker().forceNextTurn(game._id.toString());
+                                const force = await new GameChecker().forceNextTurn(game._id.toString());
+                                if (!force) {
+                                    this.game.deleteOne({ _id: game._id }).then(() => {
+                                        this.logService.consoleLog(`Game ${game._id} deleted due to inactivity`, 'SocketIOService');
+                                    }).catch((err) => {
+                                        this.logService.consoleLog(`Error deleting game ${game._id}: ${err}`, 'SocketIOService');
+                                    });
+                                }
                             }
                             break;
                         case 'UNO':

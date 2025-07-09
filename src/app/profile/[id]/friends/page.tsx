@@ -34,7 +34,7 @@ export default function ProfilePage() {
                     <h1>Friends requests</h1>
                 </div>
                 <div className="w-full gap-2 flex flex-col h-full">
-                    <FriendRequest playerInfo={{ firstName: "Náspár", lastName: "Gorbert", rank: 700, customId: "526f7a734e6f7262657274db9a881e3d8590d4dd" } as Iplayer}></FriendRequest>
+                    {/* <FriendRequest playerInfo={{ firstName: "Náspár", lastName: "Gorbert", rank: 700, customId: "526f7a734e6f7262657274db9a881e3d8590d4dd" } as Iplayer}></FriendRequest> */}
                 </div>
                 <Pagination total={1} page={page} setPage={setPage}></Pagination>
             </main>
@@ -42,10 +42,10 @@ export default function ProfilePage() {
                 <div className="flex gap-3 p-3 flex-col">
                     <h1>Your friends</h1>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2">
-                        <Friends playerInfo={{ firstName: "Náspár", lastName: "Gorbert", rank: 700, customId: "526f7a734e6f7262657274db9a881e3d8590d4dd" } as Iplayer}></Friends>
+                        {/* <Friends playerInfo={{ firstName: "Náspár", lastName: "Gorbert", rank: 700, customId: "526f7a734e6f7262657274db9a881e3d8590d4dd" } as Iplayer}></Friends>
                         <Friends playerInfo={{ firstName: "Gáspár", lastName: "Gorbert", rank: 1400, customId: "526f7a734e6f7262657274db9a881e3d8590d4dd" } as Iplayer}></Friends>
                         <Friends playerInfo={{ firstName: "Ráspár", lastName: "Norbert", rank: 2500, customId: "526f7a734e6f7262657274db9a881e3d8590d4dd" } as Iplayer}></Friends>
-                        <Friends playerInfo={{ firstName: "Záspár", lastName: "Zorbert", rank: 100, customId: "526f7a734e6f7262657274db9a881e3d8590d4dd" } as Iplayer}></Friends>
+                        <Friends playerInfo={{ firstName: "Záspár", lastName: "Zorbert", rank: 100, customId: "526f7a734e6f7262657274db9a881e3d8590d4dd" } as Iplayer}></Friends> */}
                     </div>
                 </div>
             </main>

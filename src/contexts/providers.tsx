@@ -11,7 +11,7 @@ import { UserContext } from "./user.context";
 import Icon from "@/assets/icons";
 import { IP } from "@/enums/ip.enum";
 
-export function Providers({ children }: { children: React.ReactNode }) {
+export function Providers({ children, className }: { children: React.ReactNode, className?: string }) {
     const [isOpen, setOpen] = useState(true);
     const [user, setUser] = useState<Iplayer | null>(getUser());
     const [helperOpen, setHelperOpen] = useState(false);
@@ -28,15 +28,15 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
     function getStyle(): CSSProperties | undefined {
         if (path.includes('observatory') || path.includes('login') || path.includes('register')) {
-            return {}
+            return { backgroundImage: 'linear-gradient(50deg,rgba(255, 255, 255, 0) 0%, rgba(226, 99, 255, 0.18) 20%, rgba(255, 255, 255, 0) 50%, rgba(206, 53, 255, 0.12) 85%, rgba(255, 255, 255, 0) 100%)' }
         }
         if (path.includes('end')) {
             return { backgroundColor: '#3f3f46a0', paddingTop: "5.5rem" }
         }
         if (path === "/" || path.includes('rummy') || path.includes('uno') || path.includes('solitaire')) {
-            return { backgroundColor: '#3f3f46a0' }
+            return { backgroundImage: 'linear-gradient(50deg,rgba(255, 255, 255, 0) 0%, rgba(226, 99, 255, 0.18) 20%, rgba(255, 255, 255, 0) 50%, rgba(206, 53, 255, 0.12) 85%, rgba(255, 255, 255, 0) 100%)' }
         }
-        return { backgroundColor: '#3f3f46a0', paddingTop: "5.5rem" }
+        return { backgroundImage: 'linear-gradient(50deg,rgba(255, 255, 255, 0) 0%, rgba(226, 99, 255, 0.18) 20%, rgba(255, 255, 255, 0) 50%, rgba(206, 53, 255, 0.12) 85%, rgba(255, 255, 255, 0) 100%)', paddingTop: "5.5rem" }
     }
 
     useEffect(() => {
@@ -56,7 +56,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
                 <QueryClientProvider client={queryClient}>
 
-                    <body className={`bg-zinc-900 duration-200 relative h-screen`}>
+                    <body className={`bg-zinc-900 duration-200 relative h-screen ${className}`}>
                         <StarBackground></StarBackground>
                         {(path.includes('end')) && <Navbar></Navbar>}
                         {(!path.includes('login') && !path.includes('register') && !path.includes('rummy') && !path.includes('uno') && !path.includes('solitaire')) && <Navbar></Navbar>}

@@ -62,9 +62,9 @@ export default class AuthController implements Controller {
             if (result) {
                 user.registraionCode = '';
                 const hex = Array.from((body.firstName + body.lastName)).map((char: any) => char.charCodeAt(0).toString(16)).join('').slice(0, 10);
-                body["customId"] = hex + new mongoose.Types.ObjectId().toString().slice(0, 6);
+                user["customId"] = hex + new mongoose.Types.ObjectId().toString().slice(0, 6);
                 const userS = new UserSettings();
-                body["settings"] = {
+                user["settings"] = {
                     backgroundColor: userS.getColorByInitials(body.firstName + body.lastName).background,
                     textColor: userS.getColorByInitials(body.firstName + body.lastName).text,
                 }

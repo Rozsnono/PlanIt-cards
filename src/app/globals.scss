@@ -1,3 +1,6 @@
+@import url("https://fonts.googleapis.com/css2?family=Orbitron&display=swap");
+@import url('https://fonts.googleapis.com/css2?family=Genos:ital,wght&family=Orbitron&display=swap');
+
 .widget {
 
   ::-webkit-scrollbar {
@@ -19,6 +22,18 @@
   ::-webkit-scrollbar-thumb:hover {
     background: #0f172a;
   }
+}
+
+.orbitron{
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 400;
+  font-style: normal;
+}
+
+.genos {
+  font-family: 'Genos', sans-serif;
+  font-weight: 400;
+  font-style: normal;
 }
 
 
@@ -233,4 +248,17 @@ input[type='range']::-webkit-slider-thumb {
 
 .chart-card-shadow {
   box-shadow: 5px 5px 5px 0px #0000005f, -5px -5px 5px 0px #ffffff1f;
+}
+
+.animate-scale{
+  animation: animate-scale 2s ease-in-out infinite alternate;
+}
+@keyframes animate-scale {
+  0% {
+    transform: scale(1);
+  }
+
+  100% {
+    transform: scale(1.1);
+  }
 }

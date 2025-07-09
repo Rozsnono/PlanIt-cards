@@ -53,7 +53,7 @@ export default function RegisterPage() {
                 return;
             }
             setUser(getUser());
-            router.replace('/');
+            router.replace('/verify');
             router.refresh();
         })
     }
