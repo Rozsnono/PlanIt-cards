@@ -97,19 +97,22 @@ export default function Games() {
     }
 
     async function creatingLobby(form: any) {
+        setLoading(true);
         try {
             const result = await lobbyService.createLobby(form);
             router.push(`/games/${result._id}`);
         } catch (error) {
+            setLoading(false);
             console.error("Error creating lobby:", error);
         }
     }
+
+    if (loading || state.isLoading) return <Loading />
 
 
     return (
         <main className="flex gap-2 flex-col h-full p-2">
             <main className="relative w-full h-full grid 2xl:grid-cols-6 xl:grid-cols-4 lg:grid-cols-3 md:grid-cols-2 grid-cols-1 gap-5 p-3 overflow-y-auto">
-                {loading && state.isLoading && <Loading />}
                 {!state.isLoading && !state.isError && state.data.data.map((lobby: Ilobby, index: number) => (
                     <React.Fragment key={index}>
                         <LobbyCard lobbyDatas={lobby} lobbyNumber={index + 1} />

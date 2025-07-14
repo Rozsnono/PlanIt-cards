@@ -1,5 +1,5 @@
 import Icon from "@/assets/icons";
-import React from "react";
+import React, { useEffect } from "react";
 import LobbyInputs from "./lobby.inputs";
 
 enum maxNumber {
@@ -14,7 +14,7 @@ enum minNumber {
     "SOLITAIRE" = 1
 }
 
-export default function LobbySettings({ getForm, save, canEdit, title, cancel, onlyNew, children, justForm }: { getForm?: any, save: (e: any) => void, canEdit?: boolean, title: string, cancel?: () => void, onlyNew?: boolean, children?: any, justForm?: boolean }) {
+export default function LobbySettings({ getForm, save, canEdit, title, cancel, onlyNew, children, justForm, changing }: { getForm?: any, save: (e: any) => void, canEdit?: boolean, title: string, cancel?: () => void, onlyNew?: boolean, children?: any, justForm?: boolean, changing?: (form: any) => void }) {
 
     const [edit, setEdit] = React.useState(canEdit || false);
 
@@ -36,7 +36,6 @@ export default function LobbySettings({ getForm, save, canEdit, title, cancel, o
     }
 
     function settingForm(id: string, value: any) {
-        console.log(id, value);
         if (id === 'cardType') {
             if (value === 'RUMMY') {
                 settingFormDataWithCondition({ id: "cardType", value: 'RUMMY' }, { id: "numberOfPlayers", value: 4 }, (parseInt(form['numberOfPlayers']) > 6 || parseInt(form['numberOfPlayers']) < 2));
@@ -52,6 +51,12 @@ export default function LobbySettings({ getForm, save, canEdit, title, cancel, o
             settingFormData({ target: { id, value } });
         }
     }
+
+    useEffect(() => {
+        if (changing) {
+            changing(form);
+        }
+    }, [form]);
 
     const inputs = [
         { label: "Number of Players", id: "numberOfPlayers", value: form['numberOfPlayers'] || 4, interval: true, min: minNumber[form['cardType'] || 'RUMMY'], max: maxNumber[form['cardType'] || 'RUMMY'], disabled: onlyNew || !edit },
@@ -74,6 +79,15 @@ export default function LobbySettings({ getForm, save, canEdit, title, cancel, o
         { label: "Number of Robots", id: "numberOfRobots", value: form['numberOfRobots'] || 1, interval: true, min: 1, max: parseInt(form['numberOfPlayers'] || 4) - 1, show: form['fillWithRobots'] === true },
         { label: "Difficulty", id: "robotsDifficulty", value: form['robotsDifficulty'] || 'EASY', buttons: true, buttonLabels: ["EASY", "MEDIUM", "HARD"], show: form['fillWithRobots'] === true }
     ]
+
+    function checkBeforeSave(form: any) {
+        if (form['cardType'] === "SOLITAIRE") {
+            form['numberOfRobots'] = 0;
+            form['fillWithRobots'] = false;
+            form['unranked'] = false;
+        }
+        save(form);
+    }
 
     if (onlyNew) {
         return (
@@ -108,7 +122,7 @@ export default function LobbySettings({ getForm, save, canEdit, title, cancel, o
                     </div>
 
                     <div className="flex gap-2 px-4 mb-3 justify-center" >
-                        <button onClick={() => { save(form) }} className="bg-sky-700 text-white p-2 px-5 rounded-md hover:bg-sky-600 flex items-center gap-1">
+                        <button onClick={() => { checkBeforeSave(form) }} className="bg-sky-700 text-white p-2 px-5 rounded-md hover:bg-sky-600 flex items-center gap-1">
                             <Icon name="join"></Icon>
                             Create
                         </button>
@@ -162,15 +176,6 @@ export default function LobbySettings({ getForm, save, canEdit, title, cancel, o
                 </div>
 
             </div>
-
-            {edit &&
-                <div className="flex gap-2 justify-center w-full" >
-                    <button onClick={() => { save(form) }} className="flex justify-center items-center bg-gradient-to-l from-green-500/90 to-emerald-600/80 text-white p-2 px-5 rounded-md hover:bg-green-600 gap-1 w-full">
-                        <Icon name="pen"></Icon>
-                        Save
-                    </button>
-                </div>
-            }
         </React.Fragment>
     )
 }

@@ -106,7 +106,6 @@ export class GameService {
     }
 
     public getDataFromWebsocket(object: any, socket: any, data: object): { lobby: any, game: any, playerCards: any, game_over?: boolean, refresh?: boolean } | null {
-        console.log("getDataFromWebsocket", object);
         if (object.refresh) {
             socket.send(JSON.stringify(data));
             return {lobby: null, game: null, playerCards: null, refresh: true};

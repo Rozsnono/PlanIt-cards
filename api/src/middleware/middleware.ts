@@ -66,11 +66,27 @@ async function getIDfromToken(req: any) {
             const payload: Iuser | string | any = jwt.verify(token, ACCESS_TOKEN_SECRET);
             if (payload) {
                 // store user data in request object
-                return payload._id;
+                return payload._id; // return the user id from the token
             }
         }
     }
     return null;
 }
 
-export { isLoggedIn, hasAuth, getIDfromToken };
+async function getCustomIdFromToken(req: any) {
+    if (req.headers.authorization) {
+        // parse token from header
+        const token = req.headers.authorization.split(" ")[1]; //split the header and get the token
+        if (token) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const payload: Iuser | string | any = jwt.verify(token, ACCESS_TOKEN_SECRET);
+            if (payload) {
+                // store user data in request object
+                return payload.customId; // return the user code from the token
+            }
+        }
+    }
+    return null;
+}
+
+export { isLoggedIn, hasAuth, getIDfromToken, getCustomIdFromToken };

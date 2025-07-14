@@ -28,11 +28,11 @@ export default function LobbyCard({ lobbyDatas, lobbyNumber, isAdmin }: { lobbyD
     function getCardStyleByType() {
         switch (lobbyDatas.settings.cardType) {
             case "UNO":
-                return "ring ring-red-600 bg-zinc-800/50";
+                return "bg-gradient-to-br from-purple-800 to-red-900";
             case "RUMMY":
-                return "ring ring-indigo-400/40 bg-gradient-to-br from-zinc-800/40 to-zinc-900/50";
+                return "bg-gradient-to-br from-purple-800 to-gray-600";
             case "SOLITAIRE":
-                return "bg-zinc-800 ring ring-sky-600 ";
+                return "bg-gradient-to-br from-purple-800 to-blue-600";
         }
     }
 
@@ -76,10 +76,7 @@ export default function LobbyCard({ lobbyDatas, lobbyNumber, isAdmin }: { lobbyD
             )
         } else if ((lobbyDatas.users?.length && lobbyDatas.users?.length + (lobbyDatas.bots?.length ? lobbyDatas.bots?.length : 0) >= lobbyDatas.settings.numberOfPlayers)) {
             return (
-                <Link href={"games"} className="bg-red-700 text-white p-2 px-5 rounded-md flex items-center gap-1 cursor-not-allowed transition-transform duration-200">
-                    <Icon name="close"></Icon>
-                    Full
-                </Link>
+                null
             )
         }
         else if (lobbyDatas.game_id) {
@@ -102,7 +99,7 @@ export default function LobbyCard({ lobbyDatas, lobbyNumber, isAdmin }: { lobbyD
 
     return (
         <main className="flex flex-col rounded-xl bg-zinc-800/70 overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 max-h-[35rem]">
-            <div className="w-full bg-gradient-to-l from-purple-800 to-gray-600 flex items-center justify-between p-4">
+            <div className={`w-full bg-gradient-to-l  flex items-center justify-between p-4 ${getCardStyleByType()}`}>
                 <div className="text-white font-bold text-lg flex flex-col ">
                     <span>Lobby {lobbyNumber}</span>
                     <span className="text-sm font-thin tracking-widest ms-2 orbitron">
@@ -143,8 +140,9 @@ export default function LobbyCard({ lobbyDatas, lobbyNumber, isAdmin }: { lobbyD
                 }
 
                 {
+                    lobbyDatas.settings.numberOfPlayers - (lobbyDatas.users?.length + (lobbyDatas.bots?.length || 0) || 0) > 0 &&
                     !lobbyDatas.game_id || !(lobbyDatas.users?.length && lobbyDatas.users?.length + (lobbyDatas.bots?.length || 0) >= lobbyDatas.settings.numberOfPlayers) ?
-                        new Array(lobbyDatas.settings.numberOfPlayers - (lobbyDatas.users?.length + (lobbyDatas.bots?.length || 0) || 0)).fill(0).map((_, i) => (
+                        new Array(lobbyDatas.settings.numberOfPlayers - (lobbyDatas.users?.length + (lobbyDatas.bots?.length || 0) || 0) || 0).fill(0).map((_, i) => (
                             <div key={i} className="flex gap-1 w-full justify-center items-center bg-zinc-700 p-2 rounded-lg animate-pulse mx-auto">
                             </div>
                         )) : null

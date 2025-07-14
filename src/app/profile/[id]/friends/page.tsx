@@ -1,6 +1,6 @@
 "use client";
 import Icon from "@/assets/icons";
-import { getColorByInitials, getUserInitials } from "@/functions/user.function";
+import { getColorByInitials, getUserInitials, getUserInitialsByName } from "@/functions/user.function";
 import { useParams } from "next/navigation";
 import { useQuery } from "react-query";
 import { getRankName } from "@/interfaces/rank.enum";
@@ -9,6 +9,7 @@ import React from "react";
 import ProfileService from "@/services/profile.service";
 import { Iplayer } from "@/interfaces/interface";
 import Link from "next/link";
+import Loading from "@/app/loading";
 
 export default function ProfilePage() {
 
@@ -23,72 +24,129 @@ export default function ProfilePage() {
         return profileService.getProfileData(player_id as string).then(res => res.json());
     }
 
+    function getPlayers() {
+        return profileService.getPlayers().then(res => res.json());
+    }
+
     const player = useQuery("player", getPlayer, { enabled: !!player_id, refetchOnWindowFocus: false });
+    const players = useQuery("players", getPlayers, { enabled: !!player_id, refetchOnWindowFocus: false });
 
 
-    if (player.isLoading || player!.data.length == 0) return <div>Loading...</div>
+    if (player.isLoading || player!.data.length == 0 || players.isLoading) return <Loading />
     return (
-        <main className="flex gap-2 flex-row-reverse h-full px-4 pb-4">
-            <main className="w-full flex flex-col gap-3 p-3 items-center justify-start h-full border-2 border-zinc-800 rounded-lg">
-                <div className="h-fit w-full flex items-center text-zinc-100 p-3 ">
-                    <h1>Friends requests</h1>
-                </div>
-                <div className="w-full gap-2 flex flex-col h-full">
-                    {/* <FriendRequest playerInfo={{ firstName: "Náspár", lastName: "Gorbert", rank: 700, customId: "526f7a734e6f7262657274db9a881e3d8590d4dd" } as Iplayer}></FriendRequest> */}
-                </div>
-                <Pagination total={1} page={page} setPage={setPage}></Pagination>
-            </main>
-            <main className="w-full bg-zinc-800 rounded-md p-3 h-full text-zinc-200">
-                <div className="flex gap-3 p-3 flex-col">
-                    <h1>Your friends</h1>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2">
-                        {/* <Friends playerInfo={{ firstName: "Náspár", lastName: "Gorbert", rank: 700, customId: "526f7a734e6f7262657274db9a881e3d8590d4dd" } as Iplayer}></Friends>
-                        <Friends playerInfo={{ firstName: "Gáspár", lastName: "Gorbert", rank: 1400, customId: "526f7a734e6f7262657274db9a881e3d8590d4dd" } as Iplayer}></Friends>
-                        <Friends playerInfo={{ firstName: "Ráspár", lastName: "Norbert", rank: 2500, customId: "526f7a734e6f7262657274db9a881e3d8590d4dd" } as Iplayer}></Friends>
-                        <Friends playerInfo={{ firstName: "Záspár", lastName: "Zorbert", rank: 100, customId: "526f7a734e6f7262657274db9a881e3d8590d4dd" } as Iplayer}></Friends> */}
+        <main className="flex flex-col md:flex-row gap-6 justify-center w-full md:w-3/4 mx-auto h-full">
+            <main className="w-full rounded-2xl flex flex-col p-6 gap-2">
+
+                <div className="w-full rounded-2xl border border border-purple-800/50 bg-black/40 p-3 gap-2 flex flex-col">
+                    <div className="text-purple-600 text-lg font-bold flex items-center gap-2 p-2">
+                        <Icon name="users" size={32}></Icon>
+                        Players
+                    </div>
+
+                    <div className="border-b-[0.1rem] border-purple-800/50"></div>
+
+                    <div className="flex flex-col gap-2 p-2 h-full">
+
+                    </div>
+
+                    <div className="border-b-[0.1rem] border-purple-800/50"></div>
+
+                    <div className="flex flex-col gap-4 w-full">
+
+                        {
+                            players.data.data.map((player: Iplayer) => (
+                                <Players key={player.customId} player={player}></Players>
+                            ))
+                        }
                     </div>
                 </div>
             </main>
+
+            <main className="w-1/2 h-full rounded-2xl flex flex-col p-6 gap-6">
+
+                <div className="w-full rounded-2xl border border border-purple-800/50 bg-black/40 p-3 gap-2 flex flex-col">
+                    <div className="text-purple-600 text-lg font-bold flex items-center gap-2 p-2">
+                        <Icon name="users" size={32}></Icon>
+                        Your friends
+                    </div>
+
+                    <div className="border-b-[0.1rem] border-purple-800/50"></div>
+
+                    <div className="flex flex-col gap-2 p-2 w-full">
+
+                        {/* <div className="flex items-center w-full relative">
+                            <div className="flex gap-2 flex-wrap font-thin relative w-full">
+                                <div className="rounded-full h-2 w-full bg-gray-500 absolute"></div>
+
+                                {
+                                    getRankName(player.rank + data.data.rank.find((p: any) => p.player == player._id).rank).title !== getRankName(player.rank).title ?
+                                        <React.Fragment>
+                                            <div style={{ width: `${getCurrentRank(player.rank + data.data.rank.find((p: any) => p.player == player._id).rank)}%` }} className="rounded-full h-2 bg-orange-400 z-50 animate-pulse duration-300"></div>
+                                        </React.Fragment> :
+                                        <React.Fragment>
+                                            <div style={{ width: `${getCurrentRank(player.rank + data.data.rank.find((p: any) => p.player == player._id).rank)}%` }} className="rounded-full h-2 bg-orange-400 z-50 animate-pulse duration-300"></div>
+                                            <div style={{ width: `${getCurrentRank(player.rank)}%` }} className="rounded-full h-2 bg-gradient-to-r from-purple-500/70 to-orange-600 z-50 absolute"></div>
+                                        </React.Fragment>
+                                }
+                            </div>
+                        </div> */}
+                    </div>
+                </div>
+
+                <div className="w-full rounded-2xl border border border-purple-800/50 bg-black/40 p-3 gap-2 flex flex-col">
+                    <div className="text-purple-600 text-lg font-bold flex items-center gap-2 p-2">
+                        <Icon name="pedding" size={32}></Icon>
+                        Pedding friends
+                    </div>
+
+                    <div className="border-b-[0.1rem] border-purple-800/50"></div>
+
+                    <div className="flex flex-col gap-2 p-2 h-full">
+
+                    </div>
+                </div>
+
+            </main>
+
         </main>
     )
 }
 
-function Friends({ playerInfo }: { playerInfo: Iplayer }) {
-    return (
-        <Link href={`/profile/${playerInfo.customId}`} className="flex gap-2 items-center justify-center flex-col p-3 bg-zinc-700 rounded-md cursor-pointer select-none hover:bg-zinc-600 duration-100">
-            <div style={{ backgroundColor: getColorByInitials(playerInfo).background, color: getColorByInitials(playerInfo).text }} className={"flex justify-center items-center w-16 h-16 rounded-full text-xl"}>
-                {getUserInitials(playerInfo.firstName, playerInfo.lastName)}
-            </div>
-            <div className="flex flex-col gap-1">
-                <h1>{playerInfo.firstName} {playerInfo.lastName}</h1>
-                <h2 style={{ color: getRankName(playerInfo.rank).color }} className="text-[0.7rem] flex justify-center items-center w-full font-bold">
-                    <div dangerouslySetInnerHTML={{ __html: getRankName(playerInfo.rank).icon }}></div>
-                    {getRankName(playerInfo.rank).title}
-                </h2>
-            </div>
-        </Link>
-    )
-}
 
-function FriendRequest({ playerInfo }: { playerInfo: Iplayer }) {
+function Players({ player, isFriend, isPedding }: { player: Iplayer, isFriend?: boolean, isPedding?: boolean }) {
+
     return (
-        <main className="flex gap-2 items-center text-gray-100 justify-between p-3 bg-zinc-700 rounded-md select-none hover:bg-zinc-600 duration-100">
-            <Link href={`/profile/${playerInfo.customId}`} className="flex gap-2 items-center">
-                <div style={{ backgroundColor: getColorByInitials(playerInfo).background, color: getColorByInitials(playerInfo).text }} className={"flex justify-center items-center w-16 h-16 rounded-full text-xl"}>
-                    {getUserInitials(playerInfo.firstName, playerInfo.lastName)}
-                </div>
-                <div className="flex flex-col gap-1">
-                    <h1>{playerInfo.firstName} {playerInfo.lastName}</h1>
-                    <h2 style={{ color: getRankName(playerInfo.rank).color }} className="text-[0.7rem] flex justify-start items-center w-full font-bold">
-                        <div dangerouslySetInnerHTML={{ __html: getRankName(playerInfo.rank).icon }}></div>
-                        {getRankName(playerInfo.rank).title}
-                    </h2>
-                </div>
-            </Link>
-            <div className="flex gap-2">
-                <button className="border-2 border-green-500 bg-green-500 p-2 rounded-md px-4 hover:bg-green-600 flex justify-center items-center gap-1 duration-200"> <Icon name="add-friend"></Icon> Accept</button>
-                <button className="border-2 border-red-500 p-2 rounded-md px-4 hover:border-red-600 hover:bg-zinc-700 flex justify-center items-center gap-1 text-red-400 hover:text-red-300 duration-200"><Icon name="cancel-friend"></Icon> Decline</button>
+        <div className={`flex items-center justify-between gap-4 p-2 rounded-lg w-full hover:bg-purple-800/30 border border-purple-400/20 transition-colors duration-200 bg-purple-800/20`}>
+            <div className="flex items-center gap-4">
+                <div style={{ backgroundColor: getColorByInitials(player).background, color: getColorByInitials(player).text }} className="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center text-sm">{getUserInitialsByName(player.firstName + " " + player.lastName)}</div>
+                <div className="text-lg font-bold text-zinc-300">{player!.firstName} {player!.lastName}</div>
             </div>
-        </main>
+            <div className="flex items-center">
+                <span style={{ color: getRankName(player.rank).color }} className="flex items-center gap-1 text-lg">
+                    <div dangerouslySetInnerHTML={{ __html: getRankName(player.rank).icon }}></div>
+                    {getRankName(player.rank).title}
+                </span>
+            </div>
+            <div className="flex items-center gap-2">
+                {
+                    !isFriend &&
+                    <button onClick={() => { new ProfileService().createFriendRequest(player.customId) }} className="text-purple-600 hover:text-purple-400 transition-colors duration-200">
+                        <Icon name="add-friend" size={20}></Icon>
+                    </button>
+                }
+                {
+                    isPedding ?
+                        <>
+                            <Icon name="check" size={20} className="text-green-500"></Icon>
+                            <Icon name="close" size={20} className="text-red-500"></Icon>
+                        </>
+                        : null
+                }
+
+                <Link href={`/profile/${player.customId}`} className="text-indigo-600 hover:text-indigo-400 transition-colors duration-200">
+                    <Icon name="info" size={20}></Icon>
+                </Link>
+            </div>
+        </div>
     )
 }

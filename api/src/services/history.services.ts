@@ -39,7 +39,6 @@ export default class GameHistoryService {
         const hasHistory = player.gameHistory.find((history) => history.toString() === game_id.toString());
         if (!hasHistory) {
             player.gameHistory.push(new mongoose.Types.ObjectId(game_id));
-            player.numberOfGames++;
             await player.save();
 
             const users = (lobby.users as any[]).concat(lobby.bots as any);
@@ -115,7 +114,7 @@ export default class GameHistoryService {
         const lobby = await this.lobby.findOne({ game_id }).populate("users", "customId username settings rank firstName lastName").lean();
         if (!lobby) return { error: ERROR.LOBBY_NOT_FOUND };
 
-        if (player.gameHistory.length >= 8) {
+        if (player.gameHistory.length >= 6) {
             try {
                 const oldestHistory = await this.gameHistory.aggregate(
                     [{ $match: { gameId: { $in: player.gameHistory } } }, { $sort: { date: 1 } }, { $limit: 1 }]
@@ -192,20 +191,38 @@ export default class GameHistoryService {
                     droppedCards: game.droppedCards
                 }
             }
+            history.endedAt = new Date();
             await this.gameHistory.replaceOne({ _id: history._id }, history, { runValidators: true });
         });
 
-        if (!lobby.settings?.unranked) {
-            positions.forEach(async (position: any) => {    
-                if (position.player.includes("bot")) return; // Skip bots
-                const player = await this.user.findById(position.player);
-                if (player) {
+        positions.forEach(async (position: any) => {
+            if (position.player.includes("bot")) return; // Skip bots
+            const player = await this.user.findById(position.player);
+            if (player) {
+                if (!lobby.settings?.unranked) {
                     player.rank += histories[0].rank.find((r: any) => r.player === position.player)?.rank || 0;
-                    await player.save();
                 }
-            })
-        }
-
+                player.gamesStats.numberOfGames += 1;
+                if (position.pos === 1) {
+                    player.gamesStats.totalWins += 1;
+                    player.gamesStats.gamesPerDate[`${game.createdAt.getMonth()}-${game.createdAt.getDate()}`] = {
+                        wins: player.gamesStats.gamesPerDate[`${game.createdAt.getMonth()}-${game.createdAt.getDate()}`]?.wins + 1 || 0,
+                        losses: player.gamesStats.gamesPerDate[`${game.createdAt.getMonth()}-${game.createdAt.getDate()}`]?.losses || 0,
+                    };
+                } else {
+                    player.gamesStats.totalLosses += 1;
+                    player.gamesStats.gamesPerDate[`${game.createdAt.getMonth()}-${game.createdAt.getDate()}`] = {
+                        wins: player.gamesStats.gamesPerDate[`${game.createdAt.getMonth()}-${game.createdAt.getDate()}`]?.wins || 0,
+                        losses: player.gamesStats.gamesPerDate[`${game.createdAt.getMonth()}-${game.createdAt.getDate()}`]?.losses + 1 || 0,
+                    };
+                }
+                player.gamesStats.winRate = Math.round((player.gamesStats.totalWins / player.gamesStats.numberOfGames) * 100);
+                player.gamesStats.totalPlayTime = (new Date().getTime() - new Date(player.createdAt).getTime()) / 1000; // Total playtime in seconds
+                player.gamesStats.highestRank = Math.max(player.gamesStats.highestRank || 0, player.rank);
+                console.log(`Updated player ${player.customId} stats:`, player.gamesStats);
+                await this.user.replaceOne({ _id: player._id }, player, { runValidators: true });
+            }
+        })
         await game.deleteOne({ _id: game_id });
         if (lobby) {
             lobby.game_id = null;
@@ -247,8 +264,8 @@ export class GameHistorySolitaire extends GameHistoryService {
                 users: (lobby.users as any[]).concat(lobby.bots as any),
                 date: new Date(),
                 type: lobby.settings?.cardType,
-                position: lobby.users.map((user: any, index: number) => { return { player: user.customId, position: 0 } }),
-                rank: lobby.users.map((user: any, index: number) => { return { player: user.customId, rank: 0 } }),
+                position: lobby.users.map((user: any, index: number) => { return { player: user._id, pos: 0 } }),
+                rank: lobby.users.map((user: any, index: number) => { return { player: user._id, rank: 0 } }),
             }
             await this.gameHistory.replaceOne({ _id: TMPgameHistory!._id }, newGameHistory, { runValidators: true });
             return { message: "History saved!" };
@@ -301,20 +318,59 @@ export class GameHistorySolitaire extends GameHistoryService {
         return { error: ERROR.GAME_HISTORY_NOT_FOUND };
     };
 
-    public savePosition = async (lobby_id: string, game_id: string, maxPoints: number) => {
-        const lobby = await this.lobby.findOne({ _id: lobby_id });
-        if (!lobby) return { error: ERROR.LOBBY_NOT_FOUND };
+    public async getStatsForHistory(game_id: string, maxPoints: number) {
+        const histories = await this.gameHistory.find({ gameId: game_id }).populate("users", "customId username settings firstName lastName").lean();
+        if (!histories) return { error: ERROR.GAME_HISTORY_NOT_FOUND };
         const game = await this.game.findOne({ _id: game_id });
         if (!game) return { error: ERROR.GAME_NOT_FOUND };
+        const lobby = await this.lobby.findOne({ game_id });
+        if (!lobby) return { error: ERROR.LOBBY_NOT_FOUND };
 
-        const gameHistory = await this.gameHistory.find({ gameId: game_id });
-        if (!gameHistory) return { error: ERROR.GAME_HISTORY_NOT_FOUND };
+        const positions = [{ player: lobby.users[0]._id, pos: 1 }];
+        const rank = [{ player: lobby.users[0]._id, rank: maxPoints }];
 
-        gameHistory.forEach(async (history) => {
-            history.position = history.position.map((p: any) => { return { player: p.player, position: 1 } });
-            history.rank = new GameChecker().calculatePoints(history.position, maxPoints);
+        histories.forEach(async (history: any) => {
+            history.position = positions;
+            history.rank = rank;
+            history.endedAt = new Date();
             await this.gameHistory.replaceOne({ _id: history._id }, history, { runValidators: true });
         });
-        return { message: "Position saved!" };
+
+        positions.forEach(async (position: any) => {
+            if (position.player.includes("bot")) return; // Skip bots
+            const player = await this.user.findById(position.player);
+            if (player) {
+                if (!lobby.settings?.unranked) {
+                    player.rank += histories[0].rank.find((r: any) => r.player === position.player)?.rank || 0;
+                }
+                player.gamesStats.numberOfGames += 1;
+                if (position.pos === 1) {
+                    player.gamesStats.totalWins += 1;
+                    player.gamesStats.gamesPerDate[`${game.createdAt.getMonth()}-${game.createdAt.getDate()}`] = {
+                        wins: player.gamesStats.gamesPerDate[`${game.createdAt.getMonth()}-${game.createdAt.getDate()}`]?.wins + 1 || 0,
+                        losses: player.gamesStats.gamesPerDate[`${game.createdAt.getMonth()}-${game.createdAt.getDate()}`]?.losses || 0,
+                    };
+                } else {
+                    player.gamesStats.totalLosses += 1;
+                    player.gamesStats.gamesPerDate[`${game.createdAt.getMonth()}-${game.createdAt.getDate()}`] = {
+                        wins: player.gamesStats.gamesPerDate[`${game.createdAt.getMonth()}-${game.createdAt.getDate()}`]?.wins || 0,
+                        losses: player.gamesStats.gamesPerDate[`${game.createdAt.getMonth()}-${game.createdAt.getDate()}`]?.losses + 1 || 0,
+                    };
+                }
+                player.gamesStats.winRate = Math.round((player.gamesStats.totalWins / player.gamesStats.numberOfGames) * 100);
+                player.gamesStats.totalPlayTime = (new Date().getTime() - new Date(player.createdAt).getTime()) / 1000; // Total playtime in seconds
+                player.gamesStats.highestRank = Math.max(player.gamesStats.highestRank || 0, player.rank);
+                console.log(`Updated player ${player.customId} stats:`, player.gamesStats);
+                await this.user.replaceOne({ _id: player._id }, player, { runValidators: true });
+            }
+        })
+        await game.deleteOne({ _id: game_id });
+        if (lobby) {
+            lobby.game_id = null;
+            await lobby.save();
+        }
+
+        return { message: "Stats updated!", code: 200 };
+
     }
 }

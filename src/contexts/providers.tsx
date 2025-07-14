@@ -31,9 +31,9 @@ export function Providers({ children, className }: { children: React.ReactNode, 
             return { backgroundImage: 'linear-gradient(50deg,rgba(255, 255, 255, 0) 0%, rgba(226, 99, 255, 0.18) 20%, rgba(255, 255, 255, 0) 50%, rgba(206, 53, 255, 0.12) 85%, rgba(255, 255, 255, 0) 100%)' }
         }
         if (path.includes('end')) {
-            return { backgroundColor: '#3f3f46a0', paddingTop: "5.5rem" }
+            return { backgroundImage: 'linear-gradient(50deg,rgba(255, 255, 255, 0) 0%, rgba(226, 99, 255, 0.18) 20%, rgba(255, 255, 255, 0) 50%, rgba(206, 53, 255, 0.12) 85%, rgba(255, 255, 255, 0) 100%)', paddingTop: "5.5rem"}
         }
-        if (path === "/" || path.includes('rummy') || path.includes('uno') || path.includes('solitaire')) {
+        if (path === "/" || (path.includes('rummy') || path.includes('uno') || path.includes('solitaire') && !path.includes('end'))) {
             return { backgroundImage: 'linear-gradient(50deg,rgba(255, 255, 255, 0) 0%, rgba(226, 99, 255, 0.18) 20%, rgba(255, 255, 255, 0) 50%, rgba(206, 53, 255, 0.12) 85%, rgba(255, 255, 255, 0) 100%)' }
         }
         return { backgroundImage: 'linear-gradient(50deg,rgba(255, 255, 255, 0) 0%, rgba(226, 99, 255, 0.18) 20%, rgba(255, 255, 255, 0) 50%, rgba(206, 53, 255, 0.12) 85%, rgba(255, 255, 255, 0) 100%)', paddingTop: "5.5rem" }

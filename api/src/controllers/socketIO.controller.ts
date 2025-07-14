@@ -332,15 +332,15 @@ export default class SocketIO {
                     if (lobby) {
                         switch (lobby.settings?.cardType) {
                             case "RUMMY":
-                                this.gameHistory.getStatsForHistory(change.fullDocument._id, 40);
+                                this.gameHistory.getStatsForHistory(change.fullDocument._id, lobby.users.length * 20 + lobby.bots.length * 10 + 10);
                                 break;
 
                             case "UNO":
-                                this.gameHistory.getStatsForHistory(change.fullDocument._id, 40);
+                                this.gameHistory.getStatsForHistory(change.fullDocument._id, lobby.users.length * 20 + lobby.bots.length * 10 + 10);
                                 break;
 
                             case "SOLITAIRE":
-                                this.gameHistoryS.savePosition(lobby!._id.toString(), change.fullDocument._id, 10);
+                                this.gameHistoryS.getStatsForHistory(change.fullDocument._id, 10);
                                 break;
 
                             default:
@@ -424,7 +424,20 @@ export default class SocketIO {
         ], { fullDocument: 'updateLookup' });
         userWatching.on('change', async (change) => {
             const player = await this.user.findOne({ customId: change.fullDocument.customId }).populate("peddingFriends", "customId firstName lastName username rank settings").exec();
-            const token = jwt.sign({ _id: player!._id, username: player!.username, firstName: player!.firstName, lastName: player!.lastName, auth: player!.auth, numberOfGames: player!.numberOfGames, rank: player!.rank, email: player!.email, customId: player!.customId, peddingFriends: player!.peddingFriends.length, settings: player!.settings }, ACCESS_TOKEN_SECRET);
+            const token = jwt.sign({
+                _id: player!._id,
+                username: player!.username,
+                firstName: player!.firstName,
+                lastName: player!.lastName,
+                auth: player!.auth,
+                gamesStats: player!.gamesStats,
+                rank: player!.rank,
+                email: player!.email,
+                customId: player!.customId,
+                peddingFriends: player!.peddingFriends.length,
+                settings: player!.settings,
+                gameInvites: player!.gameInvites
+            }, ACCESS_TOKEN_SECRET);
             this.websockets.playerDataSocket.clients.forEach((client) => {
                 if (client.readyState === 1) {
                     client.send(JSON.stringify({ peddingFriends: player!.peddingFriends, token: token, customId: player!.customId }));

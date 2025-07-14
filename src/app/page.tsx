@@ -115,7 +115,7 @@ function PlayCards() {
                 <div className="text-5xl genos">First time here?</div>
                 <div className="text-zinc-400 italic">Now you can start the tutorial to understand the game mechanics and strategies.</div>
             </div>
-            <Link href="/tutorial">
+            <Link href="/games/tutorial/rummy">
                 <button className="flex items-center rounded-full px-6 py-2 bg-gradient-to-l from-purple-700 to-blue-700 text-zinc-100 text-lg hover:from-purple-800 hover:to-blue-800 hover:scale-105 duration-200">
                     Start tutorial
                 </button>

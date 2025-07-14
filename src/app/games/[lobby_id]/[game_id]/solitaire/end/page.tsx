@@ -6,128 +6,207 @@ import Image from "next/image";
 import Icon from "@/assets/icons";
 import { useParams, useRouter } from "next/navigation";
 import { useQuery } from "react-query";
-import { GameService, SolitaireService } from "@/services/game.service";
+import { GameService } from "@/services/game.service";
 import Loader from "@/components/loader.component";
 import CardsUrls from "@/contexts/cards.context";
-import { useContext } from "react";
+import { useContext, useEffect, useState } from "react";
 import { UserContext } from "@/contexts/user.context";
+import Loading from "@/app/loading";
 
 export default function End() {
 
     const lobby_id = useParams().lobby_id;
     const game_id = useParams().game_id;
-
     const { user } = useContext(UserContext);
+
+    const [player, setPlayer] = useState<any>(null);
 
     const router = useRouter();
 
     const gameSerivce = new GameService('');
-    const data = useQuery('game', async () => { return gameSerivce.getGameHistory(user!.customId.toString(), game_id!.toString()) });
+    const data = useQuery('game-history', async () => { return gameSerivce.getGameHistory(user!.customId, game_id!.toString()) });
 
-    function getPosition(allCards: any, id: string) {
-        return "1:st";
-        const positions = Object.values(allCards).map((cards: any) => { return cards.reduce((sum: any, obj: any) => { return sum + obj.value }, 0) });
-        const sorted = positions.sort((a: any, b: any) => a - b);
-        // if (sorted[0] !== 0) router.back();
-        switch (sorted.indexOf(allCards[id].reduce((sum: any, obj: any) => { return sum + obj.value }, 0))) {
-            case 0:
-                return "1:st";
+    function getPosition(position: number) {
+        switch (position) {
             case 1:
-                return "2:nd";
+                return "1st";
             case 2:
-                return "3:rd";
+                return "2nd";
+            case 3:
+                return "3rd";
             default:
-                return sorted.indexOf(allCards[id].reduce((sum: any, obj: any) => { return sum + obj.value }, 0)) + ":th";
+                return position + "th";
         }
     }
 
-    async function startNewGame() {
-        const gameService = new SolitaireService();
-        gameService.restartGame(lobby_id as string, game_id as string).then(data => {
-            router.replace(`/games/${lobby_id}/${game_id}/solitaire`);
-            router.refresh();
-        });
+    useEffect(() => {
+        if (data.data) {
+            setPlayer(data.data.users.find((u: any) => u.customId === user!.customId));
+        }
+    }, [data.data]);
+
+    async function returnToLobby() {
+        await gameSerivce.deleteGame(lobby_id as string);
+        router.push('/games/' + lobby_id);
+    }
+
+    if (data.isLoading || !player) {
+        return <Loading></Loading>;
     }
 
     return (
-        <main className="w-full rounded-md p-5 min-h-screen text-zinc-200 relative gap-2">
-            <div className="flex justify-between items-center pb-1">
-                <div className="text-xl p-2 flex gap-2 items-center">
-                    <Icon name="card" stroke></Icon>
-                    Statistics
-                </div>
-                <div className="flex gap-2 relative">
-                    <div onClick={startNewGame} className="text-zinc-200 p-2 px-4 rounded-md hover:bg-blue-700 focus:bg-zinc-800 flex items-center gap-1 cursor-pointer">
-                        <Icon name="game" stroke></Icon>
-                        Start new game
+        <main className="flex flex-col md:flex-row gap-6 justify-center w-full md:w-3/4 mx-auto h-full">
+            <main className="w-1/2 h-full rounded-2xl flex flex-col p-6 gap-6">
+                <div className="w-full rounded-2xl border border border-purple-800/50 bg-black/40 p-3 gap-2 flex flex-col">
+                    <div className="flex gap-4 p-4">
+                        <div style={{ backgroundColor: getColorByInitials(player).background, color: getColorByInitials(player).text }} className="min-w-16 min-h-16 w-16 h-16 bg-red-600 rounded-full flex items-center justify-center text-xl shadow-md shadow-zinc-500 hover:scale-105">{getUserInitials()}</div>
+                        <div className="flex flex-col justify-center gap-1">
+                            <div className="text-3xl font-bold text-zinc-300">{player!.firstName} {player!.lastName}</div>
+                            <div className="text-purple-400 text-lg flex items-center gap-2">
+                                <div style={{ color: getRankName(player.rank).color }} className="flex items-center gap-1 text-lg">
+                                    <div dangerouslySetInnerHTML={{ __html: getRankName(player.rank).icon }}></div>
+                                    {getRankName(player.rank).title}
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div className="flex gap-2 relative">
-                    <Link href={"/games"} className="text-zinc-200 p-2 px-4 rounded-md hover:bg-zinc-800 focus:bg-zinc-800 flex items-center gap-1 cursor-pointer">
-                        <Icon name="join"></Icon>
-                        Return to tables
-                    </Link>
-                </div>
-            </div>
-            <hr />
-            <div className={`w-full flex justify-center items-center h-full pt-2`}>
 
-                {data.isLoading && <Loader></Loader>}
-                {data.isError && <div>Error</div>}
-                {data.isSuccess && !data.isLoading && !data.isError && data.data &&
-                    data.data.players.map((l: any, index: number) => (
-                        <PlayerCard key={index} playerInfo={l} rank={l.rank} gain={data.data.rank.find((c: any) => c.player === l.customId).rank} pos={data.data.position.find((c: any) => c.player === l.customId).position} ></PlayerCard>
-                    ))
-                }
-            </div>
+                <div className="w-full rounded-2xl border border border-purple-800/50 bg-black/40 p-3 gap-2 flex flex-col">
+                    <div className="text-purple-600 text-lg font-bold flex items-center gap-2 p-2">
+                        <Icon name="chart" size={32}></Icon>
+                        Statistics
+                    </div>
+
+                    <div className="border-b-[0.1rem] border-purple-800/50"></div>
+
+                    <div className="flex flex-col gap-2 p-2 w-full">
+                        <div className="flex items-center gap-2 justify-between w-full">
+                            <span className="text-zinc-300 text-lg font-bold">Place:</span>
+                            <span className="text-purple-400 text-lg font-bold">{getPosition(data.data.position.find((p: any) => p.player == player._id).pos)}</span>
+                        </div>
+                        <div className="flex items-center gap-2 justify-between w-full">
+                            <span className="text-zinc-300 text-lg font-bold">Rank:</span>
+                            <span className="text-purple-400 text-lg font-bold">{getRankName(player.rank).title}</span>
+                        </div>
+                        <div className="flex items-center gap-2 justify-between w-full">
+                            <span className="text-zinc-300 text-lg font-bold">Rank gain:</span>
+                            <span className="text-purple-400 text-lg font-bold">+ {data.data.rank.find((p: any) => p.player == player._id).rank}</span>
+                        </div>
+
+                        <div className="flex items-center w-full relative">
+                            <div className="flex gap-2 flex-wrap font-thin relative w-full">
+                                <div className="rounded-full h-2 w-full bg-gray-500 absolute"></div>
+                                <div style={{ width: `${getCurrentRank(player.rank)}%` }} className="rounded-full h-2 bg-orange-400 z-50 animate-pulse duration-300"></div>
+                                <div style={{ width: `${getCurrentRank(player.rank - data.data.rank.find((p: any) => p.player == player._id).rank)}%` }} className="rounded-full h-2 bg-gradient-to-r from-purple-500/70 to-orange-600 z-50 absolute"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="w-full rounded-2xl border border border-purple-800/50 bg-black/40 p-3 gap-2 flex flex-col">
+                    <div className="text-purple-600 text-lg font-bold flex items-center gap-2 p-2">
+                        <Icon name="action" size={32}></Icon>
+                        Actions
+                    </div>
+
+                    <div className="border-b-[0.1rem] border-purple-800/50"></div>
+
+                    <div className="flex flex-col gap-2 p-2 h-full">
+                        <div onClick={returnToLobby} className="text-zinc-200 p-2 px-4 justify-center rounded-md bg-zinc-800 hover:bg-zinc-700 focus:bg-zinc-800 flex items-center gap-1 cursor-pointer">
+                            <Icon name="join"></Icon>
+                            Return to lobby
+                        </div>
+                    </div>
+                </div>
+
+            </main>
+            <main className="w-full rounded-2xl flex flex-col p-6 gap-2">
+
+                <div className="w-full rounded-2xl border border border-purple-800/50 bg-black/40 p-3 gap-2 flex flex-col">
+                    <div className="text-purple-600 text-lg font-bold flex items-center gap-2 p-2">
+                        <Icon name="trophy" size={32} stroke></Icon>
+                        Resutls
+                    </div>
+
+                    <div className="border-b-[0.1rem] border-purple-800/50"></div>
+
+                    <div className="flex flex-col gap-2 p-2 h-full">
+                        {
+                            data.data.users.map((u) => {
+                                if (u.name) {
+                                    return (
+                                        <Players key={u._id} player={u} place={2} isBot={true}></Players>
+                                    )
+                                }
+                                return (
+                                    <Players key={u._id} player={u} place={data.data.position.find((p: any) => p.player == player._id).pos} isPlayer></Players>
+                                )
+                            })
+                        }
+                    </div>
+                </div>
+            </main>
         </main>
     )
 }
 
-function PlayerCard({ rank, gain, pos, playerInfo}: { rank: number, gain: number, pos: number, playerInfo: any }) {
-    return (
-        <div className="rounded-lg w-1/3 h-full bg-zinc-800 flex flex-col p-4 justify-between gap-3">
-            <div className="flex w-full justify-between">
-                <Link href={`/profile/${playerInfo.customId}`} className="flex gap-2 items-center">
-                    <div style={{ backgroundColor: getColorByInitials(playerInfo).background, color: getColorByInitials(playerInfo).text }} className={"flex justify-center items-center w-16 h-16 rounded-full text-xl"}>
-                        {getUserInitials(playerInfo.firstName, playerInfo.lastName)}
-                    </div>
-                    <div className="flex flex-col gap-1">
-                        <h1>{playerInfo.firstName} {playerInfo.lastName}</h1>
-                        <h2 style={{ color: getRankName(playerInfo.rank).color }} className="text-[0.7rem] flex justify-start items-center w-full font-bold">
-                            <div dangerouslySetInnerHTML={{ __html: getRankName(playerInfo.rank).icon }}></div>
-                            {getRankName(playerInfo.rank).title}
-                        </h2>
-                    </div>
-                </Link>
-            </div>
-            <div className="flex flex-col w-full gap-2 h-full">
-                <div className="flex items-center border border-zinc-500 rounded-lg p-2 px-4 w-full gap-3">
-                    <div className="text-lg font-bold">Place</div>
-                    <div className="w-[0.1rem] h-full bg-zinc-600 rounded-lg" />
-                    <div className="w-full h-full flex justify-center items-center text-[2rem] font-bold">
-                        <div className="flex ">
-                            {pos}
-                        </div>
-                    </div>
-                </div>
-                <div className="flex items-center border border-zinc-500 rounded-lg p-2 px-4 w-full gap-3">
-                    <div className="text-lg font-bold">Rank gain</div>
-                    <div className="w-[0.1rem] h-full bg-zinc-600 rounded-lg" />
-                    <div className="w-full h-full flex flex-col justify-center items-center">
-                        <h2 style={{ color: getRankName(playerInfo.rank).color }} className="flex text-xl justify-center items-center w-full font-bold">
-                            <div dangerouslySetInnerHTML={{ __html: getRankName(playerInfo.rank).icon }}></div>
-                            {getRankName(playerInfo.rank).title}
-                        </h2>
-                        <div className="flex gap-1 items-center">
-                            <div className="text-lg font-bold">+ {gain}</div>
-                        </div>
-                        <div className="flex gap-2 flex-wrap font-thin relative w-full">
-                            <div className="rounded-full h-2 w-full bg-gray-500 absolute"></div>
-                            <div style={{ width: `${getCurrentRank(playerInfo.rank)}%` }} className="rounded-full h-2 bg-green-400 z-50"></div>
-                        </div>
-                    </div>
+function Players({ player, place, isPlayer, isBot }: { player: any, place: number, isPlayer?: boolean, isBot?: boolean }) {
 
+    function PlaceBadge({ place }: { place: number }) {
+        switch (place) {
+            case 1:
+                return (
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex justify-center items-center text-zinc-100 text-lg font-bold">1</div>
+                );
+            case 2:
+                return (
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-stone-400 to-gray-400 flex justify-center items-center text-zinc-100 text-lg font-bold">2</div>
+                );
+            case 3:
+                return (
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-700 to-amber-500 flex justify-center items-center text-zinc-100 text-lg font-bold">3</div>
+                );
+            default:
+                return (
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-zinc-800 to-zinc-700 flex justify-center items-center text-zinc-100 text-lg font-bold">{place}</div>
+                );
+        }
+    }
+
+    if (isBot) {
+        return (
+            <div className={`cursor-default flex items-center justify-between w-full gap-2 rounded-lg p-2 px-4 hover:scale-[1.01] transition-all duration-200 ${place == 1 ? "border border-purple-800/50 bg-purple-800/50 ring-2 ring-purple-600/50" : "border border-zinc-700/50 bg-zinc-800/50"}`}>
+                <div className="">
+                    <PlaceBadge place={place} />
+                </div>
+                <div className="flex items-center gap-2 col-span-2">
+                    <div className="w-8 h-8 bg-zinc-600 text-zinc-200 border-zinc-200/50 border rounded-full flex items-center justify-center text-sm"><Icon name="robot" stroke></Icon></div>
+                    <div className="text-lg font-bold text-zinc-300">{player!.name}</div>
+                </div>
+                <div className="flex items-center">
+                    <div className="rounded-xl border border-orange-900/50 bg-orange-800/50 px-2 p-1 text-xs text-orange-500">Bot</div>
+                </div>
+            </div>
+        )
+    }
+
+    return (
+        <div className={`cursor-default flex items-center justify-between w-full gap-2 rounded-lg p-2 px-4 hover:scale-[1.01] transition-all duration-200 ${place == 1 ? "border border-purple-800/50 bg-purple-800/50 ring-2 ring-purple-600/50" : "border border-zinc-700/50 bg-zinc-800/50"}`}>
+            <div className="">
+                <PlaceBadge place={place} />
+            </div>
+            <div className="flex items-center gap-2 col-span-2">
+                <div style={{ backgroundColor: getColorByInitials(player).background, color: getColorByInitials(player).text }} className="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center text-sm">{getUserInitials()}</div>
+                <div className="text-lg font-bold text-zinc-300">{player!.firstName} {player!.lastName}</div>
+                {isPlayer &&
+                    <div className="rounded-xl border border-purple-700/50 bg-purple-600/50 px-2 p-1 text-xs text-purple-200">You</div>
+                }
+            </div>
+            <div className="flex items-center">
+                <div style={{ color: getRankName(player.rank).color }} className="flex items-center gap-1 text-lg">
+                    <div dangerouslySetInnerHTML={{ __html: getRankName(player.rank).icon }}></div>
+                    {getRankName(player.rank).title}
                 </div>
             </div>
         </div>

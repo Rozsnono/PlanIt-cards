@@ -1,3 +1,8 @@
+"use client";
+import React from "react";
+import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler, } from "chart.js";
+import { Line } from "react-chartjs-2";
+
 export default function Chart({ data }: { data: any }) {
 
     const allGames = data.wins + data.loses;
@@ -21,5 +26,96 @@ export default function Chart({ data }: { data: any }) {
                 </div>
             </div>
         </div>
+    )
+}
+
+
+export function LineChart({ labels, wins, losses }: { labels: string[], wins: number[], losses: number[] }) {
+
+    ChartJS.register(CategoryScale, LinearScale, Title, Tooltip, Legend, PointElement, LineElement, Filler);
+
+    function getDateFromString(dateString: string): Date {
+        const [month, day] = dateString.split('-').map(Number);
+        const year = new Date().getFullYear(); // Use current year
+        return new Date(year, month - 1, day); // Month is 0-indexed in JavaScript
+    }
+
+    const data = {
+        labels: labels,
+        datasets: [
+            {
+                label: 'Wins',
+                data: wins,
+                borderColor: '#00c951',
+                borderWidth: 2,
+                pointRadius: 4,
+                pointHoverRadius: 4,
+                fill: false,
+            },
+            {
+                label: 'Losses',
+                data: losses,
+                borderColor: '#fb2c36',
+                borderWidth: 2,
+                pointRadius: 4,
+                pointHoverRadius: 4,
+                fill: false,
+            }
+        ],
+    };
+
+    const options = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: false,
+            },
+            tooltip: {
+                enabled: true,
+                backgroundColor: '#09090b80',
+                titleColor: '#fff',
+                bodyColor: '#fff',
+                borderColor: '#6e11b0',
+                borderWidth: 1,
+                cornerRadius: 4,
+                usePointStyle: false,
+                displayColors: false,
+                callbacks: {
+                    title: (tooltipItems: any) => {
+                        const item = tooltipItems[0];
+                        return `${getDateFromString(item.label).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+                    },
+                    label: function (context: any) {
+                        const label = context.dataset.label || '';
+                        const value = context.parsed.y;
+                        return `${label}: ${value}`;
+                    },
+                },
+            }
+        },
+        scales: {
+            x: {
+                display: false,
+                grid: {
+                    display: false
+                },
+            },
+            y: {
+                display: false,
+                grid: {
+                    display: true,
+                    color: '#6e11b030',
+                    lineWidth: 1,
+                },
+                ticks: {
+                    display: false
+                },
+            },
+        },
+    };
+
+    return (
+        <Line data={data} options={options} />
     )
 }

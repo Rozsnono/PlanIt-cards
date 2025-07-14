@@ -254,7 +254,7 @@ export default class LobbyController implements Controller {
         }
         delete body._id; // Remove _id from body to prevent validation errors
         lobby.settings = body;
-
+        
         lobby.bots = (lobby.settings!.fillWithRobots ? Array.from({ length: lobby.settings!.numberOfRobots }, (_, i) => { return { name: new Bot().getRobotName(lobby.settings!.robotsDifficulty as any, i), _id: 'bot' + i, customId: 'bot-' + i } }) : []) as any;
 
         if (lobby) {

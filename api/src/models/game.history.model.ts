@@ -45,6 +45,17 @@ const gameHistorySchema = new Schema(
             type: Date,
             default: Date.now,
             readonly: true
+        },
+        createdAt: {
+            type: Date,
+            default: Date.now,
+            readonly: true
+        },
+        endedAt: {
+            type: Date,
+            default: null,
+            nullable: true,
+            readonly: true
         }
     },
     { versionKey: false },

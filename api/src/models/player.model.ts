@@ -1,5 +1,5 @@
 
-import Joi from "joi";
+import Joi, { number } from "joi";
 import { Schema, model } from "mongoose";
 import { Auth } from "../enums/auth.enum";
 
@@ -10,7 +10,7 @@ export const userSchema = new Schema(
             readonly: true
         },
         customId: {
-            type: String, 
+            type: String,
             readonly: true,
             unique: true,
             nullable: true,
@@ -37,7 +37,7 @@ export const userSchema = new Schema(
                 Auth["PLAYER.UPDATE.YOURSELF"],
                 Auth["PLAYER.DELETE.YOURSELF"],
                 Auth["PLAYER.GET.INFO"],
-                
+
                 Auth["RUMMY.PLAY"],
                 Auth["UNO.PLAY"],
                 Auth["CREATE.LOBBY"],
@@ -61,10 +61,17 @@ export const userSchema = new Schema(
             readonly: true,
             default: 0
         },
-        numberOfGames: {
+        gamesStats: {
             type: Object,
-            readonly: true,
-            default: {}
+            default: {
+                numberOfGames: 0,
+                totalWins: 0,
+                totalLosses: 0,
+                winRate: 0,
+                gamesPerDate: {},
+                totalPlayTime: 0,
+                highestRank: 0,
+            }
         },
         achievements: {
             type: Array<string>(),
@@ -86,7 +93,11 @@ export const userSchema = new Schema(
             default: [],
             ref: "user",
         },
-        gameHistory:{
+        gameInvites: {
+            type: Array<object>(),
+            default: [],
+        },
+        gameHistory: {
             type: Array<Schema.Types.ObjectId>(),
             default: [],
         },
@@ -120,7 +131,7 @@ const validate = (message: object): Joi.ValidationResult => {
         firstName: Joi.string().required(),
         lastName: Joi.string().required(),
         email: Joi.string().required().email(),
-        password:  Joi.string().min(6).pattern(new RegExp('^[a-zA-Z0-9]{6,30}$')).required(),
+        password: Joi.string().min(6).pattern(new RegExp('^[a-zA-Z0-9]{6,30}$')).required(),
         username: Joi.string().required()
     });
     return schema.validate(message);
@@ -129,4 +140,4 @@ const validate = (message: object): Joi.ValidationResult => {
 const userModel = model("user", userSchema, "User");
 
 
-export default {userModel, validate};
+export default { userModel, validate };

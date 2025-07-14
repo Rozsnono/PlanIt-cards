@@ -5,6 +5,10 @@ export default class ProfileService {
         return fetch(`/api/player/${id}`, { method: "GET", headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getCookie("token")}` } });
     }
 
+    public async getPlayers() {
+        return fetch(`/api/players`, { method: "GET", headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getCookie("token")}` } });
+    }
+
     public async getProfileHome(id: string) {
         return fetch(`/api/player/${id}/home`, { method: "GET", headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getCookie("token")}` } });
     }

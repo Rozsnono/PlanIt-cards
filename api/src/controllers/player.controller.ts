@@ -1,6 +1,6 @@
 import { Request, Response, Router } from "express";
 import Controller from "../interfaces/controller_interface";
-import { getIDfromToken, hasAuth } from "../middleware/middleware";
+import { getIDfromToken, hasAuth, getCustomIdFromToken } from "../middleware/middleware";
 import { Auth } from "../enums/auth.enum";
 import userModel from "../models/player.model";
 import { ERROR } from "../enums/error.enum";
@@ -24,7 +24,7 @@ export default class PlayerController implements Controller {
             this.getPlayerHome(req, res).catch(next);
         });
 
-        this.router.get("/players", hasAuth([Auth["ADMIN"]]), (req, res, next) => {
+        this.router.get("/players", hasAuth([Auth["PLAYER.GET.INFO"], Auth.ADMIN]), (req, res, next) => {
             this.getPlayers(req, res).catch(next);
         })
 
@@ -46,6 +46,10 @@ export default class PlayerController implements Controller {
 
         this.router.post("/players/friend/accept", hasAuth([Auth["PLAYER.GET.INFO"]]), (req, res, next) => {
             this.acceptFriendRequest(req, res).catch(next);
+        });
+
+        this.router.post("/players/game/invite", hasAuth([Auth["PLAYER.GET.INFO"]]), (req, res, next) => {
+            this.createGameInvite(req, res).catch(next);
         });
     }
 
@@ -79,6 +83,41 @@ export default class PlayerController implements Controller {
         friend.peddingFriends.push(new mongoose.Types.ObjectId(player._id));
         await friend.save();
         res.send({ message: "Friend request sent successfully!" });
+    }
+
+    private createGameInvite = async (req: Request, res: Response) => {
+        const body = req.body;
+        const customId = await getCustomIdFromToken(req);
+
+        if (!body.customId) {
+            res.status(400).send({ error: ERROR.AN_ERROR_OCCURRED });
+            return;
+        }
+
+        const player = await this.user.findOne({ customId: body.customId });
+
+        if (!player) {
+            res.status(404).send({ error: ERROR.USER_NOT_FOUND });
+            return;
+        }
+
+        if (player.gameInvites.filter((invite: any) => invite.invitedBy === customId).length > 3) {
+            res.status(409).send({ error: ERROR.AN_ERROR_OCCURRED });
+            return;
+        }
+
+        player.gameInvites.push(
+            {
+                invitedBy: customId,
+                gameType: body.gameType,
+                gameId: body.gameId,
+                code: body.code,
+                createdAt: new Date(),
+            }
+        );
+        await player.save();
+
+        res.send({ message: "Game invite sent successfully!" });
     }
 
     private acceptFriendRequest = async (req: Request, res: Response) => {
@@ -163,6 +202,8 @@ export default class PlayerController implements Controller {
 
         const query = req.query;
         const paging: { page: number, limit: number } = { page: 1, limit: 14 };
+        const _id = await getIDfromToken(req);
+        console.log(_id);
 
         if (query.page) {
             paging.page = parseInt(query.page.toString()) || 1;
@@ -171,7 +212,7 @@ export default class PlayerController implements Controller {
             paging.limit = parseInt(query.limit.toString()) || 14;
         }
 
-        const players = await this.user.find(query).skip((paging.page - 1) * paging.limit).limit(paging.limit).sort({ created_at: -1 });
+        const players = await this.user.find({ $and: [{ _id: { $ne: _id } }, { ...query }] }).skip((paging.page - 1) * paging.limit).limit(paging.limit).sort({ created_at: -1 });
 
         if (!players || players.length === 0) {
             res.status(404).send({ error: ERROR.USER_NOT_FOUND });
@@ -186,10 +227,11 @@ export default class PlayerController implements Controller {
             auth: player.auth,
             username: player.username,
             rank: player.rank,
+            settings: player.settings,
         }));
 
         res.send({
-            total: Math.round(await this.user.countDocuments(query) / paging.limit) || 0 ,
+            total: Math.round(await this.user.countDocuments(query) / paging.limit) || 0,
             data: playerData
         });
     }
@@ -247,8 +289,10 @@ export default class PlayerController implements Controller {
             rank: player.rank,
             gameHistory: player.gameHistory,
             friends: player.friends,
-            numberOfGames: player.numberOfGames,
+            gamesStats: player.gamesStats,
             achievements: achs,
+            settings: player.settings,
+            gameInvites: player.gameInvites,
         });
     };
 
@@ -267,7 +311,7 @@ export default class PlayerController implements Controller {
             username: players.username,
             rank: players.rank,
             friends: players.friends,
-            numberOfGames: players.numberOfGames,
+            gamesStats: players.gamesStats.gamesStats,
         });
 
     };

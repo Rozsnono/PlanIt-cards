@@ -11,11 +11,12 @@ import { GameService, UnoService } from "@/services/game.service";
 import { Timer } from "@/services/timer.service";
 import Image from "next/image"
 import { useParams, useRouter } from "next/navigation";
-import React from "react";
+import React, { useRef } from "react";
 import { useContext, useEffect, useState } from "react";
 import CardsUrls from "@/contexts/cards.context";
 import ColorPicker from "@/components/color.picker";
 import GameUser, { GameBot } from "@/components/user/game.user.component";
+import { IP } from "@/enums/ip.enum";
 
 const gameService = new UnoService();
 const timerClass = new Timer();
@@ -28,11 +29,15 @@ export default function Game() {
 
     const { settings } = useContext(SettingsContext);
     const [sortType, setSortType] = useState<"num" | "abc" | "">("");
+    const [isGameOver, setIsGameOver] = useState(false);
 
     const [playerCards, setPlayerCards] = useState<Icard[]>([]);
 
+    const [drawedCard, setDrawedCard] = useState<Icard | null>(null);
+    const playerCardsRef = useRef<Icard[]>([]);
+
     useEffect(() => {
-        const socket = new WebSocket("ws://192.168.0.13:8080");
+        const socket = new WebSocket(IP.WEBSOCKET);
 
         socket.addEventListener('open', () => {
             console.log('WebSocket is connected');
@@ -40,15 +45,20 @@ export default function Game() {
         });
 
         socket.addEventListener('message', (event) => {
-            const { playerCards, lobby, game, game_over } = gameService.getDataFromWebsocket(JSON.parse(event.data), socket, { _id: lobby_id, player_id: user!._id }) ?? {};
-            console.log("Data from websocket");
+            const { playerCards, lobby, game, game_over, refresh } = gameService.getDataFromWebsocket(JSON.parse(event.data), socket, { _id: lobby_id, player_id: user!._id }) ?? {};
+            if (refresh) {
+                return;
+            }
             if (game_over) {
-                router.push(`/games/${lobby_id}/${game_id}/uno/end`);
+                setIsGameOver(true);
                 console.log("Game Over");
                 socket.close();
+                return;
             }
-            if (playerCards) {
-                setPlayerCards(playerCards);
+            if (!game && !game_over && !isGameOver) {
+                router.push(`/games/${lobby_id}`);
+                socket.close();
+                return;
             }
             if (lobby) {
                 setLobby(lobby);
@@ -63,6 +73,14 @@ export default function Game() {
                 if (game.currentPlayer == user?._id) {
                     timerClass.start();
                 }
+            }
+            if (playerCards) {
+                const tmpDrawedCard = game.playerCards.find((e: Icard) => playerCardsRef.current.filter((pc: Icard) => { return JSON.stringify(pc) === JSON.stringify(e) }).length == 0) || null;
+                if (game.currentPlayer.playerId === user?._id && game.drawedCard.lastDrawedBy === user?._id) {
+                    setDrawedCard(tmpDrawedCard);
+                }
+                setPlayerCards(playerCards);
+                playerCardsRef.current = playerCards;
             }
         });
 
@@ -226,8 +244,12 @@ export default function Game() {
                         sortUnoCards(playerCards, true, 'abc').map((card, i) => {
                             return (
                                 <React.Fragment key={i}>
-                                    <div draggable className={`cursor-pointer w-12 overflow-visible hover:cursor-grab group rounded-lg duration-200 ${checkIfCardIsSelected(card) ? 'border-green-400 translate-y-[-1rem]' : ''} ${draggedCard && JSON.stringify(draggedCard) === JSON.stringify(card) ? 'opacity-10' : ''}`}>
-                                        <Image onDragEnter={(e) => { onDragEnter(e, i) }} className="border-2 border-transparent group-hover:border-green-400 rounded-lg" style={{ width: "6rem", maxWidth: "6rem" }} loading="eager" onDragEnd={() => { setDraggedCard(null) }} onDragStart={() => { startDrag(card) }} onDrop={() => { dropDrag(i) }} onDragOver={overDrag} src={"/assets/cards/uno/" + new CardsUrls().getUnoCardUrl(card.name)} width={100} height={100} alt={new CardsUrls().getUnoCardUrl(card.name)}></Image>
+                                    <div draggable className={`cursor-pointer w-12 overflow-visible hover:cursor-grab group rounded-lg duration-200 
+                                         ${checkIfCardIsSelected(card) ? 'border-green-400 translate-y-[-1rem]' : ''}
+                                         ${draggedCard && JSON.stringify(draggedCard) === JSON.stringify(card) ? 'opacity-10' : ''}
+                                         
+                                         `}>
+                                        <Image onDragEnter={(e) => { onDragEnter(e, i) }} className={`${drawedCard?.name === card.name && drawedCard?.pack === card.pack ? 'ring ring-sky-600' : ''} border-2 border-transparent group-hover:border-green-400 rounded-lg`} style={{ width: "6rem", maxWidth: "6rem" }} loading="eager" onDragEnd={() => { setDraggedCard(null) }} onDragStart={() => { startDrag(card) }} onDrop={() => { dropDrag(i) }} onDragOver={overDrag} src={"/assets/cards/uno/" + new CardsUrls().getUnoCardUrl(card.name)} width={100} height={100} alt={new CardsUrls().getUnoCardUrl(card.name)}></Image>
                                     </div>
                                     <div onDragOver={overDrag} className={`${draggedCard && JSON.stringify(draggedCard) !== JSON.stringify(card) && dragEnter === i ? "w-[5.8rem]" : "w-0"} bg-[#00000040] rounded-lg duration-100`}>
                                         {draggedCard &&
@@ -239,20 +261,8 @@ export default function Game() {
                         })
                     }
 
-                    {/* {
-                        game.currentPlayer.playerId == user?._id && !nextTurnLoader &&
-                        <div key={timer} className={`absolute right-10 h-[5rem] w-[5rem] justify-center items-center flex rounded-full border-2 border-lime-300 bottom-4`}
-                            style={{ background: `conic-gradient(#bef264 ${360 - ((timer) * 360 / 180)}deg, transparent 0deg)` }}
-                        >
-                            <div className="w-[4.5rem] h-[4.5rem] bg-rose-900 rounded-full border-2 flex items-center justify-center text-zinc-200 border-lime-300 text-xl cursor-pointer group duration-100">
-                                <span className="group-hover:opacity-0 group-hover:hidden flex opacity-100 duration-100">{180 - timer > 0 ? 180 - timer : 0}s</span>
-                                <span className="group-hover:opacity-100 group-hover:flex hidden opacity-0 duration-100"><Icon name="check-empty" size={44}></Icon></span>
-                            </div>
-                        </div>
-                    } */}
-
                     {
-                        game.currentPlayer.playerId == user?._id && !nextTurnLoader &&
+                        game.currentPlayer.playerId == user?._id &&
                         <div key={timer} style={{ width: `${Math.floor(75 - (timer / 180) * 75)}%`, backgroundColor: `${timer > 150 ? '#ec003f' : '#9ae600'}` }} className="absolute -top-10 h-4 bg-emerald-500 rounded-xl duration-200">
                             <div className="absolute -top-6 w-full flex justify-center items-center text-sm text-zinc-200">
                                 {180 - timer}s

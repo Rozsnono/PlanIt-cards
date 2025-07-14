@@ -43,7 +43,7 @@ export default class AuthController implements Controller {
         if (user) {
             const result = await bcrypt.compare(body.password, user.password);
             if (result && !user.isDeleted) {
-                const token = jwt.sign({ _id: user._id, username: user.username, firstName: user.firstName, lastName: user.lastName, auth: user.auth, numberOfGames: user.numberOfGames, rank: user.rank, email: user.email, customId: user.customId, peddingFriends: user.peddingFriends.length, settings: user.settings }, ACCESS_TOKEN_SECRET);
+                const token = jwt.sign({ _id: user._id, username: user.username, firstName: user.firstName, lastName: user.lastName, auth: user.auth, gamesStats: user.gamesStats, rank: user.rank, email: user.email, customId: user.customId, peddingFriends: user.peddingFriends.length, settings: user.settings }, ACCESS_TOKEN_SECRET);
                 res.send({ token: token });
             } else {
                 res.status(401).send({ error: ERROR.INVALID_USER });
@@ -71,9 +71,24 @@ export default class AuthController implements Controller {
                 await this.user.replaceOne({ _id: user._id }, user, { runValidators: true });
                 user = await this.user.findOne({ username: body.username });
                 if (user) {
-                    const token = jwt.sign({ _id: user._id, username: user.username, firstName: user.firstName, lastName: user.lastName, auth: user.auth, numberOfGames: user.numberOfGames, rank: user.rank, email: user.email, customId: user.customId, peddingFriends: user.peddingFriends.length, settings: user.settings }, ACCESS_TOKEN_SECRET);
+                    const token = jwt.sign(
+                        {
+                            _id: user._id,
+                            username: user.username,
+                            firstName: user.firstName,
+                            lastName: user.lastName,
+                            auth: user.auth, gamesStats:
+                                user.gamesStats,
+                            rank: user.rank,
+                            email: user.email,
+                            customId: user.customId,
+                            peddingFriends: user.peddingFriends.length,
+                            settings: user.settings,
+                            gameInvites: user.gameInvites
+                        }
+                        , ACCESS_TOKEN_SECRET);
                     res.send({ token: token });
-                }else{
+                } else {
                     res.status(404).send({ error: ERROR.AN_ERROR_OCCURRED });
                 }
             } else {
