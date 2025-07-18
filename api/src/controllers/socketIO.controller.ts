@@ -74,12 +74,12 @@ export default class SocketIO {
                             }
                         ]);
 
-                        console.log(inGame);
                         if (inGame.length == 1) {
                             const inGameObj: any = inGame[0];
                             if (await this.checkIfGameIsOver(inGameObj, inLobby.settings!.cardType)) {
                                 const gameOverObj = {
-                                    game_over: true
+                                    game_over: true,
+                                    game: inGameObj
                                 }
                                 ws.send(JSON.stringify(gameOverObj));
                                 return;
@@ -465,6 +465,14 @@ export default class SocketIO {
                                 const force = await new GameChecker().forceNextTurn(game._id.toString());
                                 if (!force) {
                                     this.game.deleteOne({ _id: game._id }).then(() => {
+                                        const lobby = lobbies.find(lobby => lobby.game_id.toString() === game._id.toString());
+                                        if (lobby) {
+                                            this.lobby.deleteOne({ _id: lobby._id }).then(() => {
+                                                this.logService.consoleLog(`Lobby ${lobby._id} deleted due to inactivity`, 'SocketIOService');
+                                            }).catch((err) => {
+                                                this.logService.consoleLog(`Error deleting lobby ${lobby._id}: ${err}`, 'SocketIOService');
+                                            });
+                                        }
                                         this.logService.consoleLog(`Game ${game._id} deleted due to inactivity`, 'SocketIOService');
                                     }).catch((err) => {
                                         this.logService.consoleLog(`Error deleting game ${game._id}: ${err}`, 'SocketIOService');
@@ -473,6 +481,27 @@ export default class SocketIO {
                             }
                             break;
                         case 'UNO':
+                            if (time > 1000 * ((game.secretSettings?.timeLimit) || 180)) {
+                                //Time is up!
+                                this.logService.consoleLog(`Game ${game._id} is still active, forcing next turn. Time limit: ${game.secretSettings?.timeLimit || 180}. Time: ${time / 1000}`, 'SocketIOService');
+                                const force = await new GameChecker().forceNextTurnUno(game._id.toString());
+                                if (!force) {
+                                    this.game.deleteOne({ _id: game._id }).then(() => {
+                                        const lobby = lobbies.find(lobby => lobby.game_id.toString() === game._id.toString());
+                                        if (lobby) {
+                                            this.lobby.deleteOne({ _id: lobby._id }).then(() => {
+                                                this.logService.consoleLog(`Lobby ${lobby._id} deleted due to inactivity`, 'SocketIOService');
+                                            }).catch((err) => {
+                                                this.logService.consoleLog(`Error deleting lobby ${lobby._id}: ${err}`, 'SocketIOService');
+                                            });
+                                        }
+                                        this.logService.consoleLog(`Game ${game._id} deleted due to inactivity`, 'SocketIOService');
+                                    }).catch((err) => {
+                                        this.logService.consoleLog(`Error deleting game ${game._id}: ${err}`, 'SocketIOService');
+                                    });
+                                }
+                            }
+                            break;
                         case 'SOLITAIRE':
                     }
                 })

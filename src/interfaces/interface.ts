@@ -3,6 +3,7 @@ export interface Icard{
     rank: number;
     suit: string;
     isJoker?: boolean;
+    value?: number;
     pack: number;
 }
 

@@ -6,6 +6,16 @@ import RummyController from "./controllers/rummy.controller";
 import GameHistoryController from "./controllers/game.history.controller";
 import UnoController from "./controllers/uno.controller";
 import SolitaireController from "./controllers/solitaire.controller";
+import AchivementController from "./controllers/achievement.controller";
 
 
-new App([new GameController(), new LobbyController(), new PlayerController(), new RummyController(), new GameHistoryController(), new UnoController(), new SolitaireController()]);  
+new App([
+    new GameController(),
+    new LobbyController(),
+    new PlayerController(),
+    new RummyController(),
+    new GameHistoryController(),
+    new UnoController(),
+    new SolitaireController(),
+    new AchivementController()
+]);  

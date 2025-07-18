@@ -334,8 +334,9 @@ export default function ProfilePage() {
                                             type={game.type}
                                             date={game.date}
                                             link={`/games/${game.lobbyId}/${game.gameId}/${game.type ? game.type.toLowerCase() : ''}/replay`}
+                                            resultLink={`/games/${game.lobbyId}/${game.gameId}/end`}
                                             isFinished={game.endedAt}
-                                            isCorrupted={game.endedAt && game.position.length == 0}
+                                            isCorrupted={game.endedAt && game.position.length == 0 || !game.endedAt && !game.gameId}
                                         ></ReplayCard>
                                     )
                                 })
@@ -352,12 +353,12 @@ export default function ProfilePage() {
                             className="min-w-16 min-h-16 w-16 h-16 bg-red-600 rounded-full flex items-center justify-center text-xl shadow-md shadow-zinc-500 hover:scale-105">
                             {getUserInitials(player.data.firstName, player.data.lastName)}
                         </div>
-                        <div className="flex flex-col justify-center gap-4">
+                        <div className="flex flex-col justify-center gap-2">
                             <div className="text-3xl font-bold">{player.data.firstName} {player.data.lastName}</div>
-                            {/* {
+                            {
                                 player.data.customId == user?.customId &&
-                                <button className="text-zinc-300 bg-zinc-900 text-sm w-max hover:bg-zinc-950 rounded-lg flex items-center gap-1 p-2" ><Icon name="pen" size={16}></Icon> Edit profile</button>
-                            } */}
+                                <button className="text-zinc-300 hover:text-zinc-200/60 text-sm w-max rounded-lg flex items-center gap-1" ><Icon name="pen" size={16}></Icon> Edit profile</button>
+                            }
                         </div>
                     </div>
 
@@ -401,12 +402,12 @@ export default function ProfilePage() {
 
                     <div className="flex flex-col items-center justify-center">
                         <div className="text-lg text-zinc-400 font-bold">Achievements</div>
-                        <div className="flex flex-col gap-2 gap-2 max-h-[40vh] overflow-y-auto p-4">
+                        <div className="flex gap-2 gap-2 max-h-[40vh] overflow-y-auto p-4">
                             {
                                 player.data.achievements &&
                                 player.data.achievements.map((achievement: any, i: number) => {
                                     return (
-                                        <Achievements key={i} imageSrc={achievement.image} name={achievement.name} description={achievement.description}></Achievements>
+                                        <Achievements key={i} imageSrc={achievement.imageUrl} name={achievement.name} description={achievement.description}></Achievements>
                                     )
                                 })
                             }
@@ -505,7 +506,7 @@ function Card({ children, className }: { children: React.ReactNode, className?: 
     )
 }
 
-function ReplayCard({ pos, type, date, link, index, isCorrupted, isFinished }: { pos: any, type: string, date: string, link: string, index: number, isCorrupted?: boolean, isFinished?: boolean }) {
+function ReplayCard({ pos, type, date, link, resultLink, index, isCorrupted, isFinished }: { pos: any, type: string, date: string, link: string, resultLink: string, index: number, isCorrupted?: boolean, isFinished?: boolean }) {
 
     function getGameTypeImage() {
         switch (type) {
@@ -533,7 +534,7 @@ function ReplayCard({ pos, type, date, link, index, isCorrupted, isFinished }: {
 
                 {
                     isCorrupted ?
-                        <div className="px-2 p-1 rounded-full bg-red-500/50 border border-red-500/70 text-xs flex items-center gap-1"> <Icon name="warning" stroke size={12}></Icon>Corrupted</div>
+                        <div className="px-2 p-1 rounded-full bg-red-500/50 border border-red-500/70 text-xs flex items-center gap-1"> <Icon name="warning" size={12}></Icon>Corrupted</div>
                         :
                         isFinished ?
                             <>
@@ -546,9 +547,18 @@ function ReplayCard({ pos, type, date, link, index, isCorrupted, isFinished }: {
 
                                 {
                                     type !== 'SOLITAIRE' &&
+                                    <Link href={resultLink}>
+                                        <button className="bg-gradient-to-r from-indigo-600 to-blue-800 text-zinc-200 rounded-lg p-2 px-5 flex items-center gap-1 hover:shadow-lg hover:shadow-zinc-700 hover:-translate-y-1 transition-all duration-200">
+                                            <Icon name="results" size={16}></Icon>Results
+                                        </button>
+                                    </Link>
+                                }
+
+                                {
+                                    type !== 'SOLITAIRE' &&
                                     <Link href={link}>
                                         <button className="bg-gradient-to-r from-purple-600 to-purple-800 text-zinc-200 rounded-lg p-2 px-5 flex items-center gap-1 hover:shadow-lg hover:shadow-zinc-700 hover:-translate-y-1 transition-all duration-200">
-                                            <Icon name="watch" size={16}></Icon>Watch
+                                            <Icon name="watch" size={16}></Icon>Replay
                                         </button>
                                     </Link>
                                 }

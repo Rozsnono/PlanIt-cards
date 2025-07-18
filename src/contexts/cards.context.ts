@@ -1,6 +1,9 @@
 
 export default class CardsUrls {
     public getCardUrl(card: string) {
+        if (['R', 'Y', 'G', 'B', 'W'].includes(card[0]) && !['J'].includes(card[1])) {
+            return this.getUnoCardUrl(card);
+        }
         try {
             return `${card.toUpperCase()}.png`;
         } catch {
@@ -27,5 +30,4 @@ export default class CardsUrls {
             return `${card}.png`;
         }
     }
-
 }

@@ -108,12 +108,12 @@ export class GameService {
     public getDataFromWebsocket(object: any, socket: any, data: object): { lobby: any, game: any, playerCards: any, game_over?: boolean, refresh?: boolean } | null {
         if (object.refresh) {
             socket.send(JSON.stringify(data));
-            return {lobby: null, game: null, playerCards: null, refresh: true};
+            return { lobby: null, game: null, playerCards: null, refresh: true };
         }
         if (object.game_over) {
             return { game_over: true, lobby: null, game: null, playerCards: null } as any;
         }
-        if (!object.game){
+        if (!object.game) {
             return { lobby: object.lobby, game: null, playerCards: null } as any;
         }
         if (!object.lobby) return null;
@@ -165,6 +165,30 @@ export class UnoService extends GameService {
         return await response.json();
     }
 
+    async checkPlayerTurn(lobbyId: string) {
+        const response = await fetch(`/api/check/${lobbyId}/uno`, {
+            method: "GET",
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${getCookie("token")}`
+            }
+        });
+
+        return await response.json();
+    }
+
+    async nextTurn(lobbyId: string): Promise<any> {
+        const response = await fetch(`/api/next/${lobbyId}/uno`, {
+            method: "PUT",
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${getCookie("token")}`
+            }
+        });
+
+        return await response.json();
+    }
+
     async dropCard(lobbyId: string, body: { droppedCard: Icard, color?: string }) {
         const response = await fetch(`/api/drop/${lobbyId}/uno`, {
             method: "PUT",
@@ -197,9 +221,9 @@ export class SolitaireService extends GameService {
     }
 
     async placeCards(lobbyId: string, body: { placedCards: Icard[], placingCards: Icard[] }, index: number) {
-        if(index > -1) {
+        if (index > -1) {
             body.placingCards = body.placingCards.slice(index);
-        }else{
+        } else {
             body.placingCards = body.placingCards;
         }
         const response = await fetch(`/api/put/${lobbyId}/solitaire`, {

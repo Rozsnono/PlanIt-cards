@@ -12,6 +12,12 @@ export function sortUnoCards(uno: Icard[], autoSort?: boolean, sortType: "num" |
     return uno.sort((a, b) => { const suit = a.suit ? a.suit.localeCompare(b.suit) : 0; return suit === 0 ? a.rank - b.rank : suit; });
 }
 
+export function sortSchnapsenCards(schnapsen: Icard[], autoSort?: boolean, sortType: "num" | "abc" | "" = "abc"): Icard[] {
+    if (sortType == "") return schnapsen;
+    if (!autoSort) if (sortType === "num") return schnapsen.sort((a, b) => { const rank = a.rank - b.rank; return rank === 0 ? a.suit.localeCompare(b.suit) : rank; });
+    return schnapsen.sort((a, b) => { const suit = a.suit.localeCompare(b.suit); return suit === 0 ? a.rank - b.rank : suit; });
+}
+
 export function placeCardToIndex(playerCards: Icard[], index: number, card: Icard): Icard[] {
     playerCards = [...playerCards.slice(0, index + 1).filter((c) => c.rank !== card.rank || c.suit !== card.suit || c.pack !== card.pack)]
         .concat(card)

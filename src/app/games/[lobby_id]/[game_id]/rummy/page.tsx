@@ -15,6 +15,7 @@ import { useContext, useEffect, useState } from "react";
 import CardsUrls from "@/contexts/cards.context";
 import { IP } from "@/enums/ip.enum";
 import GameUser, { GameBot } from "@/components/user/game.user.component";
+import gameModel from "../../../../../../api/src/models/game.model";
 
 const gameService = new GameService("rummy");
 const timerClass = new Timer();
@@ -49,6 +50,7 @@ export default function Game() {
             }
             if (game_over) {
                 setIsGameOver(true);
+                setNextTurnLoader(false);
                 console.log("Game Over");
                 socket.close();
                 return;
@@ -207,7 +209,7 @@ export default function Game() {
                         <div className="text-sm text-zinc-400 font-bold p-4 rounded-md">
                             Checkout the game history and statistics.
                         </div>
-                        <div onClick={() => { router.push(`/games/${lobby_id}/${game_id}/rummy/end`) }} className="text-zinc-200 p-2 px-4 rounded-md border border-zinc-300 hover:bg-zinc-300 focus:bg-zinc-300 hover:text-zinc-800 flex items-center gap-1 cursor-pointer">
+                        <div onClick={() => { router.push(`/games/${lobby_id}/${game_id}/end`) }} className="text-zinc-200 p-2 px-4 rounded-md border border-zinc-300 hover:bg-zinc-300 focus:bg-zinc-300 hover:text-zinc-800 flex items-center gap-1 cursor-pointer">
                             <Icon name="game" stroke></Icon>
                             Statistics
                         </div>
@@ -351,7 +353,7 @@ export default function Game() {
                     </div>
 
                     {
-                        gameState.currentPlayer.playerId == user?._id && !nextTurnLoader &&
+                        gameState.currentPlayer.playerId == user?._id && !nextTurnLoader && !isGameOver &&
 
                         <div onClick={nextTurn} className="absolute right-10 bottom-4">
                             <div className="w-[4.5rem] h-[4.5rem] bg-green-800 rounded-full border-2 hover:border-4 flex items-center justify-center text-zinc-200 border-lime-300 text-xl cursor-pointer group duration-100">

@@ -147,10 +147,10 @@ function UserHeader({ isLogged, user }: { isLogged: boolean, user: Iplayer }) {
 
             </button>
 
-            <modal.FilterModal className="top-16 right-6 border border-zinc-600 rounded-lg">
-                <div className="flex items-center flex-col gap-2 w-48">
+            <modal.FilterModal className="top-[4.3rem] right-6 border border-purple-600/50 rounded-lg">
+                <div className="flex items-center flex-col gap-2 ">
                     <Link href={"/profile/" + user?.customId} className='w-full'>
-                        <button className="hover:bg-zinc-700/50 text-zinc-300 w-full rounded-lg p-2 more-modal-input text-left flex gap-1 items-center">
+                        <button className="hover:bg-zinc-700/50 text-zinc-300 w-full rounded-lg p-2 pe-16 more-modal-input text-left flex gap-1 items-center">
                             <Icon name="user" size={16} className='text-purple-400'></Icon> Your profile</button></Link>
                     <Link href={"/profile/" + user?.customId + "/friends"} className='w-full'>
                         <button className="hover:bg-zinc-700/50 text-zinc-300 w-full rounded-lg p-2 more-modal-input text-left flex gap-1 items-center relative">

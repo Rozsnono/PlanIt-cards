@@ -44,7 +44,7 @@ export default function Game() {
             socket.send(JSON.stringify({ _id: lobby_id, player_id: user!._id }));
         });
 
-        socket.addEventListener('message', (event) => {
+        socket.addEventListener('message', async (event) => {
             const { playerCards, lobby, game, game_over, refresh } = gameService.getDataFromWebsocket(JSON.parse(event.data), socket, { _id: lobby_id, player_id: user!._id }) ?? {};
             if (refresh) {
                 return;
@@ -66,6 +66,11 @@ export default function Game() {
             if (game) {
                 setGame(game);
                 if (game.currentPlayer.playerId === user?._id) {
+                    console.log("Your turn");
+                    const res = await gameService.checkPlayerTurn(lobby._id);
+                    if(res.skip){
+                        await gameService.nextTurn(lobby._id);
+                    }
                     setSelectedCards(playerCards.filter((card: any) => { return game.droppedCards[game.droppedCards.length - 1].card.suit === card.suit || game.droppedCards[game.droppedCards.length - 1].card.rank === card.rank || card.isJoker }));
                 } else {
                     setSelectedCards([]);
@@ -173,6 +178,24 @@ export default function Game() {
     return (
         <main className="flex w-full h-full rounded-md p-3 relative">
 
+            {
+                isGameOver &&
+                <div className="w-full h-full absolute z-[100] bg-zinc-900/70 top-0 left-0 flex flex-col justify-center items-center">
+                    <div className="text-5xl text-zinc-200 font-bold p-4 rounded-md animate-pulse">
+                        Game Over
+                    </div>
+                    <div className="flex flex-col justify-center items-center gap-2">
+                        <div className="text-sm text-zinc-400 font-bold p-4 rounded-md">
+                            Checkout the game history and statistics.
+                        </div>
+                        <div onClick={() => { router.push(`/games/${lobby_id}/${game_id}/end`) }} className="text-zinc-200 p-2 px-4 rounded-md border border-zinc-300 hover:bg-zinc-300 focus:bg-zinc-300 hover:text-zinc-800 flex items-center gap-1 cursor-pointer">
+                            <Icon name="game" stroke></Icon>
+                            Statistics
+                        </div>
+                    </div>
+                </div>
+            }
+
             <main className="bg-rose-900 rounded-md w-full relative flex justify-center items-center">
                 {
                     error && <ErrorModal errorCode={error} closeError={() => { setError(null) }}></ErrorModal>
@@ -262,7 +285,7 @@ export default function Game() {
                     }
 
                     {
-                        game.currentPlayer.playerId == user?._id &&
+                        game.currentPlayer.playerId == user?._id && !isGameOver &&
                         <div key={timer} style={{ width: `${Math.floor(75 - (timer / 180) * 75)}%`, backgroundColor: `${timer > 150 ? '#ec003f' : '#9ae600'}` }} className="absolute -top-10 h-4 bg-emerald-500 rounded-xl duration-200">
                             <div className="absolute -top-6 w-full flex justify-center items-center text-sm text-zinc-200">
                                 {180 - timer}s

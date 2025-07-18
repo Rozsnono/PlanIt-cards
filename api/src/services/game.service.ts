@@ -161,33 +161,48 @@ export class GameChecker {
         await this.game.replaceOne({ _id: game._id }, game, { runValidators: true });
     }
 
-    private async checkAnchievements(player: any, game: any) {
-        const playerAchievements = player.achievements || [];
-        for (const achievement of achievements) {
-            const playerCards = game.playedCards.filter((cards: any) => cards.cards.find((card: any) => card.playedBy === player._id));
-            if (achievement.check(playerCards, Math.floor(game.droppedCards.length / Object.keys(game.playerCards).length)) && !playerAchievements.includes(achievement._id)) {
-                playerAchievements.push(achievement._id);
-            }
+    public async forceNextTurnUno(LobbygameId: string) {
+        const lobbyId = LobbygameId;
+        const lobby = await this.lobby.findOne({ _id: lobbyId });
+        if (!lobby) {
+            return false;
         }
-        return playerAchievements;
+        const gameId = lobby.game_id;
+        const game = await this.game.findOne({ _id: gameId });
+        if (!game) {
+            return false;
+        }
+        const playerId = game.currentPlayer.playerId;
+
+        game.playerCards[playerId] = game.playerCards[playerId].concat(new UnoDealer(game.shuffledCards).drawCard(1));
+        game.droppedCards[game.droppedCards.length - 1].droppedBy = playerId;
+
+        const nextPlayer = this.nextPlayer(Object.keys(game.playerCards), game.currentPlayer.playerId.toString());
+        game.currentPlayer = { playerId: nextPlayer, time: new Date().getTime() };
+
+        await this.game.replaceOne({ _id: gameId }, game, { runValidators: true });
+        // await this.gameHistoryService.savingHistory(playerId, gameId);
+        return true;
+
     }
-
-
     public calculatePoints(position: any, maxPoints: number) {
         const step = maxPoints / ((position.length - 1) == 0 ? 1 : position.length - 1);
         return position.map((p: any, i: number) => { return { player: p.player, rank: Math.max(0, Math.round(maxPoints - (p.pos - 1) * step)) - (maxPoints / 2) } });
     }
 
     public getPositions(playerCards: any) {
-        const p: { pos: number, player: string }[] =
-            Object.values(playerCards).map((cards: any, i: number) => {
-                return {
-                    player: Object.keys(playerCards)[i], pos: cards.reduce((sum: any, obj: any) => { return sum + obj.value })
-                }
+        const keys = Object.keys(playerCards);
+        const values = Object.values(playerCards);
+
+        const poss: { pos: number, player: string }[] =
+            keys.map((key: string, i: number) => {
+                return { player: key, pos: (values as any)[i].reduce((sum: any, obj: any) => { return sum + obj.value }, 0) };
             });
-        const sorted = p.sort((a: any, b: any) => a.pos - b.pos).map((p: any, i: number) => {
+
+        const sorted = poss.sort((a: any, b: any) => a.pos - b.pos).map((p: any, i: number) => {
             return { player: p.player, pos: i + 1 };
         });
+        console.log(sorted);
         return sorted;
     }
 }   

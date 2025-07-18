@@ -1,80 +1,42 @@
+import mongoose from "mongoose";
+import gameHistoryModel from "../models/game.history.model";
+import gameModel from "../models/game.model";
+
 export const achievements = [
     {
-        "_id": "MG01",
-        "image": "/assets/achievements/MG.png",
+        "_id": new mongoose.Types.ObjectId(),
+        "imageUrl": "/assets/achievements/MG.png",
         "name": "Master of Groups",
-        "description": "Win the game by only laying down sets (same value achievements of different suits).",
-        "check": function (playedCards: any[][], numberOfRounds?: number) {
-            let isMaster = true;
-            if(!playedCards.length) return false;
-            playedCards.forEach((cards) => {
-                if (cards.length) {
-                    const values = cards.map((card) => card.value);
-                    const uniqueValues = [...new Set(values)];
-                    if (uniqueValues.length !== 1) {
-                        isMaster = false;
-                    }
-                }
-            });
-            return isMaster;
-        }
+        "description": "Win the game by only laying down sets (same value card of different suits).",
+        'functionId': 'MG',
     },
     {
-        "_id": "SR02",
-        "image": "/assets/achievements/SR.png",
+        "_id": new mongoose.Types.ObjectId(),
+        "imageUrl": "/assets/achievements/SR.png",
         "name": "Speed Runner",
         "description": "Finish the game in three rounds or less!",
-        "check": function (playedCards: any[][], numberOfRounds: number) {
-            return numberOfRounds <= 3;
-        }
+        'functionId': 'SR',
     },
     {
-        "_id": "SL03",
-        "image": "/assets/achievements/SL.png",
+        "_id": new mongoose.Types.ObjectId(),
+        "imageUrl": "/assets/achievements/SL.png",
         "name": "Master of Sequences",
-        "description": "Win the game by only laying down sequences (same suit achievements of consecutive values).",
-        "check": function (playedCards: any[][], numberOfRounds?: number) {
-            let isMaster = true;
-            if(!playedCards.length) return false;
-            playedCards.forEach((cards) => {
-                if (cards.length) {
-                    const values = cards.map((card) => card.value);
-                    const uniqueValues = [...new Set(values)];
-                    if (uniqueValues.length !== cards.length) {
-                        isMaster = false;
-                    }
-                }
-            });
-            return isMaster;
-        },
+        "description": "Win the game by only laying down sequences (same suit car of consecutive values).",
+        'functionId': 'MS',
     },
     {
-        "_id": "FS04",
-        "image": "/assets/achievements/FS.png",
+        "_id": new mongoose.Types.ObjectId(),
+        "imageUrl": "/assets/achievements/FS.png",
         "name": "First Strike",
         "description": "Lay down a combination on the table in the very first round.",
-        "check": function (playedCards: any, numberOfRounds?: number) {
-            return playedCards.length > 0;
-        }
+        'functionId': 'FS',
     },
     {
-        "_id": "WJ05",
-        "image": "/assets/achievements/WJ.png",
+        "_id": new mongoose.Types.ObjectId(),
+        "imageUrl": "/assets/achievements/WJ.png",
         "name": "Without any Joker",
         "description": "Win a game without using any joker.",
-        "check": function (playedCards: any[][], numberOfRounds?: number) {
-            let isWithoutJoker = true;
-            if(!playedCards.length) return false;
-            playedCards.forEach((cards) => {
-                if (cards.length) {
-                    const joker = cards.find((card) => card.isJoker);
-                    if (joker) {
-                        isWithoutJoker = false;
-                    }
-                }
-            });
-            return isWithoutJoker;
-        }
+        'functionId': 'WJ',
     }
 
 ];

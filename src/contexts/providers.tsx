@@ -33,7 +33,7 @@ export function Providers({ children, className }: { children: React.ReactNode, 
         if (path.includes('end')) {
             return { backgroundImage: 'linear-gradient(50deg,rgba(255, 255, 255, 0) 0%, rgba(226, 99, 255, 0.18) 20%, rgba(255, 255, 255, 0) 50%, rgba(206, 53, 255, 0.12) 85%, rgba(255, 255, 255, 0) 100%)', paddingTop: "5.5rem"}
         }
-        if (path === "/" || (path.includes('rummy') || path.includes('uno') || path.includes('solitaire') && !path.includes('end'))) {
+        if (path === "/" || (path.includes('rummy') || path.includes('uno') || path.includes('solitaire') || path.includes('schnapsen') && !path.includes('end'))) {
             return { backgroundImage: 'linear-gradient(50deg,rgba(255, 255, 255, 0) 0%, rgba(226, 99, 255, 0.18) 20%, rgba(255, 255, 255, 0) 50%, rgba(206, 53, 255, 0.12) 85%, rgba(255, 255, 255, 0) 100%)' }
         }
         return { backgroundImage: 'linear-gradient(50deg,rgba(255, 255, 255, 0) 0%, rgba(226, 99, 255, 0.18) 20%, rgba(255, 255, 255, 0) 50%, rgba(206, 53, 255, 0.12) 85%, rgba(255, 255, 255, 0) 100%)', paddingTop: "5.5rem" }
@@ -59,10 +59,10 @@ export function Providers({ children, className }: { children: React.ReactNode, 
                     <body className={`bg-zinc-900 duration-200 relative h-screen ${className}`}>
                         <StarBackground></StarBackground>
                         {(path.includes('end')) && <Navbar></Navbar>}
-                        {(!path.includes('login') && !path.includes('register') && !path.includes('rummy') && !path.includes('uno') && !path.includes('solitaire')) && <Navbar></Navbar>}
-                        {(path.includes('rummy') || path.includes('uno') || path.includes('solitaire')) && !path.includes('end') && <Navbar clear></Navbar>}
+                        {(!path.includes('login') && !path.includes('register') && !path.includes('rummy') && !path.includes('uno') && !path.includes('solitaire') && !path.includes('schnapsen')) && <Navbar></Navbar>}
+                        {(path.includes('rummy') || path.includes('uno') || path.includes('solitaire') || path.includes('schnapsen')) && !path.includes('end') && <Navbar clear></Navbar>}
                         {
-                            (path.includes('rummy') || path.includes('uno') || path.includes('solitaire')) && !path.includes('end') &&
+                            (path.includes('rummy') || path.includes('uno') || path.includes('solitaire') || path.includes('schnapsen')) && !path.includes('end') &&
                             <div className="fixed right-4 top-4 z-50">
                                 <button onClick={() => { setHelperOpen(!helperOpen) }} className="bg-zinc-600 text-zinc-100 p-2 px-2 rounded-full hover:bg-zinc-500 w-12 h-12 duration-200 flex items-center justify-center relative group">
                                     <div className="flex items-center justify-center z-50">

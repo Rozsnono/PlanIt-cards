@@ -43,7 +43,7 @@ export default function Game() {
             console.log("Data from websocket");
             setIsLoading(false);
             if (game_over) {
-                router.push(`/games/${lobby_id}/${game_id}/solitaire/end`);
+                router.push(`/games/${lobby_id}/${game_id}/end`);
                 console.log("Game Over");
                 socket.close();
             }
@@ -91,7 +91,7 @@ export default function Game() {
             const index = draggedPack.findIndex(card => card === draggedCard);
             if (index > -1) {
                 gameService.placeCards(lobby_id as string, { placedCards: e.cards, placingCards: draggedPack }, index).then(data => {
-                    console.log(data);  
+                    console.log(data);
                 });
             } else {
                 gameService.placeCards(lobby_id as string, { placedCards: e.cards, placingCards: [draggedCard] }, index).then(data => {
@@ -151,7 +151,7 @@ export default function Game() {
             if (data.info) {
                 router.push(`/games/${lobby_id}/${game_id}/solitaire/end`);
             }
-            if(data.error){
+            if (data.error) {
                 setError(data.error);
                 setIsLoading(false);
             }

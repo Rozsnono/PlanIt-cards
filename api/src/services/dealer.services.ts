@@ -65,6 +65,16 @@ export default class CardDealer {
         return removedCards;
     }
 
+    public firstCard(): Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number, value: number }> {
+        const removedCards: Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number, value: number }> = [];
+        do {
+            removedCards.push(this.deck.splice(-1, 1) as any);
+        } while (removedCards[removedCards.length - 1].value > 9)
+
+        return removedCards;
+
+    }
+
     public validateDrop(droppedCards: Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number, value: number }>, droppedCard: { name: string, rank: number, suit: string, isJoker?: boolean, pack: number }): boolean {
         if (droppedCards.length === 0) {
             return true;

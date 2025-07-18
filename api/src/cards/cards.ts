@@ -318,15 +318,15 @@ export class Cards {
         return this.getRummyCards();
     }
 
-    public get uno(): Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number, value: number }>{
+    public get uno(): Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number, value: number }> {
         return this.getUnoCards();
     }
 
-    public get solitaire(): Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number, value: number }>{
+    public get solitaire(): Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number, value: number }> {
         return this.getSolitaireCards();
     }
 
-    private getUnoCards(): Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number, value: number }>{
+    private getUnoCards(): Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number, value: number }> {
         const uno = [];
         const suits = ["R", "G", "B", "Y"];
         const ranks = [
@@ -359,7 +359,7 @@ export class Cards {
         }
 
         return uno as any;
-        
+
     }
 
 
@@ -403,7 +403,7 @@ export class Cards {
         return this.getUnoCards().find((card) => card.name === name.toUpperCase());
     }
 
-    public getSolitaireCards(){
+    public getSolitaireCards() {
         const cards = [];
         const suits = ["S", "H", "D", "C"];
         const ranks = [
@@ -431,6 +431,28 @@ export class Cards {
         }
 
         return cards;
+    }
+
+    private getSchnappsCards() {
+        const schnapsen = [];
+        const suits = ["A", "B", "H", "L"];
+        const ranks = [
+            { name: "U", rank: 1, value: 2 },
+            { name: "O", rank: 2, value: 3 },
+            { name: "K", rank: 3, value: 4 },
+            { name: "T", rank: 10, value: 10 },
+            { name: "A", rank: 11, value: 11 },
+        ];
+
+        for (let pack = 1; pack <= 2; pack++) {
+            for (const suit of suits) {
+                for (const { name, rank, value } of ranks) {
+                    schnapsen.push({ name: `${name}${suit}`, rank, suit, pack: pack, value });
+                }
+            }
+        }
+
+        return schnapsen;
     }
 
 }

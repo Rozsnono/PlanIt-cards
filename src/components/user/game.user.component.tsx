@@ -10,7 +10,7 @@ export default function GameUser({ user, currentPlayer }: { user: Iplayer, curre
                 {getUserInitials(user.firstName, user.lastName)}
                 {currentPlayer === user._id &&
                     <div className="absolute -top-10 flex">
-                        <div className="-rotate-[90deg] animate-bounce">
+                        <div className="-rotate-[90deg] animate-bounce text-zinc-300">
                             <Icon name="card-d" size={44}></Icon>
                         </div>
                     </div>

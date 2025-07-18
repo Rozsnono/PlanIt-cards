@@ -11,6 +11,8 @@ import lobbyModel from "./models/lobby.model";
 import gameModel from "./models/game.model";
 import gameHistoryModel from "./models/game.history.model";
 import { LogService } from "./services/log.service";
+import { achievements } from "./cards/achievements";
+import achievementsModel from "./models/achievements.model";
 
 const { MONGO_URL = 'mongodb+srv://admin:admin@planitcards.rmxdeyd.mongodb.net/planitdb?retryWrites=true&w=majority&appName=PlanitCards' } = process.env;
 
@@ -36,6 +38,7 @@ export default class App {
             });
             const s = new SocketIO();
             s.monitorCollectionChanges();
+            this.setAchievements();
         });
 
         controllers.forEach(controller => {
@@ -62,6 +65,17 @@ export default class App {
         lobbyModel.lobbyModel.init();
         gameModel.gameModel.init();
         gameHistoryModel.gameHistoryModel.init();
+        achievementsModel.achievementsModel.init();
         
+    }
+
+    private async setAchievements() {
+        const existingAchievements = await achievementsModel.achievementsModel.find();
+        if (existingAchievements.length === 0) {
+            await achievementsModel.achievementsModel.insertMany(achievements);
+            new LogService().consoleLog("Achievements initialized successfully.", 'AppService');   
+        } else {
+            new LogService().consoleLog("Achievements already exist, skipping initialization.", 'AppService');
+        }
     }
 }

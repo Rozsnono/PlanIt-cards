@@ -1,22 +1,22 @@
-Redesign end
-Redesign replay
+Redesign replay 
 Do replay on UNO
-Profile
+UNO bugs
 Friends
-Replay not working ✅
+New admin panel
+Quality of life
+Error display 
 Refreshing not working
 RUMMY bots fixes
  EASY -> Place after less than 4 cards ✅
  MEDIUM -> Place from the start but only 1 at once ✅
  HARD -> Place from start and place any, checking cards to drop, draw from dropped
-JOKER bug RUMMY (JOKER PLAYING)
+Profile ✅
+Redesign end ✅
+Replay not working ✅
+JOKER bug RUMMY (JOKER PLAYING) ✅
 ACE problem (value 1 in set) ✅
 ACE problem (in sequale wrong place) ✅
 Validator error with ACE, (KING, ACE, TWO) ✅
 Pick up card ✅
-New admin panel
-UNO bugs
 Tutorial ✅
-Quality of life
 Solitaire bugs ✅
-Error display 

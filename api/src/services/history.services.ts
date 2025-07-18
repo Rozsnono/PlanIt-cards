@@ -4,7 +4,9 @@ import gameModel from "../models/game.model";
 import mongoose from "mongoose";
 import { ERROR } from "../enums/error.enum";
 import lobbyModel from "../models/lobby.model";
+import achievementsModel from "../models/achievements.model";
 import { GameChecker } from "./game.service";
+import { checkAchievements } from "./achievements.service";
 
 
 export default class GameHistoryService {
@@ -147,8 +149,8 @@ export default class GameHistoryService {
                 users: users,
                 date: new Date(),
                 _id: new mongoose.Types.ObjectId(),
-                position: lobby.users.concat(lobby.bots as any).map((user: any) => { return { player: user.customId, position: 0 } }),
-                rank: lobby.users.concat(lobby.bots as any).map((user: any) => { return { player: user.customId, rank: 0 } }),
+                position: lobby.users.concat(lobby.bots as any).map((user: any) => { return { player: user._id, pos: 0 } }),
+                rank: lobby.users.concat(lobby.bots as any).map((user: any) => { return { player: user._id, rank: 0 } }),
             }
             await this.gameHistory.create(newHistory);
             return { message: "History created!", code: 200 };
@@ -199,6 +201,13 @@ export default class GameHistoryService {
             if (position.player.includes("bot")) return; // Skip bots
             const player = await this.user.findById(position.player);
             if (player) {
+                const achs = await checkAchievements(game_id, player._id.toString());
+                if (achs.length > 0) {
+                    achs.forEach(async (ach) => {
+                        if (player.achievements.includes(ach)) return;
+                        player.achievements.push(ach);
+                    })
+                }
                 if (!lobby.settings?.unranked) {
                     player.rank += histories[0].rank.find((r: any) => r.player === position.player)?.rank || 0;
                 }

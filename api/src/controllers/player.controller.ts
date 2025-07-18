@@ -270,14 +270,14 @@ export default class PlayerController implements Controller {
 
     private getPlayerById = async (req: Request, res: Response) => {
         const id = req.params.id;
-        const player = await this.user.findOne({ customId: id }).populate("friends", "customId firstName lastName username rank settings");
+        const player = await this.user.findOne({ customId: id }).populate("friends", "customId firstName lastName username rank settings").populate("achievements", "name description imageUrl");
 
         if (!player) {
             res.status(404).send({ error: ERROR.USER_NOT_FOUND });
             return;
         }
 
-        const achs = achievements.filter((ach) => player.achievements.includes(ach._id));
+        // const achs = achievements.filter((ach) => player.achievements.includes(ach._id));
 
         res.send({
             customId: player.customId,
@@ -290,7 +290,7 @@ export default class PlayerController implements Controller {
             gameHistory: player.gameHistory,
             friends: player.friends,
             gamesStats: player.gamesStats,
-            achievements: achs,
+            achievements: player.achievements,
             settings: player.settings,
             gameInvites: player.gameInvites,
         });

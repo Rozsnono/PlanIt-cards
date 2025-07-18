@@ -37,6 +37,9 @@ export default function LobbyId() {
                     }
                     setLobby(data2);
                     setForm(data2.settings);
+                }).catch((err) => {
+                    console.error("Error joining lobby:", err);
+                    router.replace("/games");
                 });
             }
             if (data.game_over) {

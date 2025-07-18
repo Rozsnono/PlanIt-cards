@@ -55,6 +55,15 @@ const gameSchema = new Schema(
             default: { lastDrawedBy: null },
             nullable: true
         },
+        lastAction: {
+            type: {
+                playerId: { type: String },
+                actions: { type: String },
+                isUno: { type: Boolean, default: false }
+            },
+            default: null,
+            nullable: true
+        },
         createdAt: {
             type: Date,
             default: Date.now,

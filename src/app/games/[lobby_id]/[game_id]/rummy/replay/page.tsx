@@ -86,31 +86,31 @@ export default function Game() {
                     </div>
                 </div>
 
-                <div className="absolute top-0 left-2 h-full flex flex-col justify-between items-center">
+                {/* <div className="absolute top-0 left-2 h-full flex flex-col justify-between items-center">
                     <div></div>
                     {
                         gameHistory.data.users.filter((u, i) => { return i % 2 === 0 && u._id !== user?._id }).map((user, j) => {
                             return (
-                                // <GameUser key={j} user={user} currentPlayer={''}></GameUser>
+                                <GameUser key={j} user={user} currentPlayer={''}></GameUser>
                                 <></>
                             )
                         })
                     }
                     <div></div>
-                </div>
+                </div> */}
 
-                <div className="absolute top-0 right-2 h-full flex flex-col justify-between items-center">
+                {/* <div className="absolute top-0 right-2 h-full flex flex-col justify-between items-center">
                     <div></div>
                     {
                         gameHistory.data.users.filter((u, i) => { return i % 2 === 1 && u._id !== user?._id }).map((user, j) => {
                             return (
-                                // <GameUser key={j} user={user} currentPlayer={''}></GameUser>
+                                <GameUser key={j} user={user} currentPlayer={''}></GameUser>
                                 <></>
                             )
                         })
                     }
                     <div></div>
-                </div>
+                </div> */}
 
                 <div className="flex gap-1 w-full absolute bottom-0 p-2 justify-center">
                     {
@@ -126,7 +126,17 @@ export default function Game() {
                         })
                     }
 
+
                 </div>
+
+
+                {
+                    <div style={{ width: `${((turn - 1) / Object.keys(gameHistory.data.turns).length) * 100}%` }} className="absolute bottom-48 h-4 bg-gradient-to-l from-blue-500 to-indigo-500 rounded-xl duration-200">
+                        <div className="absolute -top-6 w-full flex justify-center items-center text-sm text-zinc-200">
+
+                        </div>
+                    </div>
+                }
 
                 <div className="w-full h-full flex justify-center items-center">
                     <div className="p-10 border-[2rem] border-[#ffffff10] rounded-full h-[30rem] w-[30rem] flex justify-center items-center">
@@ -153,8 +163,15 @@ export default function Game() {
                     </div>
                 </div>
 
+
+
                 <div className="absolute bottom-5 right-5">
                     <div className="flex items-center gap-1 text-xl text-green-300">
+                        <Icon name="double-arrow-left" className={`cursor-pointer ${turn > 1 ? 'hover:animate-pulse ' : 'text-green-700'}`} size={48} onClick={() => {
+                            if (turn > 1) {
+                                setTurn(1);
+                            }
+                        }}></Icon>
                         <Icon name="arrow-left" className={`cursor-pointer ${turn > 1 ? 'hover:animate-pulse ' : 'text-green-700'}`} size={48} onClick={() => {
                             if (turn > 1) {
                                 setTurn(turn - 1);
@@ -163,6 +180,11 @@ export default function Game() {
                         <Icon name="arrow-right" className={`cursor-pointer ${turn - 1 < Object.values(gameHistory.data.turns).length - 1 ? 'hover:animate-pulse ' : 'text-green-700'}`} size={48} onClick={() => {
                             if (turn - 1 < Object.values(gameHistory.data.turns).length - 1) {
                                 setTurn(turn + 1);
+                            }
+                        }}></Icon>
+                        <Icon name="double-arrow-right" className={`cursor-pointer ${turn - 1 < Object.values(gameHistory.data.turns).length - 1 ? 'hover:animate-pulse ' : 'text-green-700'}`} size={48} onClick={() => {
+                            if (turn - 1 < Object.values(gameHistory.data.turns).length - 1) {
+                                setTurn(Object.values(gameHistory.data.turns).length);
                             }
                         }}></Icon>
                     </div>

@@ -74,9 +74,11 @@ export const userSchema = new Schema(
             }
         },
         achievements: {
-            type: Array<string>(),
+            type: Array<Schema.Types.ObjectId>(),
             readonly: true,
-            default: []
+            default: [],
+            ref: "achivement",
+            unique: true
         },
         createdAt: {
             type: Date,
