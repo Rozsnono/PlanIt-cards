@@ -418,7 +418,10 @@ export default class SocketIO {
             {
                 $match: {
                     operationType: 'update',
-                    'updateDescription.updatedFields.peddingFriends': { $exists: true }
+                    $or: [
+                        { 'updateDescription.updatedFields.peddingFriends': { $exists: true } },
+                        { 'updateDescription.updatedFields.settings': { $exists: true } }
+                    ]
                 }
             }
         ], { fullDocument: 'updateLookup' });
@@ -440,7 +443,7 @@ export default class SocketIO {
             }, ACCESS_TOKEN_SECRET);
             this.websockets.playerDataSocket.clients.forEach((client) => {
                 if (client.readyState === 1) {
-                    client.send(JSON.stringify({ peddingFriends: player!.peddingFriends, token: token, customId: player!.customId }));
+                    client.send(JSON.stringify({ peddingFriends: player!.peddingFriends, token: token, customId: player!.customId, settings: player!.settings }));
                 }
             });
         });

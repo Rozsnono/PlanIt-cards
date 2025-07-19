@@ -108,8 +108,10 @@ export const userSchema = new Schema(
             default: {
                 backgroundColor: "#000000",
                 textColor: "#FFFFFF",
+                borderWidth: 0,
+                borderColor: "#000000",
                 hasPicture: false,
-                selectedPicture: "default.png",
+                selectedPicture: "none",
                 hidden: false,
                 canInvite: true,
             }

@@ -1,4 +1,5 @@
 import Icon from "@/assets/icons";
+import { ProfileIcon } from "@/assets/profile-pics";
 import { getColorByInitials, getUserInitials } from "@/functions/user.function";
 import { Iplayer } from "@/interfaces/interface";
 
@@ -6,16 +7,15 @@ export default function GameUser({ user, currentPlayer }: { user: Iplayer, curre
     return (
         <div className="w-16 h-16 relative group cursor-pointer">
 
-            <div style={{ color: getColorByInitials(user).text, backgroundColor: getColorByInitials(user).background }} className="w-16 h-16 rounded-full flex text-zinc-300 items-center justify-center relative">
-                {getUserInitials(user.firstName, user.lastName)}
-                {currentPlayer === user._id &&
-                    <div className="absolute -top-10 flex">
-                        <div className="-rotate-[90deg] animate-bounce text-zinc-300">
-                            <Icon name="card-d" size={44}></Icon>
-                        </div>
+            <ProfileIcon settings={user.settings} size={4} initials={getUserInitials(user.firstName, user.lastName)} />
+
+            {currentPlayer === user._id &&
+                <div className="absolute -top-10 flex items-center justify-center w-full">
+                    <div className="-rotate-[90deg] animate-bounce text-zinc-300">
+                        <Icon name="card-d" size={44}></Icon>
                     </div>
-                }
-            </div>
+                </div>
+            }
             <div>
                 <p className="text-zinc-300 text-center">{user.firstName}</p>
             </div>

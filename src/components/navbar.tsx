@@ -8,14 +8,16 @@ import { UserContext } from '@/contexts/user.context';
 import React from 'react';
 import { getColorByInitials, getUserInitials, Logout } from '@/functions/user.function';
 import { Iplayer } from '@/interfaces/interface';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import SettingsModal from './settings/settings.modal';
+import { ProfileIcon } from '@/assets/profile-pics';
 
 export default function Navbar({ clear }: { clear?: boolean }) {
 
     const { user } = useContext(UserContext);
     const { isOpen, setOpen } = useContext(MenuContext);
 
+    const path = usePathname();
 
     const [userState, setUserState] = React.useState(false);
 
@@ -39,7 +41,7 @@ export default function Navbar({ clear }: { clear?: boolean }) {
         </main>
     );
 
-    if (clear) {
+    if ((path.includes('rummy') || path.includes('uno') || path.includes('solitaire')) && !path.includes('end')) {
         return (
             <main className='fixed top-4 left-4 z-[100] opacity-70 '>
                 <div className='w-16 h-16 rounded-full flex flex-col justify-start items-center group relative hover:bg-transparent hover:h-96 duration-200'>
@@ -100,7 +102,7 @@ export default function Navbar({ clear }: { clear?: boolean }) {
                             <Image src={"/assets/logo.png"} alt='Logo' width={120} height={100}></Image>
                         </div>
                         <Menus user={user!} isLogged={!!user}></Menus>
-                        <UserHeader isLogged={!!user} user={user!}></UserHeader>
+                        <UserHeader isLogged={!!user}></UserHeader>
                     </div>
                 </main>
             </main>
@@ -110,8 +112,15 @@ export default function Navbar({ clear }: { clear?: boolean }) {
 }
 
 
-function UserHeader({ isLogged, user }: { isLogged: boolean, user: Iplayer }) {
+function UserHeader({ isLogged }: { isLogged: boolean }) {
     const router = useRouter();
+
+    const { user } = useContext(UserContext);
+
+    const [u, setU] = useState<Iplayer | null>(user);
+    useEffect(() => {
+        setU(user);
+    }, [user]);
 
     const [settingsOpen, setSettingsOpen] = useState(false);
 
@@ -137,11 +146,10 @@ function UserHeader({ isLogged, user }: { isLogged: boolean, user: Iplayer }) {
     return (
         <React.Fragment>
             <button className='more-modal-button bg-transparent border border-transparent flex items-center gap-2 mr-4 group cursor-pointer '>
-                <div style={{ backgroundColor: getColorByInitials().background, color: getColorByInitials().text }} className='min-h-8 min-w-8 rounded-full flex items-center justify-center bg-red-600 opacity-70 group-hover:opacity-100 text-zinc-100 duration-100 '>
-                    {getUserInitials()}
-                </div>
+
+                <ProfileIcon settings={u!.settings} size={2} className='p-0' />
                 <div className="flex items-center gap-2 text-zinc-300 group-hover:text-white duration-100 cursor-pointer relative">
-                    <div className="text-lg ">{user!.firstName} {user!.lastName}</div>
+                    <div className="text-lg ">{u!.firstName} {u!.lastName}</div>
                     <Icon name='arrow-down'></Icon>
                 </div>
 

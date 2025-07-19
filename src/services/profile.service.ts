@@ -20,4 +20,12 @@ export default class ProfileService {
             headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getCookie("token")}` }
         });
     }
+
+    public async updateProfile(id: string, body: any) {
+        return fetch(`/api/player/edit/${id}`, {
+            method: "PUT",
+            body: JSON.stringify(body),
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getCookie("token")}` }
+        });
+    }
 }

@@ -4,7 +4,6 @@ import { getIDfromToken, hasAuth, getCustomIdFromToken } from "../middleware/mid
 import { Auth } from "../enums/auth.enum";
 import userModel from "../models/player.model";
 import { ERROR } from "../enums/error.enum";
-import { achievements } from "../cards/achievements";
 import bcrypt from 'bcryptjs';
 import mongoose from "mongoose";
 import { UserSettings } from "../cards/user";
@@ -31,6 +30,10 @@ export default class PlayerController implements Controller {
         this.router.delete("/players/:id", hasAuth([Auth["ADMIN"]]), (req, res, next) => {
             this.deletePlayer(req, res).catch(next);
         })
+
+        this.router.put("/player/edit/:id", hasAuth([Auth["PLAYER.UPDATE.YOURSELF"]]), (req, res, next) => {
+            this.editPlayer(req, res).catch(next);
+        });
 
         this.router.put("/players/:id", hasAuth([Auth["ADMIN"]]), (req, res, next) => {
             this.putPlayer(req, res).catch(next);
@@ -234,6 +237,34 @@ export default class PlayerController implements Controller {
             total: Math.round(await this.user.countDocuments(query) / paging.limit) || 0,
             data: playerData
         });
+    }
+
+    private editPlayer = async (req: Request, res: Response) => {
+        const id = req.params.id;
+        const body = req.body;
+
+        const tokenId = await getIDfromToken(req);
+
+        const player = await this.user.findOne({ customId: id });
+
+        if (!player) {
+            res.status(404).send({ error: ERROR.USER_NOT_FOUND });
+            return;
+        }
+
+        if( tokenId !== player._id.toString()) {
+            res.status(403).send({ error: ERROR.INVALID_AUTH });
+            return;
+        }
+
+        player.settings = {
+            ...player.settings,
+            ...body.settings,
+        }
+
+        await this.user.updateOne({ customId: id }, player, { runValidators: true });
+
+        res.send({ message: "Player updated successfully!" });
     }
 
     private putPlayer = async (req: Request, res: Response) => {

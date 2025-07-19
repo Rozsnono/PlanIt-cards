@@ -84,8 +84,11 @@ export class PlayerWebSocket {
             const parsed = JSON.parse(event.data);
 
             if (this.user?.customId === parsed.customId) {
+
+
                 const updatedUser = {
                     ...this.user,
+                    settings: parsed.settings || this.user!.settings,
                     peddingFriends: parsed.peddingFriends.length || 0,
                 } as Iplayer;
                 this.setUser(updatedUser); // THIS should trigger setUserData()

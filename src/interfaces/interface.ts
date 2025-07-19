@@ -1,4 +1,4 @@
-export interface Icard{
+export interface Icard {
     name: string;
     rank: number;
     suit: string;
@@ -15,7 +15,7 @@ export interface Iplayer {
     email: string;
     rank: number;
     numberOfGames: {
-        [date: string]: {wins: number, losses: number};
+        [date: string]: { wins: number, losses: number };
     };
     auth: string[];
     friends: string[];
@@ -24,6 +24,12 @@ export interface Iplayer {
     settings: {
         backgroundColor: string;
         textColor: string;
+        hasPicture: boolean,
+        selectedPicture: string,
+        borderWidth?: number,
+        borderColor?: string,
+        hidden?: boolean,
+        canInvite?: boolean,
     };
     gameHistory: {
         [date: string]: {
@@ -37,7 +43,7 @@ export interface Iplayer {
 export interface Ilobby {
     _id: string;
     users: Iplayer[];
-    bots: {_id: string, name: string}[];
+    bots: { _id: string, name: string }[];
     mutedPlayers: string[];
     settings: {
         numberOfPlayers: number;
@@ -66,7 +72,7 @@ export interface Igame {
     _id: string;
     shuffledCards: Icard[];
     currentPlayer: string;
-    playerCards: {[player_id: string]: Icard[]};
-    playedCards: {playedBy: string, cards: Icard[]}[];
-    droppedCards: {droppedBy: string, card: Icard}[];
+    playerCards: { [player_id: string]: Icard[] };
+    playedCards: { playedBy: string, cards: Icard[] }[];
+    droppedCards: { droppedBy: string, card: Icard }[];
 }

@@ -7,7 +7,7 @@ import { useQuery } from "react-query";
 import Image from "next/image";
 import { getCurrentRank, getRankName } from "@/interfaces/rank.enum";
 import Pagination from "@/components/pagination";
-import React, { useContext } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { achievements } from "@/interfaces/achievement.enum";
 import ProfileService from "@/services/profile.service";
 import { UserContext } from "@/contexts/user.context";
@@ -15,6 +15,8 @@ import { GameHistoryService } from "@/services/game.history.service";
 import Link from "next/link";
 import Loader from "@/components/loader.component";
 import Loading from "@/app/loading";
+import ProfilePicture, { ProfileIcon } from "@/assets/profile-pics";
+import { Iplayer } from "@/interfaces/interface";
 
 // export function ProfilePage2() {
 
@@ -238,6 +240,7 @@ export default function ProfilePage() {
     const player_id = useParams().id;
 
     const [page, setPage] = React.useState(1);
+    const [profileSettings, setProfileSettings] = React.useState(false);
 
     const { user } = useContext(UserContext);
     const profileService = new ProfileService();
@@ -349,17 +352,20 @@ export default function ProfilePage() {
             <div className="flex flex-col gap-8 w-1/2">
                 <Card className="w-full flex flex-col gap-3 px-4 py-4">
                     <div className="flex gap-2 p-4">
-                        <div style={{ backgroundColor: getColorByInitials(player.data).background, color: getColorByInitials(player.data).text }}
-                            className="min-w-16 min-h-16 w-16 h-16 bg-red-600 rounded-full flex items-center justify-center text-xl shadow-md shadow-zinc-500 hover:scale-105">
-                            {getUserInitials(player.data.firstName, player.data.lastName)}
-                        </div>
+                        <ProfileIcon settings={player.data.settings} size={4} className="text-[2rem]" />
                         <div className="flex flex-col justify-center gap-2">
                             <div className="text-3xl font-bold">{player.data.firstName} {player.data.lastName}</div>
                             {
                                 player.data.customId == user?.customId &&
-                                <button className="text-zinc-300 hover:text-zinc-200/60 text-sm w-max rounded-lg flex items-center gap-1" ><Icon name="pen" size={16}></Icon> Edit profile</button>
+                                <button onClick={() => { setProfileSettings(true) }} className="text-zinc-300 hover:text-zinc-200/60 text-sm w-max rounded-lg flex items-center gap-1" ><Icon name="pen" size={16}></Icon> Edit profile</button>
                             }
                         </div>
+
+                        {
+                            profileSettings &&
+                            <PlayerSettings user={player.data} onClose={() => {setProfileSettings(false); player.refetch()}} />
+                        }
+
                     </div>
 
                     <div className="flex flex-col gap-5 p-6 w-full">
@@ -585,3 +591,157 @@ function StatCard({ icon, title, number, format }: { icon: React.ReactNode, titl
     )
 }
 
+function PlayerSettings({ user, onClose }: { user?: Iplayer, onClose: () => void }) {
+
+    const [settings, setSettings] = useState({
+        textColor: '#ffffff',
+        backgroundColor: '#000000',
+        borderWidth: 0,
+        borderColor: '#000000',
+        hasPicture: false,
+        selectedPicture: 'none'
+    })
+
+    function SaveProfileSettings() {
+        new ProfileService().updateProfile(user!.customId, { settings }).then(() => {
+            onClose();
+        }).catch((err) => {
+            console.error(err);
+        });
+    }
+
+    useEffect(() => {
+        if (user) {
+            setSettings({
+                textColor: user.settings.textColor || '#ffffff',
+                backgroundColor: user.settings.backgroundColor || '#000000',
+                borderWidth: user.settings.borderWidth || 0,
+                borderColor: user.settings.borderColor || '#000000',
+                hasPicture: user.settings.hasPicture || false,
+                selectedPicture: user.settings.selectedPicture || 'none'
+            });
+        }
+    }, [user]);
+
+
+    const selectable = [
+        'none',
+        'default1',
+        'default3',
+        'default4',
+        'default5',
+        'default6',
+        'default7',
+        'default8',
+    ]
+
+    return (
+        <main className="fixed w-full h-full flex justify-center items-center bg-black/50 z-[1000] top-0 left-0">
+            <div className="bg-zinc-800/80 border border-purple-600/50 text-zinc-200 rounded-xl flex flex-col items-center justify-center gap-2 min-w-96">
+                <h2 className="text-lg font-bold px-8 py-4 pb-2">Player Settings</h2>
+                <hr className="border-purple-600/50 w-full" />
+                <div className="flex flex-col gap-2 p-4 w-full">
+                    <div className="w-full flex justify-between items-center">
+                        {/* <ProfileIcon settings={settings} size={5} className="text-[2rem]" /> */}
+
+                        <div className="flex flex-col justify-center gap-2 items-end w-full">
+                            <form className="flex items-center w-full gap-2">
+                                <label htmlFor="simple-search" className="">Background Color</label>
+                                <div className="relative w-full">
+                                    <div className="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
+                                        <Icon name="palette" size={16} className="text-gray-500 dark:text-gray-400"></Icon>
+                                    </div>
+                                    <input value={settings.backgroundColor} maxLength={7} onChange={(e) => setSettings({ ...settings, backgroundColor: e.target.value })} type="text" id="simple-search" className="bg-zinc-700 border border-gray-800 text-gray-200 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full ps-10 p-2.5" placeholder="Write your color.." required />
+                                </div>
+                                <label style={{ backgroundColor: settings.backgroundColor }} htmlFor="colorPickerBg" className="flex items-center justify-center min-w-10 min-h-10 bg-zinc-700 rounded-full cursor-pointer hover:bg-zinc-600 transition-all duration-200 ms-2">
+                                    <input type="color" id="colorPickerBg" className="w-0 h-0" value={settings.backgroundColor} onChange={(e) => setSettings({ ...settings, backgroundColor: e.target.value })} />
+                                </label>
+
+                            </form>
+                            <form className="flex items-center w-full gap-2">
+                                <label htmlFor="simple-search" className="">Icon Color</label>
+                                <div className="relative w-full">
+                                    <div className="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
+                                        <Icon name="palette" size={16} className="text-gray-500 dark:text-gray-400"></Icon>
+                                    </div>
+                                    <input value={settings.textColor} maxLength={7} onChange={(e) => setSettings({ ...settings, textColor: e.target.value })} type="text" id="simple-search" className="bg-zinc-700 border border-gray-800 text-gray-200 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full ps-10 p-2.5" placeholder="Write your color.." required />
+                                </div>
+                                <label style={{ backgroundColor: settings.textColor }} htmlFor="colorPicker" className="flex items-center justify-center min-w-10 min-h-10 bg-zinc-700 rounded-full cursor-pointer hover:bg-zinc-600 transition-all duration-200 ms-2">
+                                    <input type="color" id="colorPicker" className="w-0 h-0" value={settings.textColor} onChange={(e) => setSettings({ ...settings, textColor: e.target.value })} />
+                                </label>
+
+                            </form>
+                            <form className="flex items-center w-full gap-2">
+                                <label htmlFor="simple-search" className="">Border</label>
+
+                                <input value={settings.borderWidth} max={10} min={0} onChange={(e) => setSettings({ ...settings, borderWidth: parseInt(e.target.value) })} type="number" className="bg-zinc-700 border border-gray-800 text-gray-200 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block pe-2 p-2.5 max-w-16" required />
+
+                                <div className="relative w-full">
+                                    <div className="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
+                                        <Icon name="palette" size={16} className="text-gray-500 dark:text-gray-400"></Icon>
+                                    </div>
+                                    <input value={settings.borderColor} maxLength={7} onChange={(e) => setSettings({ ...settings, borderColor: e.target.value })} type="text" id="simple-search" className="bg-zinc-700 border border-gray-800 text-gray-200 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full ps-10 p-2.5" placeholder="Write your color.." required />
+                                </div>
+                                <label style={{ backgroundColor: settings.borderColor }} htmlFor="colorPicker3" className="flex items-center justify-center min-w-10 min-h-10 bg-zinc-700 rounded-full cursor-pointer hover:bg-zinc-600 transition-all duration-200 ms-2">
+                                    <input type="color" id="colorPicker3" className="w-0 h-0" value={settings.borderColor} onChange={(e) => setSettings({ ...settings, borderColor: e.target.value })} />
+                                </label>
+
+                            </form>
+                        </div>
+                    </div>
+
+                </div>
+                <hr className="border-purple-600/50 w-full" />
+
+                <div className="grid grid-cols-4 gap-4 p-4 w-full">
+
+                    {selectable.map((name, i) => {
+
+                        if (name === 'none') {
+                            return (
+                                <div onClick={() => { setSettings({ ...settings, selectedPicture: name, hasPicture: false }) }} key={i} style={{ backgroundColor: settings.backgroundColor, color: settings.textColor, border: settings.borderWidth ? `${settings.borderWidth}px solid ${settings.borderColor}` : 'none' }} className="relative rounded-full w-24 h-24 cursor-pointer duration-200 hover:scale-105 select-none flex justify-center items-center text-4xl" >
+                                    {getUserInitials()}
+                                    {
+                                        settings.selectedPicture === name &&
+                                        <div className="absolute top-0 right-0">
+                                            <Icon name="check" size={16} className="text-green-500" />
+                                        </div>
+                                    }
+                                </div>
+                            )
+
+                        }
+
+                        return (
+                            <div onClick={() => { setSettings({ ...settings, selectedPicture: name, hasPicture: true }) }} style={{ backgroundColor: settings.backgroundColor, border: settings.borderWidth ? `${settings.borderWidth}px solid ${settings.borderColor}` : 'none' }} className="relative rounded-full w-24 h-24 flex items-center justify-center cursor-pointer duration-200 hover:scale-105 select-none" key={i}>
+                                <div className="w-24 h-24 flex items-center justify-center overflow-hidden">
+                                    <ProfilePicture name={name} color={settings.textColor} className="p-4" />
+                                </div>
+
+                                {
+                                    settings.selectedPicture === name &&
+                                    <div className="absolute top-0 right-0">
+                                        <Icon name="check" size={16} className="text-green-500" />
+                                    </div>
+                                }
+                            </div>
+                        )
+                    })}
+
+
+
+
+                </div>
+
+                <hr className="border-purple-600/50 w-full" />
+
+                <div className="flex justify-end items-center gap-4 p-4 w-full">
+                    <button onClick={() => {
+                        SaveProfileSettings();
+                    }} className="bg-gradient-to-br from-green-500 to-emerald-800 text-white rounded-lg p-2 px-8 hover:scale-105 transition-all duration-200">Save</button>
+
+                </div>
+            </div>
+        </main>
+    )
+}

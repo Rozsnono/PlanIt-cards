@@ -83,7 +83,12 @@ export default function LobbyId() {
     }
 
     function saveEdit() {
-        lobbyService.editLobby(lobby_id as string, tmpForm);
+        lobbyService.editLobby(lobby_id as string, tmpForm).then((data) => {
+            if (data.error) {
+                console.error(data.error);
+            }
+            setIsChanged(false);
+        });
     }
 
     function cancelEdit() {
@@ -99,6 +104,7 @@ export default function LobbyId() {
         if (!form) return false;
         const keys = Object.keys(form);
         setTmpForm(form);
+        console.log("Checking if changed", form, "Default:", lobby.settings);
         for (const key of keys) {
             if (form[key] !== (lobby.settings as any)[key]) {
                 setIsChanged(true);
@@ -263,7 +269,7 @@ export default function LobbyId() {
                     {
                         lobby.createdBy === user!._id &&
                         <div className="flex flex-col w-full justify-end mx-auto mt-8 3xl:mt-0">
-                            <button disabled={lobby.users.length + lobby.bots.length < lobby.settings.numberOfPlayers} onClick={startLobbyGame} className="bg-gradient-to-l from-purple-500 to-purple-700 hover:from-purple-600 hover:to-purple-400 disabled:from-purple-500/50 disabled:to-purple-700/50 w-full rounded-lg p-2 px-5 text-zinc-200 font-bold duration-200 focus:ring-2 disabled:text-zinc-400 disabled:cursor-not-allowed">Start</button>
+                            <button disabled={lobby.users.length + lobby.bots.length < lobby.settings.numberOfPlayers || isChanged} onClick={startLobbyGame} className="bg-gradient-to-l from-purple-500 to-purple-700 hover:from-purple-600 hover:to-purple-400 disabled:from-purple-500/50 disabled:to-purple-700/50 w-full rounded-lg p-2 px-5 text-zinc-200 font-bold duration-200 focus:ring-2 disabled:text-zinc-400 disabled:cursor-not-allowed">Start</button>
                         </div>
                     }
                 </div>
