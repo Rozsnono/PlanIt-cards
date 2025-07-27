@@ -31,13 +31,14 @@ export class GameService {
         return await response.json();
     }
 
-    async startGame(lobbyId: string) {
+    async startGame(lobbyId: string, timeLimit?: number) {
         const response = await fetch(`/api/start/${lobbyId}/${this.type}`, {
             method: "POST",
             headers: {
                 'Content-Type': 'application/json',
                 Authorization: `Bearer ${getCookie("token")}`
-            }
+            },
+            body: JSON.stringify({ timeLimit: timeLimit || null })
         });
 
         return await response.json();
@@ -189,7 +190,7 @@ export class UnoService extends GameService {
         return await response.json();
     }
 
-    async dropCard(lobbyId: string, body: { droppedCard: Icard, color?: string }) {
+    async dropCard(lobbyId: string, body: { droppedCard: Icard, color?: string, isUno?: boolean }) {
         const response = await fetch(`/api/drop/${lobbyId}/uno`, {
             method: "PUT",
             body: JSON.stringify(body),

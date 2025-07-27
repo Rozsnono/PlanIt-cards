@@ -36,7 +36,7 @@ export default class CardDealer {
         return deck;
     }
 
-    public dealCards(users: mongoose.Types.ObjectId[] | string[], numberOfCards?: number): { [id: string]: Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number, value: number }> } {
+    public dealCards(users: mongoose.Types.ObjectId[] | string[], numberOfCards?: number, firstOneDraws: boolean = true): { [id: string]: Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number, value: number }> } {
         const playerCards: { [id: string]: Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number, value: number }> } = {};
         const NoC = numberOfCards || 10;
         const numberOfPlayers = users.length;
@@ -45,7 +45,7 @@ export default class CardDealer {
         }
         let playerIndex = 0;
         while (playerIndex < numberOfPlayers) {
-            playerCards[users[playerIndex].toString()] = this.getCards(playerIndex === 0 ? NoC + 1 : NoC);
+            playerCards[users[playerIndex].toString()] = this.getCards(playerIndex === 0 && firstOneDraws ? NoC + 1 : NoC);
             playerIndex++;
         }
         return playerCards;
@@ -117,6 +117,24 @@ export class UnoDealer extends CardDealer {
         const isSameSuit = droppedCards[droppedCards.length - 1].suit === droppedCard.suit;
         return isSameRank || isSameSuit;
     }
+
+    public validStartCard(): Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number, value: number }> {
+        const removedCards: Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number, value: number }> = [];
+        let card: { name: string, rank: number, suit: string, isJoker?: boolean, pack: number, value: number };
+        do {
+            card = this.deck.pop()!;
+            removedCards.push(card);
+        } while (card.rank > 10 || card.isJoker)
+
+
+        return removedCards;
+    }
+
+    public reShuffleCards(playedCards: Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number, value: number }>): Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number, value: number }> {
+        this.deck = playedCards.concat(this.deck);
+        return this.deck;
+    }
+
 }
 
 export class RummyDealer extends CardDealer {

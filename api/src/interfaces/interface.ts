@@ -18,7 +18,7 @@ export interface Iplayer {
         [date: string]: { wins: number, losses: number };
     };
     friends: string[];
-    peddingFriends: string[] | number;
+    pendingFriends: string[] | number;
     customId: string;
     gameHistory: {
         [date: string]: {
@@ -62,5 +62,11 @@ export interface Igame {
     currentPlayer: string;
     playerCards: { [player_id: string]: Icard[] };
     playedCards: Icard[][];
-    droppedCards: Icard[];
+    drawedCard: { lastDrawedBy: string };
+    droppedCards: { droppedBy: string, card: Icard }[];
+    lastAction: {
+        playerId: string;
+        actions: number;
+        isUno?: boolean;
+    }
 }

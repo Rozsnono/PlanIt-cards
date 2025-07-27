@@ -43,7 +43,7 @@ export default function Game() {
             console.log("Data from websocket");
             setIsLoading(false);
             if (game_over) {
-                router.push(`/games/${lobby_id}/${game_id}/end`);
+                router.push(`/games/${lobby_id}/${game_id}/result`);
                 console.log("Game Over");
                 socket.close();
             }
@@ -122,7 +122,7 @@ export default function Game() {
 
         gameService.playCard(lobby_id as string, { playedCards: pack, playingCard: draggedCard as Icard }).then(data => {
             if (data.info) {
-                router.push(`/games/${lobby_id}/${game_id}/solitaire/end`);
+                router.push(`/games/${lobby_id}/${game_id}/solitaire/result`);
             }
         }).catch(err => {
             setError(err);
@@ -149,7 +149,7 @@ export default function Game() {
         setIsLoading(true);
         gameService.playWithPress(lobby_id as string, { playedCards: Object.values(game!.playerCards), playingCard: selectedCard }).then(data => {
             if (data.info) {
-                router.push(`/games/${lobby_id}/${game_id}/solitaire/end`);
+                router.push(`/games/${lobby_id}/${game_id}/solitaire/result`);
             }
             if (data.error) {
                 setError(data.error);
@@ -186,7 +186,7 @@ export default function Game() {
                 error && <ErrorModal errorCode={error} closeError={() => { setError(null) }}></ErrorModal>
             }
 
-            <main className="bg-green-800 rounded-md w-full relative flex justify-center items-center select-none">
+            <main className="bg-sky-800 rounded-md w-full relative flex justify-center items-center select-none">
 
                 <div className="flex justify-center items-start w-full h-3/4 absolute py-8 z-50">
                     <div className="flex gap-3">
@@ -194,9 +194,9 @@ export default function Game() {
                             <div key={index} className="flex relative" onDragEnter={(e) => onDragEnter(e, index)} onDrop={() => { onDragDrop(pack) }} onDragOver={overDrag} >
                                 {pack.cards.map((card, i) => (
                                     i === 0 ?
-                                        <Image onClick={card.isJoker ? () => { playWithPress(card) } : () => { }} onDragStart={card.isJoker ? () => { startDrag(card, pack.cards) } : () => { }} key={i} draggable={!!card.isJoker && !isLoading} className={`border-2 border-transparent ${card.isJoker ? 'hover:border-green-500 ' + (isLoading ? 'cursor-progress' : 'cursor-pointer') : ''} rounded-lg`} src={card.isJoker ? ("/assets/cards/rummy/" + new CardsUrls().getCardUrl(card.name)) : '/assets/cards/rummy/gray_back.png'} width={100} height={110} alt="card"></Image>
+                                        <Image onClick={card.isJoker ? () => { playWithPress(card) } : () => { }} onDragStart={card.isJoker ? () => { startDrag(card, pack.cards) } : () => { }} key={i} draggable={!!card.isJoker && !isLoading} className={`border-2 border-transparent ${card.isJoker ? 'hover:border-green-500 ' + (isLoading ? 'cursor-progress' : 'cursor-pointer') : ''} rounded-lg`} src={card.isJoker ? ("/" + new CardsUrls().getFullCardUrl(card.name)) : '/assets/cards/rummy/gray_back.png'} width={100} height={110} alt="card"></Image>
                                         :
-                                        <Image onClick={card.isJoker ? () => { playWithPress(card) } : () => { }} onDragStart={card.isJoker ? () => { startDrag(card, pack.cards) } : () => { }} key={i} draggable={!!card.isJoker && !isLoading} style={{ top: `${i * 2}rem` }} className={`absolute border-2 border-transparent ${card.isJoker ? 'hover:border-green-500 ' + (isLoading ? 'cursor-progress' : 'cursor-pointer') : ''} rounded-lg`} src={card.isJoker ? ("/assets/cards/rummy/" + new CardsUrls().getCardUrl(card.name)) : '/assets/cards/rummy/gray_back.png'} width={100} height={110} alt="card"></Image>
+                                        <Image onClick={card.isJoker ? () => { playWithPress(card) } : () => { }} onDragStart={card.isJoker ? () => { startDrag(card, pack.cards) } : () => { }} key={i} draggable={!!card.isJoker && !isLoading} style={{ top: `${i * 2}rem` }} className={`absolute border-2 border-transparent ${card.isJoker ? 'hover:border-green-500 ' + (isLoading ? 'cursor-progress' : 'cursor-pointer') : ''} rounded-lg`} src={card.isJoker ? ("/" + new CardsUrls().getFullCardUrl(card.name)) : '/assets/cards/rummy/gray_back.png'} width={100} height={110} alt="card"></Image>
                                 ))}
                                 {pack.cards.length == 0
                                     &&
@@ -215,7 +215,7 @@ export default function Game() {
                             return (
                                 <div key={index} className="flex relative" onDrop={() => { playCard(pack) }} onDragOver={overDrag} >
                                     <div className="2xl:w-[5rem] lg:w-[4.7rem] md:w-[4.7rem] 2xl:h-[7.6rem] lg:h-[7rem] md:h-[7rem] border border-zinc-400 rounded-md"></div>
-                                    <Image draggable={false} className="absolute border-2 border-transparent hover:border-green-500 rounded-lg " src={"/assets/cards/rummy/" + new CardsUrls().getCardUrl(pack[pack.length - 1].name)} width={140} height={110} alt="card"></Image>
+                                    <Image draggable={false} className="absolute border-2 border-transparent hover:border-green-500 rounded-lg " src={"/" + new CardsUrls().getFullCardUrl(pack[pack.length - 1].name)} width={140} height={110} alt="card"></Image>
                                 </div>
                             )
                         })}
@@ -236,7 +236,7 @@ export default function Game() {
                             <div className="2xl:w-[5rem] lg:w-[4.7rem] md:w-[4.7rem] 2xl:h-[7.6rem] lg:h-[7rem] md:h-[7rem] border border-zinc-400 rounded-md"></div>
                             {
                                 game?.droppedCards[game.droppedCards.length - 1] &&
-                                <Image onClick={() => { playWithPress(game.droppedCards[game.droppedCards.length - 1].card) }} draggable={true} onDragStart={() => { startDrag(game.droppedCards[game.droppedCards.length - 1].card, null) }} className={"absolute border-2 border-transparent hover:border-green-500 rounded-lg " + (isLoading ? 'cursor-progress' : 'cursor-pointer')} src={"/assets/cards/rummy/" + new CardsUrls().getCardUrl(game.droppedCards[game.droppedCards.length - 1].card.name)} width={140} height={110} alt="card"></Image>
+                                <Image onClick={() => { playWithPress(game.droppedCards[game.droppedCards.length - 1].card) }} draggable={true} onDragStart={() => { startDrag(game.droppedCards[game.droppedCards.length - 1].card, null) }} className={"absolute border-2 border-transparent hover:border-green-500 rounded-lg " + (isLoading ? 'cursor-progress' : 'cursor-pointer')} src={"/" + new CardsUrls().getFullCardUrl(game.droppedCards[game.droppedCards.length - 1].card.name)} width={140} height={110} alt="card"></Image>
                             }
                         </div>
                         <div className={"flex relative " + (isLoading ? 'cursor-progress' : 'cursor-pointer')} onClick={drawCard}>
@@ -268,6 +268,10 @@ export default function Game() {
                     </div>
                 </div>
             </main>
+
+            <div className="fixed bottom-4 left-4 text-sky-200/40">
+                GameId: {game && game!._id}
+            </div>
 
         </main>
     )

@@ -146,8 +146,9 @@ function UserHeader({ isLogged }: { isLogged: boolean }) {
     return (
         <React.Fragment>
             <button className='more-modal-button bg-transparent border border-transparent flex items-center gap-2 mr-4 group cursor-pointer '>
-
-                <ProfileIcon settings={u!.settings} size={2} className='p-0' />
+                {u?.settings &&
+                    <ProfileIcon settings={u!.settings} size={2} className='p-0' />
+                }
                 <div className="flex items-center gap-2 text-zinc-300 group-hover:text-white duration-100 cursor-pointer relative">
                     <div className="text-lg ">{u!.firstName} {u!.lastName}</div>
                     <Icon name='arrow-down'></Icon>
@@ -157,14 +158,14 @@ function UserHeader({ isLogged }: { isLogged: boolean }) {
 
             <modal.FilterModal className="top-[4.3rem] right-6 border border-purple-600/50 rounded-lg">
                 <div className="flex items-center flex-col gap-2 ">
-                    <Link href={"/profile/" + user?.customId} className='w-full'>
+                    <Link href={"/profile/" + u?.customId} className='w-full'>
                         <button className="hover:bg-zinc-700/50 text-zinc-300 w-full rounded-lg p-2 pe-16 more-modal-input text-left flex gap-1 items-center">
                             <Icon name="user" size={16} className='text-purple-400'></Icon> Your profile</button></Link>
-                    <Link href={"/profile/" + user?.customId + "/friends"} className='w-full'>
+                    <Link href={"/profile/" + u?.customId + "/friends"} className='w-full'>
                         <button className="hover:bg-zinc-700/50 text-zinc-300 w-full rounded-lg p-2 more-modal-input text-left flex gap-1 items-center relative">
                             <Icon name="users" size={16} className='text-purple-400'></Icon> Friends
                             {
-                                typeof user.peddingFriends === "number" && user?.peddingFriends > 0 &&
+                                typeof u!.pendingFriends === "number" && u!.pendingFriends > 0 &&
                                 <div className='absolute top-[-0.1rem] right-[-0.1rem] w-2 h-2 bg-red-300 rounded-full animate-ping duration-400'></div>
                             }
                         </button>
@@ -183,9 +184,11 @@ function UserHeader({ isLogged }: { isLogged: boolean }) {
 
 
 function Menus({ isLogged, user }: { isLogged: boolean, user: any }) {
+    const path = usePathname();
     if (!isLogged) {
         return null;
     }
+
 
     return (
         <React.Fragment>
@@ -212,12 +215,39 @@ function Menus({ isLogged, user }: { isLogged: boolean, user: any }) {
                 {
                     user &&
                     user!.auth.includes("ADMIN") &&
-                    <Link href={"/admin"}>
+                    <Link href={"/admin/games"}>
                         <div className="text-zinc-300 text-md hover:text-white hover:font-bold duration-200 flex items-center gap-1 hover:gap-2">
                             <Icon name="admin"></Icon>
                             Admin
                         </div>
                     </Link>
+                }
+
+                {
+                    user &&
+                    user!.auth.includes("ADMIN") &&
+                    path.includes("admin") &&
+                    <React.Fragment>
+                        <div className='border-l border-zinc-200 h-6'></div>
+                        <Link href={"/admin/players"}>
+                            <div className="text-zinc-300 text-md hover:text-white hover:font-bold duration-200 flex items-center gap-1 hover:gap-2">
+                                <Icon name="users"></Icon>
+                                Players
+                            </div>
+                        </Link>
+                        <Link href={"/admin/games"}>
+                            <div className="text-zinc-300 text-md hover:text-white hover:font-bold duration-200 flex items-center gap-1 hover:gap-2">
+                                <Icon name="game" stroke></Icon>
+                                Games
+                            </div>
+                        </Link>
+                        <Link href={"/admin/histories"}>
+                            <div className="text-zinc-300 text-md hover:text-white hover:font-bold duration-200 flex items-center gap-1 hover:gap-2">
+                                <Icon name="card" stroke></Icon>
+                                Game histories
+                            </div>
+                        </Link>
+                    </React.Fragment>
                 }
 
             </div>

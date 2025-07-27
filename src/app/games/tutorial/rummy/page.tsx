@@ -626,7 +626,7 @@ export default function Game() {
                                             e.cards.map((card: Icard, j: number) => {
                                                 return (
                                                     <div onDrop={() => { cardPlacingDrop(e) }} key={j} className="w-8 h-16 relative group cursor-pointer overflow-visible">
-                                                        <Image className={`card-animation w-16 max-w-16 rounded-md border border-transparent ${e.playedBy === user?._id ? ' group-hover:border-green-500' : ""} ${(((steps === 14 || steps === 16) && e.cards.find(c => c.name === 'JC') || (steps === 18 && e.cards.find(c => c.name === '6H'))) ? ' ring-4 ring-red-500 ' : '')}`} key={j} src={"/assets/cards/rummy/" + new CardsUrls().getCardUrl(card.name)} width={70} height={60} alt={new CardsUrls().getCardUrl(card.name)}></Image>
+                                                        <Image className={`card-animation w-16 max-w-16 rounded-md border border-transparent ${e.playedBy === user?._id ? ' group-hover:border-green-500' : ""} ${(((steps === 14 || steps === 16) && e.cards.find(c => c.name === 'JC') || (steps === 18 && e.cards.find(c => c.name === '6H'))) ? ' ring-4 ring-red-500 ' : '')}`} key={j} src={"/" + new CardsUrls().getFullCardUrl(card.name)} width={70} height={60} alt={new CardsUrls().getFullCardUrl(card.name)}></Image>
                                                         {j === 0 && <div className="opacity-0 group-hover:opacity-100 absolute group-hover:bottom-[-3.6rem] bottom-0 text-zinc-300 left-0 w-16 z-[-1] duration-200 ">{lobby?.users.find(user => user._id === e.playedBy)?.firstName || e.playedBy}</div>}
                                                     </div>
                                                 )
@@ -666,11 +666,11 @@ export default function Game() {
 
                         {
                             game.droppedCards.length > 1 &&
-                            <Image className="absolute left-1 top-1 rotate-1 " draggable={false} src={"/assets/cards/rummy/" + new CardsUrls().getCardUrl(game.droppedCards[game.droppedCards.length - 2].card.name)} width={140} height={100} alt="card"></Image>
+                            <Image className="absolute left-1 top-1 rotate-1 " draggable={false} src={"/" + new CardsUrls().getFullCardUrl(game.droppedCards[game.droppedCards.length - 2].card.name)} width={140} height={100} alt="card"></Image>
                         }
                         {
                             game.droppedCards.length > 0 &&
-                            <Image onClick={drawingFromDropped} className={"absolute right-1 bottom-1 rotate-12 border border-transparent hover:border-green-300 rounded-lg cursor-pointer z-50" + ((steps === 12 || steps === 20) ? ' ring-4 ring-red-500 ' : '')} src={"/assets/cards/rummy/" + new CardsUrls().getCardUrl(game.droppedCards[game.droppedCards.length - 1].card.name)} width={140} height={100} alt="card"></Image>
+                            <Image onClick={drawingFromDropped} className={"absolute right-1 bottom-1 rotate-12 border border-transparent hover:border-green-300 rounded-lg cursor-pointer z-50" + ((steps === 12 || steps === 20) ? ' ring-4 ring-red-500 ' : '')} src={"/" + new CardsUrls().getFullCardUrl(game.droppedCards[game.droppedCards.length - 1].card.name)} width={140} height={100} alt="card"></Image>
                         }
                         {
                             steps === 8 &&
@@ -708,12 +708,12 @@ export default function Game() {
                                             className={`${checkStepsInCards(card)} border-2 border-transparent group-hover:border-green-400 rounded-lg`}
                                             style={{ width: "6rem", maxWidth: "6rem" }} loading="eager"
                                             onDragEnd={() => { setDraggedCard(null) }} onDragStart={() => { startDrag(card) }} onDrop={() => { dropDrag(i) }} onDragOver={overDrag}
-                                            src={"/assets/cards/rummy/" + new CardsUrls().getCardUrl(card.name)} width={100} height={100} alt={new CardsUrls().getCardUrl(card.name)}>
+                                            src={"/" + new CardsUrls().getFullCardUrl(card.name)} width={100} height={100} alt={new CardsUrls().getFullCardUrl(card.name)}>
                                         </Image>
                                     </div>
                                     <div onDragOver={overDrag} className={`${draggedCard && JSON.stringify(draggedCard) !== JSON.stringify(card) && dragEnter === i ? "w-[5.8rem]" : "w-0"} bg-[#00000040] rounded-lg duration-100`}>
                                         {draggedCard &&
-                                            <Image className="opacity-75" loading="eager" onDrop={() => { dropDrag(i) }} onDragOver={overDrag} src={"/assets/cards/rummy/" + new CardsUrls().getCardUrl(draggedCard.name)} width={100} height={100} alt={new CardsUrls().getCardUrl(draggedCard.name)}></Image>
+                                            <Image className="opacity-75" loading="eager" onDrop={() => { dropDrag(i) }} onDragOver={overDrag} src={"/" + new CardsUrls().getFullCardUrl(draggedCard.name)} width={100} height={100} alt={new CardsUrls().getFullCardUrl(draggedCard.name)}></Image>
                                         }
                                     </div>
                                 </React.Fragment>

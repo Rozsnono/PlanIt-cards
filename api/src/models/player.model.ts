@@ -78,7 +78,8 @@ export const userSchema = new Schema(
             readonly: true,
             default: [],
             ref: "achivement",
-            unique: true
+            unique: true,
+            nullable: true
         },
         createdAt: {
             type: Date,
@@ -90,7 +91,7 @@ export const userSchema = new Schema(
             default: [],
             ref: "user",
         },
-        peddingFriends: {
+        pendingFriends: {
             type: Array<Schema.Types.ObjectId>(),
             default: [],
             ref: "user",

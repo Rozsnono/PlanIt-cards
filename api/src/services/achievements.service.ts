@@ -21,16 +21,19 @@ export class AchievementsService {
 }
 
 export async function checkAchievements(gameId: string, playerId: string) {
+    if (playerId.includes('bot')) return [];
     const achievements = await achievementsModel.achievementsModel.find({ "check": { $exists: true } });
     const achievedList = [];
 
     for (const achievement of achievements) {
-        const ach = new AchievementsService(achievement);
-        const isAchieved = await ach.function(gameId, playerId);
-        console.log(`Achievement ${ach.name} for player ${playerId} in game ${gameId} is ${isAchieved ? 'achieved' : 'not achieved'}`);
-        if (isAchieved) {
-            achievedList.push(achievement._id);
-        }
+        try {
+            const ach = new AchievementsService(achievement);
+            const isAchieved = await ach.function(gameId, playerId);
+            console.log(`Achievement ${ach.name} for player ${playerId} in game ${gameId} is ${isAchieved ? 'achieved' : 'not achieved'}`);
+            if (isAchieved) {
+                achievedList.push(achievement._id);
+            }
+        } catch { }
     }
     return achievedList;
 }
@@ -80,18 +83,19 @@ const achievementFunctions = {
         return true;
     },
     'WJ': async function (gameId: string, playerId: string) {
-        const game = await gameModel.gameModel.findOne({ _id: gameId });
+        const game = await gameHistoryModel.gameHistoryModel.findOne({ gameId: gameId });
         if (!game) return false;
-        let isNotJoker = true;
-        game.playedCards.forEach((cards) => {
-            if (cards.playedBy !== playerId) return;
-            const values = cards.cards.filter((card) => card.rank === 50);
-            if (values.length > 0) {
-                isNotJoker = false;
-                return;
+        const lastTurnPlayedCards = game.turns[game.turns.length - 1].playedCards;
+        lastTurnPlayedCards.forEach((cards: any) => {
+            if (cards.playedBy !== playerId) {
+            } else {
+                const values = cards.cards.filter((card: any) => card.rank === 50);
+                if (values.length > 0) {
+                    return false;
+                }
             }
         });
-        return isNotJoker;
+        return true;
     }
 
 }

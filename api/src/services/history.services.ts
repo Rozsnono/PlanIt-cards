@@ -7,6 +7,7 @@ import lobbyModel from "../models/lobby.model";
 import achievementsModel from "../models/achievements.model";
 import { GameChecker } from "./game.service";
 import { checkAchievements } from "./achievements.service";
+import { LogService } from "./log.service";
 
 
 export default class GameHistoryService {
@@ -84,7 +85,7 @@ export default class GameHistoryService {
                 droppedCards: game.droppedCards
             }
         };
-        // await this.gameHistory.replaceOne({ gameId: game_id }, gameHistory, { runValidators: true });
+        // await this.gameHistory.updateOne({ gameId: game_id }, gameHistory, { runValidators: true });
         return { message: "History saved!" };
     };
 
@@ -103,7 +104,7 @@ export default class GameHistoryService {
             if (!lobby.settings?.unranked) {
                 history.rank = new GameChecker().calculatePoints(positions, maxPoints);
             }
-            await this.gameHistory.replaceOne({ _id: history._id }, history, { runValidators: true });
+            await this.gameHistory.updateOne({ _id: history._id }, history, { runValidators: true });
         });
         return { message: "Position saved!" };
     }
@@ -164,13 +165,13 @@ export default class GameHistoryService {
                     droppedCards: game.droppedCards
                 }
             };
-            await this.gameHistory.replaceOne({ gameId: game_id }, history, { runValidators: true });
+            await this.gameHistory.updateOne({ gameId: game_id }, history, { runValidators: true });
             return { message: "History updated!", code: 201 };
         }
     }
 
     public async getStatsForHistory(game_id: string, maxPoints: number) {
-        const histories = await this.gameHistory.find({ gameId: game_id }).populate("users", "customId username settings firstName lastName").lean();
+        const histories = await this.gameHistory.find({ gameId: game_id }).populate("users", "customId username settings firstName lastName");
         if (!histories) return { error: ERROR.GAME_HISTORY_NOT_FOUND };
         const game = await this.game.findOne({ _id: game_id });
         if (!game) return { error: ERROR.GAME_NOT_FOUND };
@@ -178,24 +179,26 @@ export default class GameHistoryService {
         if (!lobby) return { error: ERROR.LOBBY_NOT_FOUND };
 
         const gc = new GameChecker();
-        const lastTurn: any = Object.values(histories[0].turns)[Object.values(histories[0].turns).length - 1];
-        const positions = gc.getPositions(lastTurn.playerCards);
+        const positions = gc.getPositions(game.playerCards);
         const rank = gc.calculatePoints(positions, maxPoints);
-
-        histories.forEach(async (history: any) => {
-            history.position = positions;
-            history.rank = rank;
-            history.turns = {
-                ...history.turns,
-                [Object.keys(history.turns).length + 1]: {
+        await Promise.all(histories.map(async (history: any) => {
+            const data = history.toObject();
+            data.position = positions;
+            data.rank = rank;
+            data.turns = {
+                ...data.turns,
+                [Object.keys(data.turns).length + 1]: {
                     playerCards: game.playerCards,
                     playedCards: game.playedCards,
                     droppedCards: game.droppedCards
                 }
             }
-            history.endedAt = new Date();
-            await this.gameHistory.replaceOne({ _id: history._id }, history, { runValidators: true });
-        });
+            data.endedAt = new Date();
+            const res = await this.gameHistory.updateOne({ _id: new mongoose.Types.ObjectId(history._id) }, data, { runValidators: true });
+            if (res.modifiedCount > 0) {
+                new LogService().consoleLog(`Game history updated for game ${game_id}`, "History");
+            }
+        }));
 
         positions.forEach(async (position: any) => {
             if (position.player.includes("bot")) return; // Skip bots
@@ -228,8 +231,7 @@ export default class GameHistoryService {
                 player.gamesStats.winRate = Math.round((player.gamesStats.totalWins / player.gamesStats.numberOfGames) * 100);
                 player.gamesStats.totalPlayTime = (new Date().getTime() - new Date(player.createdAt).getTime()) / 1000; // Total playtime in seconds
                 player.gamesStats.highestRank = Math.max(player.gamesStats.highestRank || 0, player.rank);
-                console.log(`Updated player ${player.customId} stats:`, player.gamesStats);
-                await this.user.replaceOne({ _id: player._id }, player, { runValidators: true });
+                await this.user.updateOne({ _id: player._id }, player, { runValidators: true });
             }
         })
         await game.deleteOne({ _id: game_id });
@@ -276,7 +278,7 @@ export class GameHistorySolitaire extends GameHistoryService {
                 position: lobby.users.map((user: any, index: number) => { return { player: user._id, pos: 0 } }),
                 rank: lobby.users.map((user: any, index: number) => { return { player: user._id, rank: 0 } }),
             }
-            await this.gameHistory.replaceOne({ _id: TMPgameHistory!._id }, newGameHistory, { runValidators: true });
+            await this.gameHistory.updateOne({ _id: TMPgameHistory!._id }, newGameHistory, { runValidators: true });
             return { message: "History saved!" };
         } else {
             const hasHistory = player.gameHistory.find((history) => history.toString() === game_id.toString());
@@ -320,7 +322,7 @@ export class GameHistorySolitaire extends GameHistoryService {
                 }
             };
 
-            await this.gameHistory.replaceOne({ gameId: game_id }, gameHistory, { runValidators: true });
+            await this.gameHistory.updateOne({ gameId: game_id }, gameHistory, { runValidators: true });
             return { message: "History saved!" };
         }
 
@@ -342,7 +344,7 @@ export class GameHistorySolitaire extends GameHistoryService {
             history.position = positions;
             history.rank = rank;
             history.endedAt = new Date();
-            await this.gameHistory.replaceOne({ _id: history._id }, history, { runValidators: true });
+            await this.gameHistory.updateOne({ _id: history._id }, history, { runValidators: true });
         });
 
         positions.forEach(async (position: any) => {
@@ -369,8 +371,7 @@ export class GameHistorySolitaire extends GameHistoryService {
                 player.gamesStats.winRate = Math.round((player.gamesStats.totalWins / player.gamesStats.numberOfGames) * 100);
                 player.gamesStats.totalPlayTime = (new Date().getTime() - new Date(player.createdAt).getTime()) / 1000; // Total playtime in seconds
                 player.gamesStats.highestRank = Math.max(player.gamesStats.highestRank || 0, player.rank);
-                console.log(`Updated player ${player.customId} stats:`, player.gamesStats);
-                await this.user.replaceOne({ _id: player._id }, player, { runValidators: true });
+                await this.user.updateOne({ _id: player._id }, player, { runValidators: true });
             }
         })
         await game.deleteOne({ _id: game_id });

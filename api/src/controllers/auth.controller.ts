@@ -43,7 +43,7 @@ export default class AuthController implements Controller {
         if (user) {
             const result = await bcrypt.compare(body.password, user.password);
             if (result && !user.isDeleted) {
-                const token = jwt.sign({ _id: user._id, username: user.username, firstName: user.firstName, lastName: user.lastName, auth: user.auth, gamesStats: user.gamesStats, rank: user.rank, email: user.email, customId: user.customId, peddingFriends: user.peddingFriends.length, settings: user.settings }, ACCESS_TOKEN_SECRET);
+                const token = jwt.sign({ _id: user._id, username: user.username, firstName: user.firstName, lastName: user.lastName, auth: user.auth, gamesStats: user.gamesStats, rank: user.rank, email: user.email, customId: user.customId, pendingFriends: user.pendingFriends.length, settings: user.settings }, ACCESS_TOKEN_SECRET);
                 res.send({ token: token });
             } else {
                 res.status(401).send({ error: ERROR.INVALID_USER });
@@ -68,7 +68,9 @@ export default class AuthController implements Controller {
                     backgroundColor: userS.getColorByInitials(body.firstName + body.lastName).background,
                     textColor: userS.getColorByInitials(body.firstName + body.lastName).text,
                 }
-                await this.user.replaceOne({ _id: user._id }, user, { runValidators: true });
+                body["achievements"] = [];
+
+                await this.user.updateOne({ _id: user._id }, user, { runValidators: true });
                 user = await this.user.findOne({ username: body.username });
                 if (user) {
                     const token = jwt.sign(
@@ -77,12 +79,12 @@ export default class AuthController implements Controller {
                             username: user.username,
                             firstName: user.firstName,
                             lastName: user.lastName,
-                            auth: user.auth, gamesStats:
-                                user.gamesStats,
+                            auth: user.auth,
+                            gamesStats: user.gamesStats,
                             rank: user.rank,
                             email: user.email,
                             customId: user.customId,
-                            peddingFriends: user.peddingFriends.length,
+                            pendingFriends: user.pendingFriends.length,
                             settings: user.settings,
                             gameInvites: user.gameInvites
                         }
@@ -136,7 +138,7 @@ export default class AuthController implements Controller {
             const result = await bcrypt.compare(body.oldpassword, user.password);
             if (result && !user.isDeleted) {
                 user.password = await bcrypt.hash(body.newpassword, 10);
-                await this.user.replaceOne({ _id: id }, user, { runValidators: true });
+                await this.user.updateOne({ _id: id }, user, { runValidators: true });
                 res.send({ message: "OK" });
             } else {
                 res.status(401).send({ error: ERROR.INVALID_USER });

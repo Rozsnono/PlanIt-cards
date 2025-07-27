@@ -10,6 +10,7 @@ import { useContext, useEffect, useState } from "react";
 import { UserContext } from "@/contexts/user.context";
 import Loading from "@/app/loading";
 import React from "react";
+import { ProfileIcon } from "@/assets/profile-pics";
 
 export default function End() {
 
@@ -63,7 +64,8 @@ export default function End() {
             <main className="w-1/2 h-full rounded-2xl flex flex-col p-6 gap-6">
                 <div className="w-full rounded-2xl border border border-purple-800/50 bg-black/40 p-3 gap-2 flex flex-col">
                     <div className="flex gap-4 p-4">
-                        <div style={{ backgroundColor: getColorByInitials(player).background, color: getColorByInitials(player).text }} className="min-w-16 min-h-16 w-16 h-16 bg-red-600 rounded-full flex items-center justify-center text-xl shadow-md shadow-zinc-500 hover:scale-105">{getUserInitials()}</div>
+                        <ProfileIcon settings={player.settings} size={4} className="p-1" />
+                        {/* <div style={{ backgroundColor: getColorByInitials(player).background, color: getColorByInitials(player).text }} className="min-w-16 min-h-16 w-16 h-16 bg-red-600 rounded-full flex items-center justify-center text-xl shadow-md shadow-zinc-500 hover:scale-105">{getUserInitials()}</div> */}
                         <div className="flex flex-col justify-center gap-1">
                             <div className="text-3xl font-bold text-zinc-300">{player!.firstName} {player!.lastName}</div>
                             <div className="text-purple-400 text-lg flex items-center gap-2">
@@ -91,7 +93,7 @@ export default function End() {
                         </div>
                         <div className="flex items-center gap-2 justify-between w-full">
                             <span className="text-zinc-300 text-lg font-bold">Rank:</span>
-                            <span className="text-purple-400 text-lg font-bold">{getRankName(player.rank).title}</span>
+                            <span className="text-purple-400 text-lg font-bold">{getRankName(player.rank + data.data.rank.find((p: any) => p.player == player._id).rank).title}</span>
                         </div>
                         <div className="flex items-center gap-2 justify-between w-full">
                             <span className="text-zinc-300 text-lg font-bold">Rank gain:</span>
@@ -235,7 +237,8 @@ function Players({ player, place, rankGained, isPlayer, isBot }: { player: any, 
                 <PlaceBadge place={place} />
             </div>
             <div className="flex items-center gap-2 col-span-2">
-                <div style={{ backgroundColor: getColorByInitials(player).background, color: getColorByInitials(player).text }} className="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center text-sm">{getUserInitials()}</div>
+                <ProfileIcon settings={player.settings} size={2} className="" />
+
                 <div className="text-lg font-bold text-zinc-300">{player!.firstName} {player!.lastName}</div>
                 {isPlayer &&
                     <div className="rounded-xl border border-purple-700/50 bg-purple-600/50 px-2 p-1 text-xs text-purple-200">You</div>

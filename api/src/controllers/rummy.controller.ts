@@ -84,9 +84,10 @@ export default class RummyController implements Controller {
         // set the game state
         body["shuffledCards"] = dealer.shuffleDeck();
         // deal the cards
-        body["playerCards"] = dealer.dealCards(lobby?.users.concat(lobby?.bots.map((bot: any) => { return bot._id }) as any), 14);
+        body["playerCards"] = dealer.dealCards(lobby?.users.concat(lobby?.bots.map((bot: any) => { return bot._id }) as any), 14, true);
         body["currentPlayer"] = { playerId: lobby?.users[0], time: new Date().getTime() };
         body["drawedCard"] = { lastDrawedBy: lobby?.users[0] };
+        body['secretSettings'] = { timeLimit: body.timeLimit || 180, gameType: "RUMMY" };
         body["_id"] = new mongoose.Types.ObjectId();
         const newGame = new this.game(body);
         await newGame.save();
@@ -132,7 +133,7 @@ export default class RummyController implements Controller {
             game.playerCards[playerId].push(game.droppedCards[game.droppedCards.length - 1].card);
             game.playedCards = playedCardsToReturn;
             game.droppedCards.shift();
-            await this.game.replaceOne({ _id: gameId }, game, { runValidators: true });
+            await this.game.updateOne({ _id: gameId }, game, { runValidators: true });
             res.status(403).send({ error: ERROR.MIN_51_VALUE });
             return;
         }
@@ -140,8 +141,7 @@ export default class RummyController implements Controller {
         const nextPlayer = this.nextPlayer(Object.keys(game.playerCards), game.currentPlayer.playerId.toString());
 
         game.currentPlayer = { playerId: nextPlayer, time: new Date().getTime() };
-        await this.game.replaceOne({ _id: gameId }, game, { runValidators: true });
-        await this.gameHistoryService.savingHistory(playerId, gameId)
+        await this.game.updateOne({ _id: gameId }, game, { runValidators: true });
         res.send({ message: "Next turn!" });
     };
 
@@ -181,7 +181,7 @@ export default class RummyController implements Controller {
             game.playerCards[playerId].push(game.droppedCards[game.droppedCards.length - 1]);
             game.playedCards = playedCardsToReturn;
             game.droppedCards.shift();
-            await this.game.replaceOne({ _id: gameId }, game, { runValidators: true });
+            await this.game.updateOne({ _id: gameId }, game, { runValidators: true });
             res.status(403).send({ error: ERROR.MIN_51_VALUE });
             return;
         }
@@ -189,7 +189,7 @@ export default class RummyController implements Controller {
 
         game.currentPlayer = { playerId: nextPlayer, time: new Date().getTime() };
 
-        await this.game.replaceOne({ _id: gameId }, game, { runValidators: true });
+        await this.game.updateOne({ _id: gameId }, game, { runValidators: true });
         await this.gameHistoryService.savingHistory(playerId, gameId);
         res.send({ message: "Next turn!" });
 
@@ -226,7 +226,7 @@ export default class RummyController implements Controller {
         game.playerCards[playerId] = game.playerCards[playerId].concat(dealer.drawCard(1));
         game.shuffledCards = dealer.deck;
         game.drawedCard.lastDrawedBy = playerId;
-        await this.game.replaceOne({ _id: gameId }, game, { runValidators: true });
+        await this.game.updateOne({ _id: gameId }, game, { runValidators: true });
         res.send({ message: "Card drawn!" });
     };
 
@@ -278,7 +278,7 @@ export default class RummyController implements Controller {
             game.droppedCards[game.droppedCards.length - 1].droppedBy = "";
         } catch { }
         game.drawedCard.lastDrawedBy = playerId;
-        await this.game.replaceOne({ _id: gameId }, game, { runValidators: true });
+        await this.game.updateOne({ _id: gameId }, game, { runValidators: true });
         res.send({ message: "Card drawn!" });
 
     }
@@ -337,7 +337,7 @@ export default class RummyController implements Controller {
         game.playerCards[playerId] = game.playerCards[playerId].filter((card: any) => JSON.stringify(card) !== JSON.stringify(body.droppedCard));
         game.droppedCards.push({ droppedBy: playerId, card: body.droppedCard });
 
-        await this.game.replaceOne({ _id: gameId }, game, { runValidators: true });
+        await this.game.updateOne({ _id: gameId }, game, { runValidators: true });
 
         res.send({ message: "Card dropped!" });
     }
@@ -397,7 +397,7 @@ export default class RummyController implements Controller {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         game.playerCards[playerId] = game.playerCards[playerId].filter((card: any) => !body.playedCards.find((c: any) => JSON.stringify(c) === JSON.stringify(card)));
 
-        await this.game.replaceOne({ _id: gameId }, game, { runValidators: true });
+        await this.game.updateOne({ _id: gameId }, game, { runValidators: true });
 
         res.send({ message: "Card played!" });
     }
@@ -492,7 +492,7 @@ export default class RummyController implements Controller {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         game.playerCards[playerId] = game.playerCards[playerId].filter((card: any) => JSON.stringify(body.placeCard) !== JSON.stringify(card));
 
-        await this.game.replaceOne({ _id: gameId }, game, { runValidators: true });
+        await this.game.updateOne({ _id: gameId }, game, { runValidators: true });
 
         res.send({ message: "Card placed!" });
     }

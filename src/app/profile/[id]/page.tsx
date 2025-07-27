@@ -246,6 +246,13 @@ export default function ProfilePage() {
     const profileService = new ProfileService();
     const gameHistoryService = new GameHistoryService();
 
+    function formatDates(dates: string[]): string[] {
+        return dates.map(date => {
+            const [month, day] = date.split('-').map(Number);
+            return `${['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][month - 1]}. ${day.toString().padStart(2, '0')}.`; // Format to MM-DD
+        });
+    }
+
     function getPlayer() {
         return profileService.getProfileData(player_id as string).then(res => res.json());
     }
@@ -294,7 +301,7 @@ export default function ProfilePage() {
                     }
 
                     <div className="w-full h-64">
-                        <LineChart labels={Object.keys(player.data.gamesStats.gamesPerDate)}
+                        <LineChart labels={formatDates(Object.keys(player.data.gamesStats.gamesPerDate))}
                             wins={Object.values(player.data.gamesStats.gamesPerDate).map((e: any) => e.wins)}
                             losses={Object.values(player.data.gamesStats.gamesPerDate).map((e: any) => e.losses)}
                         />
@@ -337,7 +344,7 @@ export default function ProfilePage() {
                                             type={game.type}
                                             date={game.date}
                                             link={`/games/${game.lobbyId}/${game.gameId}/${game.type ? game.type.toLowerCase() : ''}/replay`}
-                                            resultLink={`/games/${game.lobbyId}/${game.gameId}/end`}
+                                            resultLink={`/games/${game.lobbyId}/${game.gameId}/result`}
                                             isFinished={game.endedAt}
                                             isCorrupted={game.endedAt && game.position.length == 0 || !game.endedAt && !game.gameId}
                                         ></ReplayCard>
@@ -459,7 +466,7 @@ export default function ProfilePage() {
                     <div className="grid grid-cols-2 w-full gap-4">
                         <StatCard icon={<Icon name="game" stroke size={12} />} title={'Game played'} number={player.data.gamesStats.numberOfGames || 0} format={(num) => { return num.toString() }} />
                         <StatCard icon={<Icon name="trophy" stroke size={12} />} title={'Win rate'} number={player.data.gamesStats.winRate || 0} format={(num) => { return num.toString() + "%" }} />
-                        <StatCard icon={<Icon name="trophy" stroke size={12} />} title={'Highest rank'} number={player.data.gamesStats.highestRank || 0} format={(num) => { return num.toString() }} />
+                        <StatCard icon={<Icon name="trophy" stroke size={12} />} title={'Highest rank'} number={player.data.gamesStats.highestRank || 0} format={(num) => { return getRankName(num).title }} />
                         <StatCard icon={<Icon name="timer" stroke size={12} />} title={'Total playtime'} number={player.data.gamesStats.totalPlayTime || 0} format={(num) => {
                             const time = [Math.floor(num / (3600 * 24)), Math.floor(Math.floor(num % 3600) / 60), Math.floor((num % 3600) / 60)];
                             return time.join(':').replace(/(\d+):(\d+):(\d+)/, (_, d, h, m) => `${d > 0 ? d + "d" : ''} ${h}h ${d > 100 ? '' : m + 'm'}`);

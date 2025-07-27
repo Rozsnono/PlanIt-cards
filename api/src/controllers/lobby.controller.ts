@@ -140,7 +140,7 @@ export default class LobbyController implements Controller {
         const lobby = await this.lobby.findOne({ _id: id });
         if (lobby && lobby.users.find((p) => p.toString() === userid)) {
             lobby.chat.push(body);
-            await this.lobby.replaceOne({ _id: id }, lobby, { runValidators: true });
+            await this.lobby.updateOne({ _id: id }, lobby, { runValidators: true });
             res.send({ message: "OK" });
         } else {
             res.status(400).send({ error: ERROR.AN_ERROR_OCCURRED });
@@ -154,7 +154,7 @@ export default class LobbyController implements Controller {
         const lobby = await this.lobby.findOne({ _id: id });
         if (lobby && lobby.createdBy!.toString() === userid) {
             lobby.mutedPlayers.push(body.player_id);
-            await this.lobby.replaceOne({ _id: id }, lobby, { runValidators: true });
+            await this.lobby.updateOne({ _id: id }, lobby, { runValidators: true });
             res.send({ message: "OK" });
         } else {
             res.status(400).send({ error: ERROR.AN_ERROR_OCCURRED });
@@ -172,7 +172,7 @@ export default class LobbyController implements Controller {
                 return;
             }
             lobby.users = lobby.users.filter((p) => p.toString() !== body.player_id.toString());
-            await this.lobby.replaceOne({ _id: id }, lobby, { runValidators: true });
+            await this.lobby.updateOne({ _id: id }, lobby, { runValidators: true });
             res.send({ message: "OK" });
         } else {
             res.status(400).send({ error: ERROR.AN_ERROR_OCCURRED });
@@ -209,7 +209,7 @@ export default class LobbyController implements Controller {
             }
             await this.leftLobby(req);
             lobby.users.push(new mongoose.Types.ObjectId(userid));
-            await this.lobby.replaceOne({ _id: id }, lobby, { runValidators: true });
+            await this.lobby.updateOne({ _id: id }, lobby, { runValidators: true });
             const newLobby = await this.lobby.findOne({ _id: id }).populate("users", "customId username rank settings");
             res.send({ lobby: newLobby });
         } else {
@@ -224,7 +224,7 @@ export default class LobbyController implements Controller {
         if (lobby) {
             const userid = await getIDfromToken(req);
             lobby.users = lobby.users.filter((p) => p !== userid);
-            await this.lobby.replaceOne({ _id: id }, lobby, { runValidators: true });
+            await this.lobby.updateOne({ _id: id }, lobby, { runValidators: true });
             res.send({ message: "OK" });
         } else {
             res.status(400).send({ error: ERROR.AN_ERROR_OCCURRED });
@@ -254,11 +254,17 @@ export default class LobbyController implements Controller {
         }
         delete body._id; // Remove _id from body to prevent validation errors
         lobby.settings = body;
-        
-        lobby.bots = (lobby.settings!.fillWithRobots ? Array.from({ length: lobby.settings!.numberOfRobots }, (_, i) => { return { name: new Bot().getRobotName(lobby.settings!.robotsDifficulty as any, i), _id: 'bot' + i, customId: 'bot-' + i } }) : []) as any;
 
+        lobby.bots = (lobby.settings!.fillWithRobots ? Array.from({ length: lobby.settings!.numberOfRobots }, (_, i) => { return { name: new Bot().getRobotName(lobby.settings!.robotsDifficulty as any, i), _id: 'bot' + i, customId: 'bot-' + i } }) : []) as any;
+        if (lobby.settings?.cardType === "SOLITAIRE") {
+            lobby.settings.numberOfPlayers = 1;
+            lobby.bots = [];
+            lobby.settings.fillWithRobots = false;
+            lobby.settings.numberOfRobots = 0;
+            lobby.settings.robotsDifficulty = '';
+        } // Set number of players based on card type
         if (lobby) {
-            await this.lobby.replaceOne({ _id: id }, lobby, { runValidators: true });
+            await this.lobby.updateOne({ _id: id }, lobby, { runValidators: true });
             res.send({ message: "OK" });
         } else {
             res.status(400).send({ error: ERROR.AN_ERROR_OCCURRED });
@@ -272,7 +278,7 @@ export default class LobbyController implements Controller {
         if (lobby) {
             const pid = await getIDfromToken(req);
             lobby.mutedPlayers.push(new mongoose.Types.ObjectId(pid));
-            await this.lobby.replaceOne({ _id: id }, lobby, { runValidators: true });
+            await this.lobby.updateOne({ _id: id }, lobby, { runValidators: true });
             res.send({ message: "OK" });
         } else {
             res.status(400).send({ error: ERROR.AN_ERROR_OCCURRED });

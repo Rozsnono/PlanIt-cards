@@ -43,7 +43,7 @@ export default function Game() {
             const { playerCards, lobby, game, game_over } = gameService.getDataFromWebsocket(JSON.parse(event.data), socket, { _id: lobby_id, player_id: user!._id }) ?? {};
             console.log("Data from websocket");
             if (game_over) {
-                router.push(`/games/${lobby_id}/${game_id}/uno/end`);
+                router.push(`/games/${lobby_id}/${game_id}/uno/result`);
                 console.log("Game Over");
                 socket.close();
             }
@@ -145,7 +145,12 @@ export default function Game() {
                         <Image loading="eager" src={"/assets/icon.png"} width={300} height={300} draggable={false} alt="" className="opacity-10"></Image>
                     </div>
                 </div>
+
+                <div className="fixed bottom-4 left-4 text-rose-200/40">
+                    GameId: {game._id}
+                </div>
             </main>
+
 
         </main>
     )

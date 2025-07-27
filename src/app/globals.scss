@@ -24,7 +24,7 @@
   }
 }
 
-.orbitron{
+.orbitron {
   font-family: 'Orbitron', sans-serif;
   font-weight: 400;
   font-style: normal;
@@ -53,6 +53,9 @@
 //   display: block;
 // }
 
+.stroke-black {
+  -webkit-text-stroke: 2px black;
+}
 
 .min-h-screen {
   min-height: 89vh !important;
@@ -250,9 +253,10 @@ input[type='range']::-webkit-slider-thumb {
   box-shadow: 5px 5px 5px 0px #0000005f, -5px -5px 5px 0px #ffffff1f;
 }
 
-.animate-scale{
+.animate-scale {
   animation: animate-scale 2s ease-in-out infinite alternate;
 }
+
 @keyframes animate-scale {
   0% {
     transform: scale(1);
@@ -260,5 +264,21 @@ input[type='range']::-webkit-slider-thumb {
 
   100% {
     transform: scale(1.1);
+  }
+}
+
+.animate-float-in-t {
+  animation: animate-float-in-t 0.5s ease-in-out forwards;
+}
+
+@keyframes animate-float-in-t {
+  0% {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+
+  100% {
+    transform: translateY(0);
+    opacity: 1;
   }
 }

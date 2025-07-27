@@ -44,7 +44,7 @@ export default function Game() {
                                             e.cards.map((card: Icard, j: number) => {
                                                 return (
                                                     <div key={j} className="w-8 h-16 relative group cursor-pointer overflow-visible">
-                                                        <Image className={`card-animation w-16 max-w-16 rounded-md border border-transparent ${e.playedBy === user?._id ? ' group-hover:border-green-500' : ""} `} key={j} src={"/assets/cards/rummy/" + new CardsUrls().getCardUrl(card.name)} width={70} height={60} alt={new CardsUrls().getCardUrl(card.name)}></Image>
+                                                        <Image className={`card-animation w-16 max-w-16 rounded-md border border-transparent ${e.playedBy === user?._id ? ' group-hover:border-green-500' : ""} `} key={j} src={"/" + new CardsUrls().getFullCardUrl(card.name)} width={70} height={60} alt={new CardsUrls().getFullCardUrl(card.name)}></Image>
                                                         {j === 0 && <div className="opacity-0 group-hover:opacity-100 absolute group-hover:bottom-[-3.6rem] bottom-0 left-0 w-16 z-[-1] duration-200">{e.playedBy}</div>}
                                                     </div>
                                                 )
@@ -69,11 +69,11 @@ export default function Game() {
 
                         {
                             gameHistory.data.turns[turn].droppedCards.length > 1 &&
-                            <Image className="absolute left-1 top-1 rotate-1" draggable={false} src={"/assets/cards/rummy/" + new CardsUrls().getCardUrl(gameHistory.data.turns[turn].droppedCards[gameHistory.data.turns[turn].droppedCards.length - 2].card.name)} width={140} height={100} alt="card"></Image>
+                            <Image className="absolute left-1 top-1 rotate-1" draggable={false} src={"/" + new CardsUrls().getFullCardUrl(gameHistory.data.turns[turn].droppedCards[gameHistory.data.turns[turn].droppedCards.length - 2].card.name)} width={140} height={100} alt="card"></Image>
                         }
                         {
                             gameHistory.data.turns[turn].droppedCards.length > 0 &&
-                            <Image className="absolute right-1 bottom-1 rotate-12 border border-transparent hover:border-green-300 rounded-lg cursor-pointer" src={"/assets/cards/rummy/" + new CardsUrls().getCardUrl(gameHistory.data.turns[turn].droppedCards[gameHistory.data.turns[turn].droppedCards.length - 1].card.name)} width={140} height={100} alt="card"></Image>
+                            <Image className="absolute right-1 bottom-1 rotate-12 border border-transparent hover:border-green-300 rounded-lg cursor-pointer" src={"/" + new CardsUrls().getFullCardUrl(gameHistory.data.turns[turn].droppedCards[gameHistory.data.turns[turn].droppedCards.length - 1].card.name)} width={140} height={100} alt="card"></Image>
                         }
                     </div>
                 </div>
@@ -154,7 +154,7 @@ export default function Game() {
                             return (
                                 <React.Fragment key={i}>
                                     <div draggable className={`cursor-pointer w-12 overflow-visible hover:cursor-grab group rounded-lg duration-200`}>
-                                        <Image className="border-2 border-transparent group-hover:border-green-400 rounded-lg" style={{ width: "6rem", maxWidth: "6rem" }} loading="eager" src={"/assets/cards/rummy/" + new CardsUrls().getCardUrl(card.name)} width={100} height={100} alt={new CardsUrls().getCardUrl(card.name)}></Image>
+                                        <Image className="border-2 border-transparent group-hover:border-green-400 rounded-lg" style={{ width: "6rem", maxWidth: "6rem" }} loading="eager" src={"/" + new CardsUrls().getFullCardUrl(card.name)} width={100} height={100} alt={new CardsUrls().getFullCardUrl(card.name)}></Image>
                                     </div>
                                 </React.Fragment>
                             )
@@ -187,6 +187,10 @@ export default function Game() {
                     <div className="p-10 border-[2rem] border-[#ffffff10] rounded-full h-[30rem] w-[30rem] flex justify-center items-center">
                         <Image loading="eager" src={"/assets/icon.png"} width={300} height={300} draggable={false} alt="" className="opacity-10"></Image>
                     </div>
+                </div>
+
+                <div className="fixed bottom-4 left-4 text-rose-200/40">
+                    GameId: {gameHistory.data.gameId}
                 </div>
             </main>
 

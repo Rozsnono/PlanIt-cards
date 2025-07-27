@@ -96,7 +96,7 @@ export default function ProfilePage() {
                 <div className="w-full rounded-2xl border border border-purple-800/50 bg-black/40 p-3 gap-2 flex flex-col">
                     <div className="text-purple-600 text-lg font-bold flex items-center gap-2 p-2">
                         <Icon name="pedding" size={32}></Icon>
-                        Pedding friends
+                        Pending friends
                     </div>
 
                     <div className="border-b-[0.1rem] border-purple-800/50"></div>

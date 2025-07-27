@@ -53,6 +53,12 @@ export default function LobbyInputs({ label, id, value, checkbox, buttons, butto
                     </div>
                 </div>
             )
+        } else if (input && (min || max)) {
+            return (
+                <div className="w-full flex items-center">
+                    <input type={inputType} min={min} max={max} id={id} disabled={disabled} onChange={(e) => { onClick(e.target.value) }} value={value} className=" disabled:cursor-default bg-purple-700/50 border border-purple-500 text-gray-200 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" placeholder="12345" />
+                </div>
+            )
         } else if (input) {
             return (
                 <div className="w-full flex items-center">

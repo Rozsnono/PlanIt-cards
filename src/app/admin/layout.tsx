@@ -25,18 +25,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                     <Loader />
                     :
                     <div className="flex w-full gap-4 min-h-screen relative">
-                        <div className="hidden md:block h-fit">
-                            <Sidebar />
-                        </div>
-
                         <div className="w-full p-4 ">
-                            <div className="flex justify-between items-center pb-1">
-                                <div className="text-xl p-2 flex gap-2 items-center">
-                                    Admin Dashboard
-                                </div>
-                            </div>
-                            <hr />
-                            <div className="w-full 2xl:max-h-[82vh] max-h-[85vh] h-full overflow-y-scroll py-3">
+                            <div className="w-full overflow-y-auto py-3">
                                 {children}
                             </div>
                         </div>

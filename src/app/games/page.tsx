@@ -124,8 +124,11 @@ export default function Games() {
                     </React.Fragment>
                 ))}
                 {!state.isLoading && state.isError && <div className="text-center text-zinc-300">Error fetching data</div>}
-                {!state.isLoading && !state.isError && state.data.data.length === 0 && <div className="text-center text-zinc-300 w-full col-span-12">No lobby found</div>}
-            </main>
+                {!state.isLoading && !state.isError && state.data.data.length === 0 && <div className="text-center text-zinc-300 w-full col-span-12">
+                    <div className="text-2xl">No lobbies found</div>
+                    <div className="text-md mt-2">Create a new lobby or try again later.</div>    
+                </div>}
+            </main> 
 
             {
                 !state.isLoading && state.data &&

@@ -87,6 +87,7 @@ export default class SolitaireController implements Controller {
         body["playedCards"] = dealer.dealCard();
         body["shuffledCards"] = dealer.deck;
         body["playerCards"] = [];
+        body['secretSettings'] = { timeLimit: 180, gameType: "SOLITAIRE" };
         body["currentPlayer"] = { playerId: lobby?.users[0], time: 0 };
         body["_id"] = new mongoose.Types.ObjectId();
         const newGame = new this.game(body);
@@ -133,7 +134,7 @@ export default class SolitaireController implements Controller {
         game["playerCards"] = [];
         game["droppedCards"] = [];
         game["currentPlayer"] = { playerId: lobby?.users[0].toString(), time: 0 };
-        await this.game.replaceOne({ _id: gameId }, game, { runValidators: true });
+        await this.game.updateOne({ _id: gameId }, game, { runValidators: true });
         await this.GameHistorySolitaire.saveHistory(playerId, lobby.game_id, true);
         res.send({ message: "Game started!", game_id: game._id });
     };
@@ -172,7 +173,7 @@ export default class SolitaireController implements Controller {
         card.isJoker = true;
         game.droppedCards.push({ droppedBy: playerId, card: card });
         game.shuffledCards = dealer!.deck;
-        await this.game.replaceOne({ _id: gameId }, game, { runValidators: true });
+        await this.game.updateOne({ _id: gameId }, game, { runValidators: true });
         await this.GameHistorySolitaire.saveHistory(playerId, lobby.game_id);
         res.send({ message: "Card drawn successfully!" });
     };
@@ -241,7 +242,7 @@ export default class SolitaireController implements Controller {
         }
 
 
-        await this.game.replaceOne({ _id: gameId }, game, { runValidators: true });
+        await this.game.updateOne({ _id: gameId }, game, { runValidators: true });
         await this.GameHistorySolitaire.saveHistory(playerId, lobby.game_id);
         res.send({ message: "Card placed successfully!" });
     };
@@ -313,7 +314,7 @@ export default class SolitaireController implements Controller {
         game.currentPlayer = { playerId: game.currentPlayer.playerId, time: 0 };
 
 
-        await this.game.replaceOne({ _id: gameId }, game, { runValidators: true });
+        await this.game.updateOne({ _id: gameId }, game, { runValidators: true });
         await this.GameHistorySolitaire.saveHistory(playerId, lobby.game_id);
 
         if (!game.playedCards.map(c => c.cards).find(c => c.length != 0) && game.droppedCards.length === 0 && game.shuffledCards.length === 0) {
@@ -373,10 +374,10 @@ export default class SolitaireController implements Controller {
         game.shuffledCards = turn.shuffledCards;
 
         game.currentPlayer = { playerId: game.currentPlayer.playerId, time: 0 };
-        await this.game.replaceOne({ _id: gameId }, game, { runValidators: true });
+        await this.game.updateOne({ _id: gameId }, game, { runValidators: true });
 
         gameHistory.turns = Object.values(gameHistory.turns).filter((t, index: number) => index + 1 !== turns).map((turn: any, index: number) => { return { [index + 1]: turn } });
-        await this.gameHistory.replaceOne({ gameId: gameId }, gameHistory, { runValidators: true });
+        await this.gameHistory.updateOne({ gameId: gameId }, gameHistory, { runValidators: true });
 
         res.send({ message: "Card played successfully!" });
     }

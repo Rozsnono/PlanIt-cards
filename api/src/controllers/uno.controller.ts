@@ -9,6 +9,7 @@ import { Cards } from "../cards/cards";
 import mongoose from "mongoose";
 import { ERROR } from "../enums/error.enum";
 import GameHistoryService from "../services/history.services";
+import { GameChecker } from "../services/game.service";
 
 
 export default class UnoController implements Controller {
@@ -17,6 +18,7 @@ export default class UnoController implements Controller {
     public game = gameModel.gameModel;
     public lobby = lobbyModel.lobbyModel;
     private gameHistoryService = new GameHistoryService();
+    private gameService = new GameChecker();
 
 
     constructor() {
@@ -35,10 +37,6 @@ export default class UnoController implements Controller {
         // API route to drop a card
         this.router.put("/drop/:lobbyId/uno", hasAuth([Auth["UNO.PLAY"]]), (req, res, next) => {
             this.dropCard(req, res).catch(next);
-        });
-        // API route to force the next turn
-        this.router.put("/force-next/:lobbyId/uno", hasAuth([Auth["UNO.PLAY"]]), (req, res, next) => {
-            this.forcedNextTurn(req, res).catch(next);
         });
 
     }
@@ -72,10 +70,14 @@ export default class UnoController implements Controller {
         // set the game state
         body["shuffledCards"] = dealer.shuffleDeck();
         // deal the cards
-        body["playerCards"] = dealer.dealCards(lobby?.users.concat(lobby?.bots.map((bot: any) => { return bot._id }) as any), 8);
+        body["playerCards"] = dealer.dealCards(lobby?.users.concat(lobby?.bots.map((bot: any) => { return bot._id }) as any), 8, false);
         body["currentPlayer"] = { playerId: lobby?.users[0], time: new Date().getTime() };
         body["drawedCard"] = { lastDrawedBy: null };
-        body["droppedCards"] = [{ droppedBy: '', card: dealer.drawCard(1)[0] }];
+        body['secretSettings'] = { timeLimit: body.timeLimit || 60, gameType: "UNO" };
+        body["droppedCards"] = dealer.validStartCard().map((card: any) => {
+            return { droppedBy: '', card: card };
+        });
+        body["lastAction"] = { playerId: "", actions: 0, isUno: false };
         body["_id"] = new mongoose.Types.ObjectId();
         const newGame = new this.game(body);
         await newGame.save();
@@ -87,104 +89,15 @@ export default class UnoController implements Controller {
 
     private nextTurn = async (req: Request, res: Response) => {
         const lobbyId = req.params.lobbyId;
+        const lobby = await this.lobby.findOne({ _id: lobbyId });
+        if (!lobby) {
+            res.status(404).send({ error: ERROR.LOBBY_NOT_FOUND });
+            return;
+        }
+        const gameId = lobby.game_id;
         const playerId = await getIDfromToken(req);
-        const lobby = await this.lobby.findOne({ _id: lobbyId });
-        if (!lobby) {
-            res.status(404).send({ error: ERROR.LOBBY_NOT_FOUND });
-            return;
-        }
-        const gameId = lobby.game_id;
-        const game = await this.game.findOne({ _id: gameId });
-        if (!game) {
-            res.status(404).send({ error: ERROR.GAME_NOT_FOUND });
-            return;
-        }
-        // check if the player is the current player
-        if (playerId.toString() !== game.currentPlayer.playerId.toString()) {
-            res.status(403).send({ error: ERROR.NOT_YOUR_TURN });
-            return;
-        }
-
-        game.drawedCard.lastDrawedBy = "";
-
-        let nextPlayer = "";
-        switch (game.droppedCards[game.droppedCards.length - 1].card.rank) {
-            case 15:
-                //Reverse
-                game.playerCards = Object.fromEntries(
-                    Object.entries(game.playerCards).reverse()
-                );
-                nextPlayer = this.nextPlayer(Object.keys(game.playerCards), game.currentPlayer.playerId.toString());
-                game.droppedCards[game.droppedCards.length - 1].droppedBy = nextPlayer;
-                break;
-            case 16:
-                //Skip
-                nextPlayer = this.nextPlayer(Object.keys(game.playerCards), game.currentPlayer.playerId.toString());
-                game.droppedCards[game.droppedCards.length - 1].droppedBy = nextPlayer;
-                nextPlayer = this.nextPlayer(Object.keys(game.playerCards), nextPlayer.toString());
-                break;
-            case 18:
-                //Draw 2
-                nextPlayer = this.nextPlayer(Object.keys(game.playerCards), game.currentPlayer.playerId.toString());
-                game.playerCards[nextPlayer] = game.playerCards[nextPlayer].concat(new UnoDealer(game.shuffledCards).drawCard(2));
-                game.droppedCards[game.droppedCards.length - 1].droppedBy = nextPlayer;
-                nextPlayer = this.nextPlayer(Object.keys(game.playerCards), nextPlayer.toString());
-                break;
-            case 20:
-                //Wild Draw 4
-                nextPlayer = this.nextPlayer(Object.keys(game.playerCards), game.currentPlayer.playerId.toString());
-                game.playerCards[nextPlayer] = game.playerCards[nextPlayer].concat(new UnoDealer(game.shuffledCards).drawCard(4));
-                game.droppedCards[game.droppedCards.length - 1].droppedBy = nextPlayer;
-                nextPlayer = this.nextPlayer(Object.keys(game.playerCards), nextPlayer.toString());
-                break;
-            case 21:
-                //Wild Draw 4
-                nextPlayer = this.nextPlayer(Object.keys(game.playerCards), game.currentPlayer.playerId.toString());
-                game.playerCards[nextPlayer] = game.playerCards[nextPlayer].concat(new UnoDealer(game.shuffledCards).drawCard(4));
-                game.droppedCards[game.droppedCards.length - 1].droppedBy = nextPlayer;
-                nextPlayer = this.nextPlayer(Object.keys(game.playerCards), nextPlayer.toString());
-                break;
-            default:
-                nextPlayer = this.nextPlayer(Object.keys(game.playerCards), game.currentPlayer.playerId.toString());
-                break;
-        }
-        await this.lobby.replaceOne({ _id: lobbyId }, lobby, { runValidators: true });
-        game.currentPlayer = { playerId: nextPlayer, time: new Date().getTime() };
-        await this.game.replaceOne({ _id: gameId }, game, { runValidators: true });
-        await this.gameHistoryService.savingHistory(playerId, gameId)
+        await this.gameService.nextTurnUno(gameId, playerId);
         res.send({ message: "Next turn!" });
-    };
-
-    private forcedNextTurn = async (req: Request, res: Response) => {
-        const lobbyId = req.params.lobbyId;
-        const lobby = await this.lobby.findOne({ _id: lobbyId });
-        if (!lobby) {
-            res.status(404).send({ error: ERROR.LOBBY_NOT_FOUND });
-            return;
-        }
-        const gameId = lobby.game_id;
-        const game = await this.game.findOne({ _id: gameId });
-        if (!game) {
-            res.status(404).send({ error: ERROR.GAME_NOT_FOUND });
-            return;
-        }
-        const playerId = game.currentPlayer.playerId;
-        // check if the player is the current player
-        if (playerId.toString() !== game.currentPlayer.playerId.toString()) {
-            res.status(403).send({ error: ERROR.NOT_YOUR_TURN });
-            return;
-        }
-
-        game.playerCards[playerId] = game.playerCards[playerId].concat(new UnoDealer(game.shuffledCards).drawCard(1));
-        game.droppedCards[game.droppedCards.length - 1].droppedBy = playerId;
-
-        const nextPlayer = this.nextPlayer(Object.keys(game.playerCards), game.currentPlayer.playerId.toString());
-        game.currentPlayer = { playerId: nextPlayer, time: new Date().getTime() };
-
-        await this.game.replaceOne({ _id: gameId }, game, { runValidators: true });
-        await this.gameHistoryService.savingHistory(playerId, gameId);
-        this.nextTurn(req, res);
-
     }
 
     private drawCard = async (req: Request, res: Response) => {
@@ -218,12 +131,12 @@ export default class UnoController implements Controller {
         game.playerCards[playerId] = game.playerCards[playerId].concat(dealer.drawCard(1));
         if (game.shuffledCards.length === 0) {
             // reshuffle the dropped cards into the deck
-            game.shuffledCards = dealer.reShuffleDeck(game.droppedCards.slice(game.droppedCards.length - 1).map((d: any) => d.card));
+            game.shuffledCards = dealer.reShuffleDeck(game.droppedCards.slice(game.droppedCards.length - 2).map((d: any) => d.card));
         }
         game.droppedCards[game.droppedCards.length - 1].droppedBy = playerId;
         game.shuffledCards = dealer.deck;
         game.drawedCard.lastDrawedBy = playerId;
-        await this.game.replaceOne({ _id: gameId }, game, { runValidators: true });
+        await this.game.updateOne({ _id: gameId }, game, { runValidators: true });
 
         this.nextTurn(req, res);
     };
@@ -294,8 +207,62 @@ export default class UnoController implements Controller {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         game.droppedCards.push({ droppedBy: playerId, card: body.droppedCard });
 
-        await this.game.replaceOne({ _id: gameId }, game, { runValidators: true });
+        const lastDroppedCard = game.droppedCards[game.droppedCards.length - 1].card.rank;
+        game.lastAction = { playerId: playerId, actions: lastDroppedCard > 24 && lastDroppedCard < 30 ? lastDroppedCard : 0, isUno: body.isUno || false };
 
+        await this.game.updateOne({ _id: gameId }, game, { runValidators: true });
         this.nextTurn(req, res);
     }
+
+    private checkGame = async (req: Request, res: Response) => {
+        const lobbyId = req.params.lobbyId;
+        const playerId = await getIDfromToken(req);
+        const lobby = await this.lobby.findOne({ _id: lobbyId });
+
+        if (!lobby) {
+            res.status(404).send({ error: ERROR.LOBBY_NOT_FOUND });
+            return;
+        }
+
+        if (!lobby.users.find((player) => player.toString() == playerId)) {
+            res.status(403).send({ error: ERROR.NOT_IN_LOBBY });
+            return;
+        }
+
+        const gameId = lobby.game_id;
+        const game = await this.game.findOne({ _id: gameId });
+
+        if (!game) {
+            res.status(404).send({ error: ERROR.GAME_NOT_FOUND });
+            return;
+        }
+
+        const lastAction = game.lastAction;
+        if (!lastAction || lastAction.actions == 0 || (lastAction.playerId && lastAction.playerId.toString() === playerId.toString())) {
+            res.send({ skip: false, action: "Your turn" });
+        } else {
+            switch (lastAction.actions) {
+                case 15:
+                    res.send({ skip: false, action: "Reversed" });
+                    return;
+                case 16:
+                    res.send({ skip: true, action: "Skip" });
+                    return;
+                case 18:
+                    res.send({ skip: true, action: "Draw 2" });
+                    return;
+                case 20:
+                    res.send({ skip: true, action: "Draw 4" });
+                    return;
+                case 21:
+                    res.send({ skip: true, action: "Draw 4" });
+                    return;
+                default:
+                    res.send({ skip: false, action: "Not your turn" });
+                    return;
+            }
+        }
+
+        res.send(game);
+    };
 }

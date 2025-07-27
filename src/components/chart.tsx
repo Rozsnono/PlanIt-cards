@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler, } from "chart.js";
+import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler, TimeScale, } from "chart.js";
 import { Line } from "react-chartjs-2";
 
 export default function Chart({ data }: { data: any }) {
@@ -32,7 +32,28 @@ export default function Chart({ data }: { data: any }) {
 
 export function LineChart({ labels, wins, losses }: { labels: string[], wins: number[], losses: number[] }) {
 
-    ChartJS.register(CategoryScale, LinearScale, Title, Tooltip, Legend, PointElement, LineElement, Filler);
+    const ref = React.useRef<any>(null);
+
+    const [gradient, setGradient] = React.useState<{ wins: CanvasGradient | null, losses: CanvasGradient | null }>({ wins: null, losses: null });
+
+    React.useEffect(() => {
+        if (ref.current) {
+            const chartInstance = ref.current;
+            const ctx = chartInstance.ctx;
+
+            const gradient = ctx.createLinearGradient(0, 0, 0, chartInstance.height);
+            gradient.addColorStop(0, 'rgba(0, 201, 81, 0.2)'); // Light green
+            gradient.addColorStop(1, 'rgba(0, 201, 81, 0)'); // Transparent green
+
+            const gradientLoss = ctx.createLinearGradient(0, 0, 0, chartInstance.height);
+            gradientLoss.addColorStop(0, 'rgba(251, 44, 54, 0.7)'); // Light red
+            gradientLoss.addColorStop(1, 'rgba(251, 44, 54, 0)'); // Transparent red
+
+            setGradient({ wins: gradient, losses: gradientLoss });
+        }
+    }, [labels, wins, losses]);
+
+    ChartJS.register(CategoryScale, LinearScale, Title, Tooltip, Legend, PointElement, LineElement, Filler, TimeScale);
 
     function getDateFromString(dateString: string): Date {
         const [month, day] = dateString.split('-').map(Number);
@@ -47,19 +68,25 @@ export function LineChart({ labels, wins, losses }: { labels: string[], wins: nu
                 label: 'Wins',
                 data: wins,
                 borderColor: '#00c951',
+                backgroundColor: gradient.wins,
                 borderWidth: 2,
                 pointRadius: 4,
                 pointHoverRadius: 4,
-                fill: false,
+                fill: true,
+                tension: 0.4, // Smooth line
+                cubicInterpolationMode: 'monotone', // Smooth interpolation
             },
             {
                 label: 'Losses',
                 data: losses,
                 borderColor: '#fb2c36',
+                backgroundColor: gradient.losses,
                 borderWidth: 2,
                 pointRadius: 4,
                 pointHoverRadius: 4,
-                fill: false,
+                fill: true,
+                tension: 0.4, // Smooth line
+                cubicInterpolationMode: 'monotone', // Smooth interpolation
             }
         ],
     };
@@ -84,7 +111,7 @@ export function LineChart({ labels, wins, losses }: { labels: string[], wins: nu
                 callbacks: {
                     title: (tooltipItems: any) => {
                         const item = tooltipItems[0];
-                        return `${getDateFromString(item.label).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+                        return `${item.label}`;
                     },
                     label: function (context: any) {
                         const label = context.dataset.label || '';
@@ -96,9 +123,18 @@ export function LineChart({ labels, wins, losses }: { labels: string[], wins: nu
         },
         scales: {
             x: {
-                display: false,
+                display: true,
                 grid: {
                     display: false
+                },
+                ticks: {
+                    color: '#ffffff90',
+                    font: {
+                        size: 10,
+                    },
+                    autoSkip: true,
+                    maxTicksLimit: 10,
+                    maxRotation: 0,
                 },
             },
             y: {
@@ -116,6 +152,6 @@ export function LineChart({ labels, wins, losses }: { labels: string[], wins: nu
     };
 
     return (
-        <Line data={data} options={options} />
+        <Line ref={ref} data={data} options={options} />
     )
 }

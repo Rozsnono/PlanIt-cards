@@ -340,22 +340,22 @@ export class Cards {
             { name: "7", rank: 7, value: 7 },
             { name: "8", rank: 8, value: 8 },
             { name: "9", rank: 9, value: 9 },
-            { name: "R", rank: 15, value: 10 },
-            { name: "S", rank: 16, value: 10 },
-            { name: "D2", rank: 18, value: 20 }
+            { name: "R", rank: 25, value: 10 },
+            { name: "S", rank: 26, value: 10 },
+            { name: "D2", rank: 27, value: 20 }
         ];
 
         for (let pack = 0; pack < 2; pack++) {
             for (const suit of suits) {
-                for (const { name, rank } of ranks) {
-                    uno.push({ name: `${suit}${name}`, rank, suit, pack });
+                for (const { name, rank, value } of ranks) {
+                    uno.push({ name: `${suit}${name}`, rank, suit, pack, value });
                 }
             }
 
-            uno.push({ name: "W4", rank: 20, isJoker: true, pack, value: 50 });
-            uno.push({ name: "W4", rank: 21, isJoker: true, pack, value: 50 });
-            uno.push({ name: "WC", rank: 23, isJoker: true, pack, value: 50 });
-            uno.push({ name: "WC", rank: 24, isJoker: true, pack, value: 50 });
+            uno.push({ name: "W4", rank: 28, isJoker: true, pack, value: 50 });
+            uno.push({ name: "W4", rank: 28, isJoker: true, pack, value: 50 });
+            uno.push({ name: "WC", rank: 30, isJoker: true, pack, value: 50 });
+            uno.push({ name: "WC", rank: 30, isJoker: true, pack, value: 50 });
         }
 
         return uno as any;
@@ -432,27 +432,4 @@ export class Cards {
 
         return cards;
     }
-
-    private getSchnappsCards() {
-        const schnapsen = [];
-        const suits = ["A", "B", "H", "L"];
-        const ranks = [
-            { name: "U", rank: 1, value: 2 },
-            { name: "O", rank: 2, value: 3 },
-            { name: "K", rank: 3, value: 4 },
-            { name: "T", rank: 10, value: 10 },
-            { name: "A", rank: 11, value: 11 },
-        ];
-
-        for (let pack = 1; pack <= 2; pack++) {
-            for (const suit of suits) {
-                for (const { name, rank, value } of ranks) {
-                    schnapsen.push({ name: `${name}${suit}`, rank, suit, pack: pack, value });
-                }
-            }
-        }
-
-        return schnapsen;
-    }
-
 }

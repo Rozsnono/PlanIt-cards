@@ -75,7 +75,7 @@ export default function LobbyId() {
 
     async function startLobbyGame() {
         const type: 'rummy' | 'uno' = lobby!.settings.cardType.toLowerCase() as 'rummy' | 'uno';
-        const res = await new GameService(type).startGame(lobby_id as string);
+        const res = await new GameService(type).startGame(lobby_id as string, form.timeLimit);
         if (res.error) {
             console.error(res.error);
         }

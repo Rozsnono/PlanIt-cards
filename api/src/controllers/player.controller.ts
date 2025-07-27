@@ -83,7 +83,7 @@ export default class PlayerController implements Controller {
             res.status(409).send({ error: ERROR.AN_ERROR_OCCURRED });
             return;
         }
-        friend.peddingFriends.push(new mongoose.Types.ObjectId(player._id));
+        friend.pendingFriends.push(new mongoose.Types.ObjectId(player._id));
         await friend.save();
         res.send({ message: "Friend request sent successfully!" });
     }
@@ -153,7 +153,7 @@ export default class PlayerController implements Controller {
 
         player.friends.push(new mongoose.Types.ObjectId(friend._id));
         friend.friends.push(new mongoose.Types.ObjectId(player._id));
-        player.peddingFriends = player.peddingFriends.filter((f) => f.toString() !== friend._id.toString());
+        player.pendingFriends = player.pendingFriends.filter((f) => f.toString() !== friend._id.toString());
         await player.save();
         await friend.save();
 
@@ -183,6 +183,9 @@ export default class PlayerController implements Controller {
             textColor: userS.getColorByInitials(body.firstName + body.lastName).text,
         }
         body["password"] = await bcrypt.hash(body["password"], 10);
+        body["achievements"] = null;
+
+        console.log(body);
 
         const newPlayer = new this.user({
             _id: new mongoose.Types.ObjectId(),
@@ -193,6 +196,7 @@ export default class PlayerController implements Controller {
             username: body.username,
             settings: body.settings,
             password: body.password,
+            achievements: body.achievements,
         });
 
         await newPlayer.save();
@@ -206,7 +210,6 @@ export default class PlayerController implements Controller {
         const query = req.query;
         const paging: { page: number, limit: number } = { page: 1, limit: 14 };
         const _id = await getIDfromToken(req);
-        console.log(_id);
 
         if (query.page) {
             paging.page = parseInt(query.page.toString()) || 1;
@@ -231,6 +234,8 @@ export default class PlayerController implements Controller {
             username: player.username,
             rank: player.rank,
             settings: player.settings,
+            gamesStats: player.gamesStats,
+            createdAt: player.createdAt,
         }));
 
         res.send({
@@ -252,7 +257,7 @@ export default class PlayerController implements Controller {
             return;
         }
 
-        if( tokenId !== player._id.toString()) {
+        if (tokenId !== player._id.toString()) {
             res.status(403).send({ error: ERROR.INVALID_AUTH });
             return;
         }

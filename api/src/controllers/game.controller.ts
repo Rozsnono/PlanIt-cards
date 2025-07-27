@@ -50,7 +50,16 @@ export default class GameController implements Controller {
             this.nextAdminGame(req, res).catch(next);
         });
 
+        this.router.get("/games/all", hasAuth([Auth["ADMIN"]]), (req, res, next) => {
+            this.getAllGames(req, res).catch(next);
+        });
+
     }
+
+    private getAllGames = async (req: Request, res: Response) => {
+        const games = await this.game.find({});
+        res.send(games);
+    };
 
     private nextAdminGame = async (req: Request, res: Response) => {
         const id = req.params.id;

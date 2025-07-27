@@ -4,7 +4,7 @@ export class AdminService {
     constructor() { }
 
     public async getAllGames() {
-        const response = await fetch(`/api/lobby/get/games`, {
+        const response = await fetch(`/api/games/all`, {
             method: "GET",
             headers: {
                 'Content-Type': 'application/json',
@@ -41,6 +41,18 @@ export class AdminService {
 
         return await response.json();
 
+    }
+
+    public async deleteGame(id: string) {
+        const response = await fetch(`/api/delete/game/${id}`, {
+            method: "DELETE",
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${getCookie("token")}`
+            },
+        });
+
+        return await response.json();
     }
 
     public async nextTurn(id: string, playerId: string) {

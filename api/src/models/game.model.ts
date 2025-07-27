@@ -13,12 +13,13 @@ const gameSchema = new Schema(
             default: null,
         },
         secretSettings: {
-            readonly: true,
             type: {
                 timeLimit: { type: Number, required: true, default: 180 },
+                gameType: { type: String, required: true, default: "RUMMY" },
             },
             default: {
-                timeLimit: 180
+                timeLimit: 180,
+                gameType: "RUMMY"
             }
         },
         playerCards: {
@@ -58,7 +59,7 @@ const gameSchema = new Schema(
         lastAction: {
             type: {
                 playerId: { type: String },
-                actions: { type: String },
+                actions: { type: Number },
                 isUno: { type: Boolean, default: false }
             },
             default: null,

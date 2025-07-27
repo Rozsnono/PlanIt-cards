@@ -11,12 +11,13 @@ import { GameService, UnoService } from "@/services/game.service";
 import { Timer } from "@/services/timer.service";
 import Image from "next/image"
 import { useParams, useRouter } from "next/navigation";
-import React, { useRef } from "react";
+import React, { use, useRef } from "react";
 import { useContext, useEffect, useState } from "react";
 import CardsUrls from "@/contexts/cards.context";
 import ColorPicker from "@/components/color.picker";
 import GameUser, { GameBot } from "@/components/user/game.user.component";
 import { IP } from "@/enums/ip.enum";
+import TurnDisplayComponent from "@/components/game/turn.display.component";
 
 const gameService = new UnoService();
 const timerClass = new Timer();
@@ -45,48 +46,62 @@ export default function Game() {
         });
 
         socket.addEventListener('message', async (event) => {
-            const { playerCards, lobby, game, game_over, refresh } = gameService.getDataFromWebsocket(JSON.parse(event.data), socket, { _id: lobby_id, player_id: user!._id }) ?? {};
-            if (refresh) {
-                return;
-            }
-            if (game_over) {
-                setIsGameOver(true);
-                console.log("Game Over");
-                socket.close();
-                return;
-            }
-            if (!game && !game_over && !isGameOver) {
-                router.push(`/games/${lobby_id}`);
-                socket.close();
-                return;
-            }
-            if (lobby) {
-                setLobby(lobby);
-            }
-            if (game) {
-                setGame(game);
-                if (game.currentPlayer.playerId === user?._id) {
-                    console.log("Your turn");
-                    const res = await gameService.checkPlayerTurn(lobby._id);
-                    if(res.skip){
-                        await gameService.nextTurn(lobby._id);
+            try {
+                const { playerCards, lobby, game, game_over, refresh } = gameService.getDataFromWebsocket(JSON.parse(event.data), socket, { _id: lobby_id, player_id: user!._id }) ?? {};
+                if (refresh) {
+                    return;
+                }
+                if (game_over) {
+                    if (game) {
+                        setGame(game);
                     }
-                    setSelectedCards(playerCards.filter((card: any) => { return game.droppedCards[game.droppedCards.length - 1].card.suit === card.suit || game.droppedCards[game.droppedCards.length - 1].card.rank === card.rank || card.isJoker }));
-                } else {
-                    setSelectedCards([]);
+                    setIsGameOver(true);
+                    console.log("Game Over");
+                    socket.close();
+                    return;
                 }
-                if (game.currentPlayer == user?._id) {
-                    timerClass.start();
+                if (!lobby && !game) {
+                    router.push(`/games`);
+                    socket.close();
+                    return;
                 }
+                if (!game && !lobby.game_id && !game_over && !isGameOver) {
+                    router.push(`/games/${lobby_id}`);
+                    socket.close();
+                    return;
+                }
+                if (lobby) {
+                    setLobby(lobby);
+                }
+                if (game) {
+                    setGame(game);
+                    if (game.currentPlayer.playerId === user?._id) {
+                        console.log(game.lastAction)
+                        if (game.lastAction && game.lastAction.playerId !== user?._id && game.lastAction.actions >= 25) {
+                            //TODO
+                        } else {
+                            setSelectedCards(playerCards.filter((card: any) => { return game.droppedCards[game.droppedCards.length - 1].card.suit === card.suit || game.droppedCards[game.droppedCards.length - 1].card.rank === card.rank || card.isJoker }));
+                        }
+                    } else {
+                        setSelectedCards([]);
+                    }
+                    if (game.currentPlayer == user?._id) {
+                        timerClass.start();
+                    }
+                }
+                if (playerCards) {
+                    const tmpDrawedCard = game.playerCards.find((e: Icard) => playerCardsRef.current.filter((pc: Icard) => { return JSON.stringify(pc) === JSON.stringify(e) }).length == 0) || null;
+                    if (game.currentPlayer.playerId === user?._id && game.drawedCard.lastDrawedBy === user?._id) {
+                        setDrawedCard(tmpDrawedCard);
+                    }
+                    setPlayerCards(playerCards);
+                    playerCardsRef.current = playerCards;
+                }
+            } catch {
+                router.push(`/games`);
+                socket.close();
             }
-            if (playerCards) {
-                const tmpDrawedCard = game.playerCards.find((e: Icard) => playerCardsRef.current.filter((pc: Icard) => { return JSON.stringify(pc) === JSON.stringify(e) }).length == 0) || null;
-                if (game.currentPlayer.playerId === user?._id && game.drawedCard.lastDrawedBy === user?._id) {
-                    setDrawedCard(tmpDrawedCard);
-                }
-                setPlayerCards(playerCards);
-                playerCardsRef.current = playerCards;
-            }
+
         });
 
         return () => {
@@ -135,7 +150,7 @@ export default function Game() {
         if (!card) return;
         if (!user) return;
         setCPshow(false);
-        const res = await gameService.dropCard(lobby!._id, { droppedCard: card, color: color });
+        const res = await gameService.dropCard(lobby!._id, { droppedCard: card, color: color, isUno: isUno });
         setError(res.error);
         setDraggedCard(null);
     }
@@ -160,9 +175,17 @@ export default function Game() {
     }
 
 
-    const [timer, setTimer] = useState(180);
+    const [timer, setTimer] = useState(60);
+    const [isUno, setIsUno] = useState(false);
+
+    const [displayIsUno, setDisplayIsUno] = useState(false);
+
+    const [gameSettings, setGameSettings] = useState(game?.secretSettings || { timeLimit: 60 });
 
     useEffect(() => {
+        if (!game) return;
+        if (game.currentPlayer.playerId !== user?._id) return;
+        setGameSettings(game.secretSettings);
         const interval = setInterval(() => {
             try {
                 setTimer(parseInt(((new Date().getTime() - game.currentPlayer.time) / 1000).toFixed(0)));
@@ -171,13 +194,21 @@ export default function Game() {
         return () => clearInterval(interval);
     }, [game]);
 
+    useEffect(() => {
+        if (!game) return;
+        setDisplayIsUno(game.lastAction.isUno || false);
+        setTimeout(() => {
+            setDisplayIsUno(false);
+            setIsUno(false);
+        }, 1000);
+    }, [game && game.lastAction.isUno]);
+
     const [error, setError] = useState<string | null>(null);
 
     if (!game) return <Loader></Loader>
 
     return (
-        <main className="flex w-full h-full rounded-md p-3 relative">
-
+        <main className="flex w-full h-full rounded-md p-3 relative select-none">
             {
                 isGameOver &&
                 <div className="w-full h-full absolute z-[100] bg-zinc-900/70 top-0 left-0 flex flex-col justify-center items-center">
@@ -188,7 +219,7 @@ export default function Game() {
                         <div className="text-sm text-zinc-400 font-bold p-4 rounded-md">
                             Checkout the game history and statistics.
                         </div>
-                        <div onClick={() => { router.push(`/games/${lobby_id}/${game_id}/end`) }} className="text-zinc-200 p-2 px-4 rounded-md border border-zinc-300 hover:bg-zinc-300 focus:bg-zinc-300 hover:text-zinc-800 flex items-center gap-1 cursor-pointer">
+                        <div onClick={() => { router.push(`/games/${lobby_id}/${game_id}/result`) }} className="text-zinc-200 p-2 px-4 rounded-md border border-zinc-300 hover:bg-zinc-300 focus:bg-zinc-300 hover:text-zinc-800 flex items-center gap-1 cursor-pointer">
                             <Icon name="game" stroke></Icon>
                             Statistics
                         </div>
@@ -200,6 +231,8 @@ export default function Game() {
                 {
                     error && <ErrorModal errorCode={error} closeError={() => { setError(null) }}></ErrorModal>
                 }
+                <TurnDisplayComponent playerName={lobby!.users.find((u) => u._id === game.currentPlayer.playerId)?.username || null} />
+                <TurnDisplayComponent playerName={lobby!.bots.find((u) => u._id === game.currentPlayer.playerId)?.name || null} />
                 <div className="flex justify-center items-center w-full h-full absolute gap-7">
 
                     <div className="flex relative z-50" onDragOver={overDrag} onDrop={checkCard} >
@@ -225,7 +258,7 @@ export default function Game() {
                 <div className="absolute top-0 left-2 h-full flex flex-col justify-between items-center">
                     <div></div>
                     {
-                        lobby?.users.filter((u) => { return u._id !== user?._id }).slice(0, lobby?.users.length / 2).map((user, j) => {
+                        lobby?.users.filter((u) => { return u._id !== user?._id }).slice(0, lobby?.users.length / 2).reverse().map((user, j) => {
                             return (
                                 <GameUser key={j} user={user} currentPlayer={game.currentPlayer.playerId}></GameUser>
                             )
@@ -233,7 +266,7 @@ export default function Game() {
                     }
 
                     {
-                        lobby?.bots.slice(0, lobby?.bots.length / 2).map((bot, j) => {
+                        lobby?.bots.slice(0, lobby?.bots.length / 2).reverse().map((bot, j) => {
                             return (
                                 <GameBot key={j} bot={bot} currentPlayer={game.currentPlayer.playerId}></GameBot>
                             )
@@ -285,25 +318,31 @@ export default function Game() {
                     }
 
                     {
-                        game.currentPlayer.playerId == user?._id && !isGameOver &&
-                        <div key={timer} style={{ width: `${Math.floor(75 - (timer / 180) * 75)}%`, backgroundColor: `${timer > 150 ? '#ec003f' : '#9ae600'}` }} className="absolute -top-10 h-4 bg-emerald-500 rounded-xl duration-200">
+                        game.currentPlayer.playerId == user?._id && !isGameOver && game.lastAction.actions < 25 && game.lastAction.playerId !== user?._id &&
+                        <div style={{ width: `${Math.floor(75 - (timer / gameSettings.timeLimit) * 75)}%`, backgroundColor: `${timer > (gameSettings.timeLimit - (gameSettings.timeLimit / 6)) ? '#ec003f' : '#9ae600'}` }} className="absolute -top-10 h-4 bg-emerald-500 rounded-xl duration-500">
                             <div className="absolute -top-6 w-full flex justify-center items-center text-sm text-zinc-200">
-                                {180 - timer}s
+                                {gameSettings.timeLimit - timer < 0 ? 0 : gameSettings.timeLimit - timer}s
                             </div>
                         </div>
                     }
 
                     {
-                        nextTurnLoader &&
-                        <div key={timer} className={`absolute right-10 h-[5rem] w-[5rem] justify-center items-center flex rounded-full border-2 border-lime-300 bottom-4`}
-                            style={{ background: `conic-gradient(#bef264 ${360 - ((0) * 360 / 180)}deg, transparent 0deg)` }}
-                        >
-                            <div className="w-[4.5rem] h-[4.5rem] bg-rose-900 rounded-full border-2 flex items-center justify-center text-lime-200 border-lime-300 text-xl cursor-pointer group duration-100">
-                                <span className="opacity-100 group-hover:flex flex duration-100 animate-spin"><Icon name="loader" size={44}></Icon></span>
+                        playerCards.length == 2 && game.currentPlayer.playerId == user?._id && !isGameOver &&
+                        <div onClick={() => { setIsUno(true) }} className={`absolute right-10 justify-center items-center flex rounded-full bottom-4`}>
+                            <div className={`w-[6rem] h-[6rem] bg-rose-900 rounded-full ring-[0.3rem] ring-lime-300 flex items-center justify-center text-xl group duration-100  group ${isUno ? 'shadow-lg shadow-white cursor-default' : 'text-lime-400 hover:scale-110 cursor-pointer '}`}>
+                                <span className={`font-mono opacity-100 group-hover:flex flex duration-100 italic text-4xl group-hover:rotate-[0deg] ${isUno ? 'rotate-[0deg] text-lime-100' : 'rotate-[-25deg]'}`}>UNO</span>
                             </div>
                         </div>
                     }
                 </div>
+                {
+                    displayIsUno &&
+                    <div className="fixed top-0 left-0 w-full h-full bg-black/30 flex justify-center items-center z-[100]">
+                        <div className="text-[8rem] text-white stroke-black font-bold font-mono animate-float-in-t">
+                            UNO
+                        </div>
+                    </div>
+                }
 
                 <div className="w-full h-full flex justify-center items-center">
                     <div className="p-10 border-[2rem] border-[#ffffff10] rounded-full h-[30rem] w-[30rem] flex justify-center items-center">
@@ -315,6 +354,10 @@ export default function Game() {
                         <ColorPicker choosen={(e) => { cardDropped(e) }}></ColorPicker>
                     }
 
+                </div>
+
+                <div className="fixed bottom-4 left-4 text-rose-200/40">
+                    GameId: {game._id}
                 </div>
             </main>
 

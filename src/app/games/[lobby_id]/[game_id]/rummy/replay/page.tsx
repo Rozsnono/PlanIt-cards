@@ -53,7 +53,7 @@ export default function Game() {
                                             e.cards.map((card: Icard, j: number) => {
                                                 return (
                                                     <div key={j} className="w-8 h-16 relative group cursor-pointer overflow-visible">
-                                                        <Image className={`card-animation w-16 max-w-16 rounded-md border border-transparent`} key={j} src={"/assets/cards/rummy/" + new CardsUrls().getCardUrl(card.name)} width={70} height={60} alt={new CardsUrls().getCardUrl(card.name)}></Image>
+                                                        <Image className={`card-animation w-16 max-w-16 rounded-md border border-transparent`} key={j} src={"/" + new CardsUrls().getFullCardUrl(card.name)} width={70} height={60} alt={new CardsUrls().getFullCardUrl(card.name)}></Image>
                                                     </div>
                                                 )
                                             })
@@ -77,11 +77,11 @@ export default function Game() {
 
                         {
                             getCurrentTurn()!.droppedCards.length > 1 &&
-                            <Image className="absolute left-1 top-1 rotate-1" draggable={false} src={"/assets/cards/rummy/" + new CardsUrls().getCardUrl(getCurrentTurn()!.droppedCards[getCurrentTurn()!.droppedCards.length - 2].card.name)} width={140} height={100} alt="card"></Image>
+                            <Image className="absolute left-1 top-1 rotate-1" draggable={false} src={"/" + new CardsUrls().getFullCardUrl(getCurrentTurn()!.droppedCards[getCurrentTurn()!.droppedCards.length - 2].card.name)} width={140} height={100} alt="card"></Image>
                         }
                         {
                             getCurrentTurn()!.droppedCards.length > 0 &&
-                            <Image className="absolute right-1 bottom-1 rotate-12 border border-transparent rounded-lg" src={"/assets/cards/rummy/" + new CardsUrls().getCardUrl(getCurrentTurn()!.droppedCards[getCurrentTurn()!.droppedCards.length - 1].card.name)} width={140} height={100} alt="card"></Image>
+                            <Image className="absolute right-1 bottom-1 rotate-12 border border-transparent rounded-lg" src={"/" + new CardsUrls().getFullCardUrl(getCurrentTurn()!.droppedCards[getCurrentTurn()!.droppedCards.length - 1].card.name)} width={140} height={100} alt="card"></Image>
                         }
                     </div>
                 </div>
@@ -119,7 +119,7 @@ export default function Game() {
                                 <React.Fragment key={i}>
                                     <div
                                         className={`w-12 overflow-visible group rounded-lg duration-200`}>
-                                        <Image draggable={false} className={`border-2 border-transparent rounded-lg`} style={{ width: "6rem", maxWidth: "6rem" }} loading="eager" src={"/assets/cards/rummy/" + new CardsUrls().getCardUrl(card.name)} width={100} height={100} alt={new CardsUrls().getCardUrl(card.name)}></Image>
+                                        <Image draggable={false} className={`border-2 border-transparent rounded-lg`} style={{ width: "6rem", maxWidth: "6rem" }} loading="eager" src={"/" + new CardsUrls().getFullCardUrl(card.name)} width={100} height={100} alt={new CardsUrls().getFullCardUrl(card.name)}></Image>
                                     </div>
                                 </React.Fragment>
                             )
@@ -190,6 +190,10 @@ export default function Game() {
                     </div>
                 </div>
             </main>
+
+            <div className="fixed bottom-4 left-4 text-emerald-200/40">
+                GameId: {gameHistory.data.gameId}
+            </div>
 
         </main>
     )

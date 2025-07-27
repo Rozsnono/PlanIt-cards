@@ -20,7 +20,7 @@ export class UnoBot {
     playedCards: { playedBy: string, cards: Icard[] }[] = [];
     drawedCard: { lastDrawedBy: string };
 
-    constructor(name: string, difficulty: string, playerCards: Icard[], droppedCards: Icard[], playedCards: any, cards: Icard[], drawedCard: { lastDrawedBy: string }) {
+    constructor(name: string, difficulty: string, playerCards: Icard[], droppedCards: { droppedBy: string, card: Icard }[], playedCards: any, cards: Icard[], drawedCard: { lastDrawedBy: string }) {
         this.name = name;
         this.difficulty = difficulty as any;
         this.validator = new UnoDealer(cards as any);
@@ -46,7 +46,7 @@ export class UnoBot {
             return { droppedCards: this.droppedCards, playerCards: this.playerCards, drawedCard: this.drawedCard };
         }
 
-        if(selectedCard.isJoker) {
+        if (selectedCard.isJoker) {
             selectedCard.suit = ['R', 'G', 'B', 'Y'][Math.random() * 4 | 0];
             selectedCard.name = selectedCard.suit + selectedCard.name;
         }

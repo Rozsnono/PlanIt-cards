@@ -26,6 +26,9 @@ export default class SocketIO {
     private user = userModel.userModel;
     private logService = new LogService();
 
+    private wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+
+
     constructor() {
 
         this.logService.consoleLog('SocketIO initialized', 'SocketIOService');
@@ -70,6 +73,7 @@ export default class SocketIO {
                                     droppedCards: 1,
                                     drawedCard: 1,
                                     shuffledCards: 1,
+                                    lastAction: 1,
                                 }
                             }
                         ]);
@@ -108,6 +112,7 @@ export default class SocketIO {
                                     droppedCards: 1,
                                     drawedCard: 1,
                                     shuffledCards: 1,
+                                    lastAction: 1,
                                 }
                             }
                         ]);
@@ -247,11 +252,12 @@ export default class SocketIO {
             // Handle WebSocket message received from client
             ws.on('message', async (data: string) => {
                 const games = await this.game.findOne({ _id: JSON.parse(data).id });
+                const lobby = await this.lobby.findOne({ gameId: JSON.parse(data).id }).populate("users", 'firstName lastName email username customId rank settings').exec();
                 if (!games) {
                     ws.send(JSON.stringify({ error: 'Game not found' }));
                     return;
                 }
-                ws.send(JSON.stringify(games));
+                ws.send(JSON.stringify({ game: games, lobby }));
             });
 
         });
@@ -259,9 +265,11 @@ export default class SocketIO {
         const watchingGame = this.game.watch([], { fullDocument: 'updateLookup' });
 
         watchingGame.on('change', async (change) => {
+            if (!change.fullDocument) return;
+            const lobby = await this.lobby.findOne({ game_id: change.fullDocument._id }).populate("users", 'firstName lastName email username customId rank settings').exec();
             this.websockets.adminGameSocket.clients.forEach(async (client) => {
                 if (client.readyState === WebSocket.OPEN) {
-                    client.send(JSON.stringify(change.fullDocument));
+                    client.send(JSON.stringify({ game: change.fullDocument, lobby }));
                 }
             });
         });
@@ -326,52 +334,132 @@ export default class SocketIO {
         const watching = this.game.watch([], options);
 
         watching.on('change', async (change) => {
-            try {
-                if (Object.values(change.fullDocument.playerCards).find((array: any) => array.length === 0)) {
-                    const lobby = await this.lobby.findOne({ game_id: change.fullDocument._id });
-                    if (lobby) {
-                        switch (lobby.settings?.cardType) {
-                            case "RUMMY":
-                                this.gameHistory.getStatsForHistory(change.fullDocument._id, lobby.users.length * 20 + lobby.bots.length * 10 + 10);
-                                break;
-
-                            case "UNO":
-                                this.gameHistory.getStatsForHistory(change.fullDocument._id, lobby.users.length * 20 + lobby.bots.length * 10 + 10);
-                                break;
-
-                            case "SOLITAIRE":
-                                this.gameHistoryS.getStatsForHistory(change.fullDocument._id, 10);
-                                break;
-
-                            default:
-                                break;
-                        }
-
-                    }
-                }
-            } catch { }
+            const game = change.fullDocument;
+            if (!game) return;
 
             this.websockets.gameSocket.clients.forEach(async (client) => {
                 if (client.readyState === WebSocket.OPEN) {
                     try {
-                        if (Object.values(change.fullDocument.playerCards).find((array: any) => array.length === 0)) {
-                            client.send(JSON.stringify({ game_over: true }));
-                        } else if (change.fullDocument.currentPlayer && change.fullDocument.currentPlayer.playerId.includes('bot')) {
-                            const lobby = await this.lobby.findOne({ game_id: change.fullDocument._id });
-                            const currentPlayer = change.fullDocument.currentPlayer.playerId;
-                            if (lobby?.settings?.cardType === "UNO") new GameChecker().playWithBotsUno(change.fullDocument, lobby as any, currentPlayer);
-                            else if (lobby?.settings?.cardType === "RUMMY") new GameChecker().playWithBots(change.fullDocument, lobby as any, currentPlayer);
-                            client.send(JSON.stringify({ refresh: true }));
-                        } else {
-                            client.send(JSON.stringify({ refresh: true }));
-                        }
-                    } catch {
                         client.send(JSON.stringify({ refresh: true }));
+                    } catch (error) {
+                        console.error('Error sending game update:', error);
                     }
-
-
                 }
             });
+
+        })
+
+        // watching.on('change', async (change) => {
+        //     try {
+        //         if (Object.values(change.fullDocument.playerCards).find((array: any) => array.length === 0)) {
+        //             const lobby = await this.lobby.findOne({ game_id: change.fullDocument._id });
+        //             if (lobby) {
+        //                 switch (lobby.settings?.cardType) {
+        //                     case "RUMMY":
+        //                         this.gameHistory.getStatsForHistory(change.fullDocument._id, lobby.users.length * 20 + lobby.bots.length * 10 + 10);
+        //                         break;
+
+        //                     case "UNO":
+        //                         this.gameHistory.getStatsForHistory(change.fullDocument._id, lobby.users.length * 20 + lobby.bots.length * 10 + 10);
+        //                         break;
+
+        //                     case "SOLITAIRE":
+        //                         this.gameHistoryS.getStatsForHistory(change.fullDocument._id, 10);
+        //                         break;
+
+        //                     default:
+        //                         break;
+        //                 }
+
+        //             }
+        //         }
+        //     } catch { }
+
+        //     this.websockets.gameSocket.clients.forEach(async (client) => {
+        //         if (client.readyState === WebSocket.OPEN) {
+        //             try {
+        //                 if (Object.values(change.fullDocument.playerCards).find((array: any) => array.length === 0)) {
+        //                     client.send(JSON.stringify({ game: change.fullDocument, game_over: true }));
+        //                 } else if (change.fullDocument.currentPlayer && change.fullDocument.currentPlayer.playerId.includes('bot')) {
+        //                     const lobby = await this.lobby.findOne({ game_id: change.fullDocument._id });
+        //                     const currentPlayer = change.fullDocument.currentPlayer.playerId;
+        //                     if (lobby?.settings?.cardType === "UNO") new GameChecker().robotPlayingUno(change.fullDocument, lobby as any, currentPlayer);
+        //                     else if (lobby?.settings?.cardType === "RUMMY") new GameChecker().playWithBots(change.fullDocument, lobby as any, currentPlayer);
+        //                     client.send(JSON.stringify({ refresh: true }));
+        //                 } else {
+        //                     client.send(JSON.stringify({ refresh: true }));
+        //                 }
+        //             } catch {
+        //                 client.send(JSON.stringify({ refresh: true }));
+        //             }
+
+
+        //         }
+        //     });
+
+        // });
+
+        const watchingGameCurrentPlayer = this.game.watch([
+            {
+                $match: {
+                    operationType: { $in: ['update', 'replace'] },
+                    $or: [
+                        { 'updateDescription.updatedFields.currentPlayer.playerId': { $exists: true } },
+                        { 'updateDescription.updatedFields.currentPlayer.time': { $exists: true } },
+                        { 'updateDescription.updatedFields.currentPlayer': { $exists: true } },
+                    ]
+                }
+            }
+        ], { fullDocument: 'updateLookup' });
+        watchingGameCurrentPlayer.on('change', async (change) => {
+            const game = change.fullDocument;
+            if (game && await this.checkIfGameIsOver(game, game.secretSettings.gameType)) {
+                const lobby = await this.lobby.findOne({ game_id: change.fullDocument._id });
+                if (lobby) {
+                    switch (lobby.settings?.cardType) {
+                        case "RUMMY":
+                            this.gameHistory.getStatsForHistory(change.fullDocument._id, lobby.users.length * 20 + lobby.bots.length * 10 + 10);
+                            break;
+
+                        case "UNO":
+                            this.gameHistory.getStatsForHistory(change.fullDocument._id, lobby.users.length * 20 + lobby.bots.length * 10 + 10);
+                            break;
+
+                        case "SOLITAIRE":
+                            this.gameHistoryS.getStatsForHistory(change.fullDocument._id, 10);
+                            break;
+
+                        default:
+                            break;
+                    }
+
+                }
+                this.websockets.gameSocket.clients.forEach(async (client) => {
+                    if (client.readyState === WebSocket.OPEN) {
+                        try {
+                            client.send(JSON.stringify({ game: change.fullDocument, game_over: true }));
+                        } catch (error) {
+                            console.error('Error sending game update:', error);
+                        }
+                    }
+                });
+            } else {
+                if (game.currentPlayer && game.currentPlayer.playerId.includes('bot')) {
+                    const lobby = await this.lobby.findOne({ game_id: change.fullDocument._id });
+                    const currentPlayer = change.fullDocument.currentPlayer.playerId;
+                    if (lobby?.settings?.cardType === "UNO") new GameChecker().robotPlayingUno(change.fullDocument, lobby as any, currentPlayer);
+                    else if (lobby?.settings?.cardType === "RUMMY") new GameChecker().playWithBots(change.fullDocument, lobby as any, currentPlayer);
+                } else if (game && game.secretSettings?.gameType == 'UNO' && game.lastAction) {
+                    const lastAction = game.lastAction;
+                    if (lastAction.playerId != game.currentPlayer.playerId && lastAction.actions && lastAction.actions > 25) {
+                        await this.wait(1000); // Wait for 1 second before sending the next turn
+                        new GameChecker().nextTurnUno(game._id.toString(), game.currentPlayer.playerId.toString());
+                    }
+                } else if (game && game.secretSettings?.gameType == 'RUMMY') {
+                    await new GameHistoryService().savingHistory(game.currentPlayer.playerId, game._id.toString());
+
+                }
+            }
         });
 
         const chatWatching = this.lobby.watch([], options);
@@ -419,14 +507,14 @@ export default class SocketIO {
                 $match: {
                     operationType: 'update',
                     $or: [
-                        { 'updateDescription.updatedFields.peddingFriends': { $exists: true } },
+                        { 'updateDescription.updatedFields.pendingFriends': { $exists: true } },
                         { 'updateDescription.updatedFields.settings': { $exists: true } }
                     ]
                 }
             }
         ], { fullDocument: 'updateLookup' });
         userWatching.on('change', async (change) => {
-            const player = await this.user.findOne({ customId: change.fullDocument.customId }).populate("peddingFriends", "customId firstName lastName username rank settings").exec();
+            const player = await this.user.findOne({ customId: change.fullDocument.customId }).populate("pendingFriends", "customId firstName lastName username rank settings").exec();
             const token = jwt.sign({
                 _id: player!._id,
                 username: player!.username,
@@ -437,16 +525,18 @@ export default class SocketIO {
                 rank: player!.rank,
                 email: player!.email,
                 customId: player!.customId,
-                peddingFriends: player!.peddingFriends.length,
+                pendingFriends: player!.pendingFriends.length,
                 settings: player!.settings,
                 gameInvites: player!.gameInvites
             }, ACCESS_TOKEN_SECRET);
             this.websockets.playerDataSocket.clients.forEach((client) => {
                 if (client.readyState === 1) {
-                    client.send(JSON.stringify({ peddingFriends: player!.peddingFriends, token: token, customId: player!.customId, settings: player!.settings }));
+                    client.send(JSON.stringify({ pendingFriends: player!.pendingFriends, token: token, customId: player!.customId, settings: player!.settings }));
                 }
             });
         });
+
+
 
 
     }
@@ -487,7 +577,12 @@ export default class SocketIO {
                             if (time > 1000 * ((game.secretSettings?.timeLimit) || 180)) {
                                 //Time is up!
                                 this.logService.consoleLog(`Game ${game._id} is still active, forcing next turn. Time limit: ${game.secretSettings?.timeLimit || 180}. Time: ${time / 1000}`, 'SocketIOService');
-                                const force = await new GameChecker().forceNextTurnUno(game._id.toString());
+                                if (!game.currentPlayer.playerId.includes('bot') && game.playerCards[game.currentPlayer.playerId].length > 25) {
+                                    this.logService.consoleLog(`Player ${game.currentPlayer.playerId} has too many cards, forcing next turn.`, 'SocketIOService');
+                                    await new GameChecker().playerRemove(game._id.toString(), game.currentPlayer.playerId.toString());
+                                    return;
+                                }
+                                const force = await new GameChecker().forceNextTurnUno(game._id.toString(), game.currentPlayer.playerId.toString());
                                 if (!force) {
                                     this.game.deleteOne({ _id: game._id }).then(() => {
                                         const lobby = lobbies.find(lobby => lobby.game_id.toString() === game._id.toString());

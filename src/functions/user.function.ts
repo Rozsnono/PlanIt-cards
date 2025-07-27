@@ -89,7 +89,7 @@ export class PlayerWebSocket {
                 const updatedUser = {
                     ...this.user,
                     settings: parsed.settings || this.user!.settings,
-                    peddingFriends: parsed.peddingFriends.length || 0,
+                    pendingFriends: parsed.pendingFriends.length || 0,
                 } as Iplayer;
                 this.setUser(updatedUser); // THIS should trigger setUserData()
                 this.user = updatedUser;

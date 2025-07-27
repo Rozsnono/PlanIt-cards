@@ -66,7 +66,7 @@ export default function LobbySettings({ getForm, save, canEdit, title, cancel, o
         { label: "Unranked", id: "unranked", value: form['unranked'], checkbox: true, disabled: onlyNew || !edit, show: form['cardType'] !== 'SOLITAIRE' },
         { label: "Fill with Robots", id: "fillWithRobots", value: form['fillWithRobots'], checkbox: true, disabled: onlyNew || !edit || form['cardType'] === 'SOLITAIRE', show: form['cardType'] !== 'SOLITAIRE' },
         { label: "Number of Robots", id: "numberOfRobots", value: form['numberOfRobots'] || 1, interval: true, min: 1, max: parseInt(form['numberOfPlayers']) - 1, show: form['fillWithRobots'] === true, disabled: onlyNew || !edit },
-        { label: "Difficulty", id: "robotsDifficulty", value: form['robotsDifficulty'] || 'EASY', buttons: true, buttonLabels: ["EASY", "MEDIUM", "HARD"], show: form['fillWithRobots'] === true, disabled: true }
+        { label: "Difficulty", id: "robotsDifficulty", value: form['robotsDifficulty'] || 'EASY', buttons: true, buttonLabels: ["EASY", "MEDIUM", "HARD"], show: form['fillWithRobots'] === true, disabled: true },
     ]
 
     const inputsNew = [
@@ -77,7 +77,7 @@ export default function LobbySettings({ getForm, save, canEdit, title, cancel, o
         { label: "Unranked", id: "unranked", value: form['unranked'], checkbox: true, show: form['cardType'] !== 'SOLITAIRE' },
         { label: "Fill with Robots", id: "fillWithRobots", value: form['fillWithRobots'], checkbox: true, show: form['cardType'] !== 'SOLITAIRE' },
         { label: "Number of Robots", id: "numberOfRobots", value: form['numberOfRobots'] || 1, interval: true, min: 1, max: parseInt(form['numberOfPlayers'] || 4) - 1, show: form['fillWithRobots'] === true },
-        { label: "Difficulty", id: "robotsDifficulty", value: form['robotsDifficulty'] || 'EASY', buttons: true, buttonLabels: ["EASY", "MEDIUM", "HARD"], show: form['fillWithRobots'] === true }
+        { label: "Difficulty", id: "robotsDifficulty", value: form['robotsDifficulty'] || 'EASY', buttons: true, buttonLabels: ["EASY", "MEDIUM", "HARD"], show: form['fillWithRobots'] === true },
     ]
 
     function checkBeforeSave(form: any) {
