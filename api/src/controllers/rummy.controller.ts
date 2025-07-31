@@ -87,7 +87,7 @@ export default class RummyController implements Controller {
         body["playerCards"] = dealer.dealCards(lobby?.users.concat(lobby?.bots.map((bot: any) => { return bot._id }) as any), 14, true);
         body["currentPlayer"] = { playerId: lobby?.users[0], time: new Date().getTime() };
         body["drawedCard"] = { lastDrawedBy: lobby?.users[0] };
-        body['secretSettings'] = { timeLimit: body.timeLimit || 180, gameType: "RUMMY" };
+        body['secretSettings'] = { timeLimit: body.timeLimit || 180, gameType: "RUMMY", robotDifficulty: lobby.settings?.robotsDifficulty || "EASY" };
         body["_id"] = new mongoose.Types.ObjectId();
         const newGame = new this.game(body);
         await newGame.save();

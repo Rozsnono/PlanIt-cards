@@ -54,7 +54,6 @@ export default function Game() {
                 setLobby(lobby);
             }
             if (game) {
-                console.log("Game", game);
                 setGame(game);
             }
         });
@@ -91,16 +90,13 @@ export default function Game() {
             const index = draggedPack.findIndex(card => card === draggedCard);
             if (index > -1) {
                 gameService.placeCards(lobby_id as string, { placedCards: e.cards, placingCards: draggedPack }, index).then(data => {
-                    console.log(data);
                 });
             } else {
                 gameService.placeCards(lobby_id as string, { placedCards: e.cards, placingCards: [draggedCard] }, index).then(data => {
-                    console.log(data);
                 });
             }
         } else {
             gameService.placeCards(lobby_id as string, { placedCards: e.cards, placingCards: [draggedCard] }, -1).then(data => {
-                console.log(data);
             });
         }
     }
@@ -172,6 +168,20 @@ export default function Game() {
         });
     }
 
+    function doneCards() {
+        if (isLoading) return;
+        setIsLoading(true);
+        gameService.doneCards(lobby_id as string).then(data => {
+            if (data.info) {
+                router.push(`/games/${lobby_id}/${game_id}/solitaire/result`);
+            }
+        }).catch(err => {
+            setError(err);
+            setIsLoading(false);
+
+        });
+    }
+
     return (
         <main className="flex w-full h-full rounded-md p-3 relative">
 
@@ -186,6 +196,8 @@ export default function Game() {
                 error && <ErrorModal errorCode={error} closeError={() => { setError(null) }}></ErrorModal>
             }
 
+
+
             <main className="bg-sky-800 rounded-md w-full relative flex justify-center items-center select-none">
 
                 <div className="flex justify-center items-start w-full h-3/4 absolute py-8 z-50">
@@ -194,13 +206,13 @@ export default function Game() {
                             <div key={index} className="flex relative" onDragEnter={(e) => onDragEnter(e, index)} onDrop={() => { onDragDrop(pack) }} onDragOver={overDrag} >
                                 {pack.cards.map((card, i) => (
                                     i === 0 ?
-                                        <Image onClick={card.isJoker ? () => { playWithPress(card) } : () => { }} onDragStart={card.isJoker ? () => { startDrag(card, pack.cards) } : () => { }} key={i} draggable={!!card.isJoker && !isLoading} className={`border-2 border-transparent ${card.isJoker ? 'hover:border-green-500 ' + (isLoading ? 'cursor-progress' : 'cursor-pointer') : ''} rounded-lg`} src={card.isJoker ? ("/" + new CardsUrls().getFullCardUrl(card.name)) : '/assets/cards/rummy/gray_back.png'} width={100} height={110} alt="card"></Image>
+                                        <Image onClick={card.isJoker ? () => { playWithPress(card) } : () => { }} onDragStart={card.isJoker ? () => { startDrag(card, pack.cards) } : () => { }} key={i} draggable={!!card.isJoker && !isLoading} className={`border-2 border-transparent ${card.isJoker ? 'hover:border-green-500 ' + (isLoading ? 'cursor-progress' : 'cursor-pointer') : ''} rounded-lg`} src={card.isJoker ? ("/" + new CardsUrls().getFullCardUrl(card.name)) : '/assets/cards/rummy/gray_back.png'} width={120} height={110} alt="card"></Image>
                                         :
-                                        <Image onClick={card.isJoker ? () => { playWithPress(card) } : () => { }} onDragStart={card.isJoker ? () => { startDrag(card, pack.cards) } : () => { }} key={i} draggable={!!card.isJoker && !isLoading} style={{ top: `${i * 2}rem` }} className={`absolute border-2 border-transparent ${card.isJoker ? 'hover:border-green-500 ' + (isLoading ? 'cursor-progress' : 'cursor-pointer') : ''} rounded-lg`} src={card.isJoker ? ("/" + new CardsUrls().getFullCardUrl(card.name)) : '/assets/cards/rummy/gray_back.png'} width={100} height={110} alt="card"></Image>
+                                        <Image onClick={card.isJoker ? () => { playWithPress(card) } : () => { }} onDragStart={card.isJoker ? () => { startDrag(card, pack.cards) } : () => { }} key={i} draggable={!!card.isJoker && !isLoading} style={{ top: `${i * 2}rem` }} className={`absolute border-2 border-transparent ${card.isJoker ? 'hover:border-green-500 ' + (isLoading ? 'cursor-progress' : 'cursor-pointer') : ''} rounded-lg`} src={card.isJoker ? ("/" + new CardsUrls().getFullCardUrl(card.name)) : '/assets/cards/rummy/gray_back.png'} width={120} height={110} alt="card"></Image>
                                 ))}
                                 {pack.cards.length == 0
                                     &&
-                                    <div className="border rounded-xl w-[5.8rem]"></div>
+                                    <div className="border rounded-xl w-[7rem]"></div>
                                 }
                             </div>
                         ))}
@@ -214,8 +226,8 @@ export default function Game() {
                         {game && game.playerCards && Object.values(game!.playerCards).map((pack, index) => {
                             return (
                                 <div key={index} className="flex relative" onDrop={() => { playCard(pack) }} onDragOver={overDrag} >
-                                    <div className="2xl:w-[5rem] lg:w-[4.7rem] md:w-[4.7rem] 2xl:h-[7.6rem] lg:h-[7rem] md:h-[7rem] border border-zinc-400 rounded-md"></div>
-                                    <Image draggable={false} className="absolute border-2 border-transparent hover:border-green-500 rounded-lg " src={"/" + new CardsUrls().getFullCardUrl(pack[pack.length - 1].name)} width={140} height={110} alt="card"></Image>
+                                    <div className="3xl:w-[6rem] 2xl:w-[5rem] lg:w-[4.7rem] md:w-[4.7rem] 3xl:h-[9rem] 2xl:h-[7.6rem] lg:h-[7rem] md:h-[7rem] border border-zinc-400 rounded-md"></div>
+                                    <Image draggable={false} className="absolute border-2 border-transparent hover:border-green-500 rounded-lg " src={"/" + new CardsUrls().getFullCardUrl(pack[pack.length - 1].name)} width={300} height={300} alt="card"></Image>
                                 </div>
                             )
                         })}
@@ -223,28 +235,38 @@ export default function Game() {
                             game &&
                             new Array(4 - (Object.values(game.playerCards).length || 0)).fill(0).map((_, i) => (
                                 <div key={i} className="flex relative" onDrop={() => { playCard([]) }} onDragOver={overDrag} >
-                                    <div className="2xl:w-[5rem] lg:w-[4.7rem] md:w-[4.7rem] 2xl:h-[7.6rem] lg:h-[7rem] md:h-[7rem] border border-zinc-400 rounded-md"></div>
+                                    <div className="3xl:w-[6rem] 2xl:w-[5rem] lg:w-[4.7rem] md:w-[4.7rem] 3xl:h-[9rem] 2xl:h-[7.6rem] lg:h-[7rem] md:h-[7rem] border border-zinc-400 rounded-md"></div>
 
                                 </div>
                             ))
                         }
                     </div>
 
+                    {
+                        game && game.droppedCards.length == 0 && !game.playedCards.find((pack) => pack.cards.find((card) => !card.isJoker)) && game.shuffledCards.length == 0 &&
+                        <button onClick={doneCards}
+                            className="w-fit h-fit flex justify-center items-center rounded-full bg-gradient-to-r from-blue-500 to-sky-500 text-white p-4 hover:from-blue-600 hover:to-sky-600 duration-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            <Icon name="check-empty" size={32}></Icon>
+                        </button>
+                    }
+
+
                     <div className="flex gap-3">
 
                         <div className="flex relative" >
-                            <div className="2xl:w-[5rem] lg:w-[4.7rem] md:w-[4.7rem] 2xl:h-[7.6rem] lg:h-[7rem] md:h-[7rem] border border-zinc-400 rounded-md"></div>
+                            <div className="3xl:w-[6rem] 2xl:w-[5rem] lg:w-[4.7rem] md:w-[4.7rem] 3xl:h-[9rem] 2xl:h-[7.6rem] lg:h-[7rem] md:h-[7rem] border border-zinc-400 rounded-md"></div>
                             {
                                 game?.droppedCards[game.droppedCards.length - 1] &&
                                 <Image onClick={() => { playWithPress(game.droppedCards[game.droppedCards.length - 1].card) }} draggable={true} onDragStart={() => { startDrag(game.droppedCards[game.droppedCards.length - 1].card, null) }} className={"absolute border-2 border-transparent hover:border-green-500 rounded-lg " + (isLoading ? 'cursor-progress' : 'cursor-pointer')} src={"/" + new CardsUrls().getFullCardUrl(game.droppedCards[game.droppedCards.length - 1].card.name)} width={140} height={110} alt="card"></Image>
                             }
                         </div>
                         <div className={"flex relative " + (isLoading ? 'cursor-progress' : 'cursor-pointer')} onClick={drawCard}>
-                            <div className="2xl:w-[5rem] lg:w-[4.7rem] md:w-[3.7rem] 2xl:h-[7.6rem] lg:h-[7rem] md:h-[6rem] border border-zinc-400 rounded-md"></div>
+                            <div className="3xl:w-[6rem] 2xl:w-[5rem] lg:w-[4.7rem] md:w-[3.7rem] 3xl:h-[9rem] 2xl:h-[7.6rem] lg:h-[7rem] md:h-[6rem] border border-zinc-400 rounded-md"></div>
                             {game && game.shuffledCards.length > 0 &&
                                 <>
-                                    <Image draggable={false} className="absolute border-2 border-transparent hover:border-green-500 rounded-lg" src={"/assets/cards/rummy/gray_back.png"} width={140} height={110} alt="card"></Image>
-                                    <Image className="absolute top-1 left-1 " draggable={false} src={"/assets/cards/rummy/gray_back.png"} width={140} height={100} alt="card"></Image>
+                                    <Image draggable={false} className="absolute border-2 border-transparent hover:border-green-500 rounded-lg" src={"/assets/cards/rummy/gray_back.png"} width={300} height={300} alt="card"></Image>
+                                    <Image className="absolute top-1 left-1 " draggable={false} src={"/assets/cards/rummy/gray_back.png"} width={300} height={300} alt="card"></Image>
                                 </>
                             }
                         </div>

@@ -15,7 +15,7 @@ export default function TurnDisplayComponent({ playerName }: { playerName: strin
 
     if (!playerName || !display) return null
     return (
-        <main className="fixed top-0 left-0 w-full flex pt-8 justify-center z-[1000] animate-float-in-t">
+        <main className="fixed top-0 left-0 w-full flex pt-8 justify-center z-[1000] animate-float-in-t pointer-events-none">
             <div className="bg-white p-4 rounded shadow w-fit h-fit ">
                 <p className="text-xl">{playerName}&apos;s Turn</p>
             </div>

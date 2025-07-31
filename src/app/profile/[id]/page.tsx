@@ -346,7 +346,7 @@ export default function ProfilePage() {
                                             link={`/games/${game.lobbyId}/${game.gameId}/${game.type ? game.type.toLowerCase() : ''}/replay`}
                                             resultLink={`/games/${game.lobbyId}/${game.gameId}/result`}
                                             isFinished={game.endedAt}
-                                            isCorrupted={game.endedAt && game.position.length == 0 || !game.endedAt && !game.gameId}
+                                            isCorrupted={game.endedAt && game.position[0] == 0 || !game.endedAt && new Date(game.createdAt).getDate() + new Date(game.createdAt).getMonth() < new Date().getDate() + new Date().getMonth()}
                                         ></ReplayCard>
                                     )
                                 })
@@ -370,7 +370,7 @@ export default function ProfilePage() {
 
                         {
                             profileSettings &&
-                            <PlayerSettings user={player.data} onClose={() => {setProfileSettings(false); player.refetch()}} />
+                            <PlayerSettings user={player.data} onClose={() => { setProfileSettings(false); player.refetch() }} />
                         }
 
                     </div>

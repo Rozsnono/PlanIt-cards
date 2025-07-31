@@ -11,6 +11,8 @@ import { Iplayer } from '@/interfaces/interface';
 import { usePathname, useRouter } from 'next/navigation';
 import SettingsModal from './settings/settings.modal';
 import { ProfileIcon } from '@/assets/profile-pics';
+import LobbyService from '@/services/lobby.service';
+import ProfileService from '@/services/profile.service';
 
 export default function Navbar({ clear }: { clear?: boolean }) {
 
@@ -18,12 +20,19 @@ export default function Navbar({ clear }: { clear?: boolean }) {
     const { isOpen, setOpen } = useContext(MenuContext);
 
     const path = usePathname();
+    const router = useRouter();
+
+    const gameUrls = ['rummy', 'uno', 'solitaire', 'schnapps'];
+
 
     const [userState, setUserState] = React.useState(false);
+
+    const [u, setU] = useState<Iplayer | null>(user);
 
 
     React.useEffect(() => {
         setUserState(true);
+        setU(user);
     }, [user]);
 
     if (!userState) return (
@@ -41,7 +50,7 @@ export default function Navbar({ clear }: { clear?: boolean }) {
         </main>
     );
 
-    if ((path.includes('rummy') || path.includes('uno') || path.includes('solitaire')) && !path.includes('end')) {
+    if ((gameUrls.find((url) => path.includes(url)) && !path.includes('end'))) {
         return (
             <main className='fixed top-4 left-4 z-[100] opacity-70 '>
                 <div className='w-16 h-16 rounded-full flex flex-col justify-start items-center group relative hover:bg-transparent hover:h-96 duration-200'>
@@ -85,7 +94,6 @@ export default function Navbar({ clear }: { clear?: boolean }) {
                     }
 
 
-
                 </div>
             </main>
         )
@@ -105,6 +113,38 @@ export default function Navbar({ clear }: { clear?: boolean }) {
                         <UserHeader isLogged={!!user}></UserHeader>
                     </div>
                 </main>
+
+                {
+                    u?.gameInvites && u?.gameInvites.length > 0 &&
+                    <main className='fixed top-3 right-3 z-[1000]'>
+                        <div className='bg-zinc-800/50 backdrop-blur-md border border-purple-600/50 rounded-lg p-4 animate-float-in-l flex items-center justify-between gap-4'>
+                            {u?.gameInvites[0].invitedBy?.settings &&
+                                <ProfileIcon settings={u!.gameInvites[0].invitedBy!.settings} size={2} className='p-0' />
+                            }
+                            <div className="flex flex-col items-left text-zinc-300 group-hover:text-white duration-100 cursor-pointer relative">
+                                <div className="text-xl font-bold">{u!.gameInvites[0].invitedBy!.username}</div>
+                                <div className="text-sm text-zinc-400">{u!.gameInvites[0].gameType} game invite</div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <button onClick={() => {
+                                    new LobbyService().joinLobby(u!.gameInvites[0].gameId, u!.gameInvites[0].lobbyCode as any).then(() => {
+                                        router.push(`/games/${u!.gameInvites[0].gameId}`);
+                                        router.refresh();
+                                    });
+                                    new ProfileService().deleteGameInvite(u!.gameInvites[0].gameId);
+                                }} className="text-green-500 hover:text-green-400 transition-colors duration-200 hover:scale-110">
+                                    <Icon name="check-empty" size={20}></Icon>
+                                </button>
+                                <button onClick={() => {
+                                    new ProfileService().deleteGameInvite(u!.gameInvites[0].gameId);
+                                    router.refresh();
+                                }} className="text-red-500 hover:text-red-400 transition-colors duration-200 hover:scale-110">
+                                    <Icon name="close" size={20}></Icon>
+                                </button>
+                            </div>
+                        </div>
+                    </main>
+                }
             </main>
         </React.Fragment>
 
@@ -145,6 +185,7 @@ function UserHeader({ isLogged }: { isLogged: boolean }) {
 
     return (
         <React.Fragment>
+
             <button className='more-modal-button bg-transparent border border-transparent flex items-center gap-2 mr-4 group cursor-pointer '>
                 {u?.settings &&
                     <ProfileIcon settings={u!.settings} size={2} className='p-0' />
@@ -174,6 +215,7 @@ function UserHeader({ isLogged }: { isLogged: boolean }) {
                 </div>
                 <button onClick={LogOut} className="text-red-400 hover:bg-zinc-950/50 rounded-lg flex items-center gap-1 p-2" ><Icon name="sign-out" size={16}></Icon> Sign out</button>
             </modal.FilterModal>
+
 
 
             <SettingsModal isOpen={settingsOpen} onClose={() => { setSettingsOpen(false) }}>

@@ -31,6 +31,18 @@ export class GameService {
         return await response.json();
     }
 
+    async RecalibrateHistory(_id: string, gameId: string) {
+        const response = await fetch(`/api/recalibrate/${_id}/${gameId}`, {
+            method: "GET",
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${getCookie("token")}`
+            }
+        });
+
+        return await response.json();
+    }
+
     async startGame(lobbyId: string, timeLimit?: number) {
         const response = await fetch(`/api/start/${lobbyId}/${this.type}`, {
             method: "POST",
@@ -283,11 +295,22 @@ export class SolitaireService extends GameService {
             })
         })
 
-        console.log("check", check, body.playingCard);
 
         if (check) {
             return this.playCard(lobbyId, { playedCards: check, playingCard: body.playingCard });
         }
 
+    }
+
+    async doneCards(lobbyId: string) {
+        const response = await fetch(`/api/done/${lobbyId}/solitaire`, {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${getCookie("token")}`
+            }
+        });
+        const res = await response.json();
+        return res;
     }
 }

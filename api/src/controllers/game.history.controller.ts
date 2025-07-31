@@ -5,6 +5,7 @@ import { Auth } from "../enums/auth.enum";
 import gameHistoryModel from "../models/game.history.model";
 import userModel from "../models/player.model";
 import gameModel from "../models/game.model";
+import GameHistoryService from "../services/history.services";
 
 
 export default class GameHistoryController implements Controller {
@@ -27,7 +28,45 @@ export default class GameHistoryController implements Controller {
             this.removeAllHistory(req, res).catch(next);
         });
 
+        this.router.get("/recalibrate/:id/:game_id", hasAuth([Auth["RUMMY.PLAY"]]), (req, res, next) => {
+            this.recalibrateHistory(req, res).catch(next);
+        });
+
     }
+
+    private recalibrateHistory = async (req: Request, res: Response) => {
+        const game_id = req.params.game_id;
+        const id = req.params.id;
+
+        const gameHistory = await this.gameHistory.findOne({ $and: [{ gameId: game_id }, { _id: id }] }).lean();
+        if (!gameHistory) {
+            res.status(404).send({ error: "Game history not found!" });
+            return;
+        }
+
+        let maxPoints = 0;
+        switch (gameHistory.type) {
+            case "UNO":
+                // lobby.users.length * 20 + lobby.bots.length * 10 + 10
+                maxPoints = Object.keys(gameHistory.turns[1]).filter((key) => !key.includes("bot")).length * 20 + Object.keys(gameHistory.turns[1]).filter((key) => key.includes("bot")).length * 10 + 10;
+                break;
+            case "RUMMY":
+                maxPoints = Object.keys(gameHistory.turns[1]).filter((key) => !key.includes("bot")).length * 20 + Object.keys(gameHistory.turns[1]).filter((key) => key.includes("bot")).length * 10 + 10;
+                break;
+            default:
+                maxPoints = 10;
+                return;
+        }
+        const lastTurn = gameHistory.turns[Object.keys(gameHistory.turns).length - 1];
+        if (!lastTurn) {
+            res.status(404).send({ error: "Last turn not found!" });
+            return;
+        }
+        
+        await new GameHistoryService().reCalibrateStatsForHistory(game_id, maxPoints, {...lastTurn, createdAt: gameHistory.createdAt });
+
+        res.send({ message: "Game history recalibrated successfully!" });
+    };
 
     private getHistory = async (req: Request, res: Response) => {
         const player_id = req.params.id;

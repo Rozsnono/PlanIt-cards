@@ -89,7 +89,7 @@ export class GameChecker {
     }
 
     public playWithBots = async (game: any, lobby: Ilobby, currentPlayer: string) => {
-        const bot = new RummyBot(currentPlayer, 'easy', game.playerCards[currentPlayer], game.droppedCards, game.playedCards, game.shuffledCards);
+        const bot = new RummyBot(currentPlayer, game.secretSettings.robotDifficulty, game.playerCards[currentPlayer], game.droppedCards, game.playedCards, game.shuffledCards);
         const { droppedCards, playedCards, playerCards } = bot.play();
         game.playerCards[currentPlayer] = playerCards;
         game.playedCards = playedCards;
@@ -289,6 +289,9 @@ export class GameChecker {
                 Object.entries(game.playerCards).reverse()
             );
             game.lastAction = { playerId: playerId, actions: 0, isUno: false };
+        } else if (!game.lastAction.isUno && game.playerCards[playerId].length === 1) {
+            game.playerCards[game.currentPlayer.playerId.toString()] = game.playerCards[game.currentPlayer.playerId.toString()].concat(dealer.drawCard(2));
+            game.shuffledCards = dealer.deck;
         }
 
         nextPlayer = this.nextPlayer(Object.keys(game.playerCards), game.currentPlayer.playerId.toString());
@@ -297,8 +300,8 @@ export class GameChecker {
         game.droppedCards[game.droppedCards.length - 1].droppedBy = '';
 
         await this.game.updateOne({ _id: gameId }, game, { runValidators: true });
-        if (!playerId.includes('bot')) {
-            await this.gameHistoryService.saveHistory(playerId, gameId);
+        if (!playerId.includes('bot') && !Object.values(game.playerCards).find((p: any) => p.length === 0)) {
+            await this.gameHistoryService.savingHistory(playerId, gameId);
         }
         return true;
     }

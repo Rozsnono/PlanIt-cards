@@ -67,7 +67,6 @@ export class PlayerWebSocket {
         this.url = url;
         this.user = user;
         this.setUser = setUser;
-        console.log("Constructor: setUser is", setUser);
         // setUser(user); // Initialize user in the context
     }
 
@@ -90,7 +89,9 @@ export class PlayerWebSocket {
                     ...this.user,
                     settings: parsed.settings || this.user!.settings,
                     pendingFriends: parsed.pendingFriends.length || 0,
+                    gameInvites: parsed.gameInvites
                 } as Iplayer;
+                console.log(parsed, updatedUser);
                 this.setUser(updatedUser); // THIS should trigger setUserData()
                 this.user = updatedUser;
                 this.saveInCookie(parsed.token);

@@ -1,9 +1,14 @@
 import { Icard } from "@/interfaces/interface";
 
 export function sortRummyCards(rummy: Icard[], autoSort?: boolean, sortType: "num" | "abc" | "" = "abc"): Icard[] {
-    if (sortType == "") return rummy;
-    if (!autoSort) if (sortType === "num") return rummy.sort((a, b) => { const rank = a.rank - b.rank; return rank === 0 ? a.suit.localeCompare(b.suit) : rank; });
-    return rummy.sort((a, b) => { const suit = a.suit.localeCompare(b.suit); return suit === 0 ? a.rank - b.rank : suit; });
+
+    try {
+        if (sortType == "") return rummy;
+        if (!autoSort) if (sortType === "num") return rummy.sort((a, b) => { const rank = a.rank - b.rank; return rank === 0 ? a.suit.localeCompare(b.suit) : rank; });
+        return rummy.sort((a, b) => { const suit = a.suit.localeCompare(b.suit); return suit === 0 ? a.rank - b.rank : suit; });
+    } catch {
+        return sortUnoCards(rummy, autoSort, sortType);
+    }
 }
 
 export function sortUnoCards(uno: Icard[], autoSort?: boolean, sortType: "num" | "abc" | "" = "abc"): Icard[] {

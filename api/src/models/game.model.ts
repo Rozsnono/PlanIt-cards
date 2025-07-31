@@ -16,10 +16,12 @@ const gameSchema = new Schema(
             type: {
                 timeLimit: { type: Number, required: true, default: 180 },
                 gameType: { type: String, required: true, default: "RUMMY" },
+                robotDifficulty: { type: String, required: true, default: "EASY" },
             },
             default: {
                 timeLimit: 180,
-                gameType: "RUMMY"
+                gameType: "RUMMY",
+                robotDifficulty: "EASY"
             }
         },
         playerCards: {

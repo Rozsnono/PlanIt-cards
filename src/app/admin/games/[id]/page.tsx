@@ -9,6 +9,7 @@ import Icon from "@/assets/icons";
 import { AdminService } from "@/services/admin.service";
 import Loading from "@/app/loading";
 import { sortRummyCards } from "@/functions/card.function";
+import { LogService } from "@/services/log.service";
 
 export function AdminGameDetails() {
     const param = useParams();
@@ -145,12 +146,11 @@ export function AdminGameDetails() {
 
 
         socket!.current!.addEventListener('open', (event: any) => {
-            console.log('WebSocket is connected');
+            new LogService().log("WebSocket is connected to admin games socket.");
             socket!.current!.send(JSON.stringify({ type: 'oneGame', id: gameId }));
         });
 
         socket!.current!.addEventListener('message', (event) => {
-            console.log('WebSocket message received:', JSON.parse(event.data as any));
             if (JSON.parse(event.data as any)._id === gameId) {
                 try {
                     setState({ ...state, data: JSON.parse(event.data as any), isLoading: false });
@@ -263,6 +263,7 @@ function GameCard({ game }: { game: any }) {
             <h2 className="text-xl font-semibold text-zinc-200">{game._id}</h2>
             <p className="text-zinc-400">Players: {Object.values(game.playerCards).length}</p>
             <p className="text-zinc-400">Created at: {new Date(game.createdAt).toLocaleString()}</p>
+            <p className="text-zinc-400">Type: {game.secretSettings.gameType}</p>
 
             <p className="text-zinc-400">Current Player: {game.currentPlayer.playerId}</p>
             <p className="text-zinc-400">Current Player Time: {(game.secretSettings.timeLimit ? game.secretSettings.timeLimit : 180) - ((new Date().getTime() - new Date(game.currentPlayer.time).getTime()) / 1000)}</p>
@@ -291,12 +292,11 @@ export default function GameDetails() {
 
 
         socket!.current!.addEventListener('open', () => {
-            console.log('WebSocket is connected');
+            new LogService().log("WebSocket is connected to admin games socket.");
             socket!.current!.send(JSON.stringify({ type: 'oneGame', id: gameId }));
         });
 
         socket!.current!.addEventListener('message', (event) => {
-            console.log('WebSocket message received:', JSON.parse(event.data as any));
             if (JSON.parse(event.data as any).game._id === gameId) {
                 try {
                     setState({ ...state, data: JSON.parse(event.data as any).game, lobby: JSON.parse(event.data as any).lobby, isLoading: false });
@@ -469,7 +469,7 @@ export default function GameDetails() {
                             addCard && addCard === playerId &&
                             <div className="p-6 ">
                                 <div className="flex flex-wrap gap-2">
-                                    {cards.RUMMY.getAllCards().map((card: any, cardIndex: number) => (
+                                    {(cards as any)[state.data.secretSettings.gameType!].getAllCards().map((card: any, cardIndex: number) => (
                                         <div
                                             onClick={() => { addCardToPlayerAndSend(playerId, card) }}
                                             key={cardIndex}
@@ -553,8 +553,17 @@ const cards = {
                 name: 'W4', value: 50, rank: 28, isJoker: true, pack: 1 // Wild Draw Four
             }
         ],
-        getName(name: string, suit: string) {
-            return suit + name;
+        getAllCards() {
+            const allCards: any = [];
+            this.suits.forEach(suit => {
+                this.cards.forEach(card => {
+                    allCards.push({ ...card, name: suit + card.name, suit: suit, pack: 1 });
+                });
+            });
+            this.jokers.forEach(joker => {
+                allCards.push({ ...joker, name: joker.name, suit: '', pack: 1 });
+            });
+            return allCards;
         }
     },
     SOLITAIRE: {

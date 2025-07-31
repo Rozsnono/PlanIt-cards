@@ -3,7 +3,7 @@ import { ProfileIcon } from "@/assets/profile-pics";
 import { getColorByInitials, getUserInitials } from "@/functions/user.function";
 import { Iplayer } from "@/interfaces/interface";
 
-export default function GameUser({ user, currentPlayer }: { user: Iplayer, currentPlayer: string }) {
+export default function GameUser({ user, currentPlayer, cardNumber }: { user: Iplayer, currentPlayer: string, cardNumber?: number }) {
     return (
         <div className="w-16 h-16 relative group cursor-pointer">
 
@@ -31,7 +31,7 @@ export default function GameUser({ user, currentPlayer }: { user: Iplayer, curre
     )
 }
 
-export function GameBot({ bot, currentPlayer }: { bot: any, currentPlayer: string }) {
+export function GameBot({ bot, currentPlayer, cardNumber }: { bot: any, currentPlayer: string, cardNumber?: any }) {
     return (
         <div className="w-16 h-16 relative group cursor-pointer">
 
@@ -47,6 +47,10 @@ export function GameBot({ bot, currentPlayer }: { bot: any, currentPlayer: strin
             </div>
             <div>
                 <p className="text-zinc-300 text-center">{bot.name}</p>
+            </div>
+            <div className="flex items-center justify-center text-zinc-300 ">
+                <Icon name="card" stroke></Icon>
+                <span className="text-zinc-300 text-sm">{cardNumber}</span>
             </div>
 
         </div>

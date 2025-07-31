@@ -44,7 +44,6 @@ export default function Game() {
 
         socket.addEventListener('message', (event) => {
             const { playerCards, lobby, game, game_over, refresh } = gameService.getDataFromWebsocket(JSON.parse(event.data), socket, { _id: lobby_id, player_id: user!._id }) ?? {};
-            console.log("WebSocket message received:", { playerCards, lobby, game, game_over, refresh });
             if (refresh) {
                 return;
             }
@@ -188,6 +187,8 @@ export default function Game() {
             timerClass.stop();
             setTimer(180);
             gameState.currentPlayer.playerId = null;
+        }else{
+            setError(res.error);
         }
         setNextTurnLoader(false);
     }
@@ -270,7 +271,7 @@ export default function Game() {
                     {
                         lobby?.users.filter((u, i) => { return i % 2 === 0 && u._id !== user?._id }).map((user, j) => {
                             return (
-                                <GameUser key={j} user={user} currentPlayer={gameState.currentPlayer.playerId}></GameUser>
+                                <GameUser key={j} user={user} currentPlayer={gameState.currentPlayer.playerId} cardNumber={gameState.allCards[user._id]}></GameUser>
 
                             )
                         })
@@ -279,7 +280,7 @@ export default function Game() {
                     {
                         lobby?.bots.filter((u, i) => { return i % 2 === 1 }).map((bot, j) => {
                             return (
-                                <GameBot key={j} bot={bot} currentPlayer={gameState.currentPlayer.playerId}></GameBot>
+                                <GameBot key={j} bot={bot} currentPlayer={gameState.currentPlayer.playerId} cardNumber={gameState.allCards[bot.customId.replace('-','')]}></GameBot>
 
                             )
                         })
@@ -292,7 +293,7 @@ export default function Game() {
                     {
                         lobby?.users.filter((u, i) => { return i % 2 === 1 && u._id !== user?._id }).map((user, j) => {
                             return (
-                                <GameUser key={j} user={user} currentPlayer={gameState.currentPlayer.playerId}></GameUser>
+                                <GameUser key={j} user={user} currentPlayer={gameState.currentPlayer.playerId} cardNumber={gameState.allCards[user._id]}></GameUser>
 
                             )
                         })
@@ -301,7 +302,7 @@ export default function Game() {
                     {
                         lobby?.bots.filter((u, i) => { return i % 2 === 0 }).map((bot, j) => {
                             return (
-                                <GameBot key={j} bot={bot} currentPlayer={gameState.currentPlayer.playerId}></GameBot>
+                                <GameBot key={j} bot={bot} currentPlayer={gameState.currentPlayer.playerId} cardNumber={gameState.allCards[bot.customId.replace('-','')]}></GameBot>
 
                             )
                         })

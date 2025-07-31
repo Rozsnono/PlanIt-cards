@@ -110,7 +110,7 @@ export default class AuthController implements Controller {
         }
         const user = await this.user.findOne({ $or: [{ username: body.username }, { email: body.email }] });
         if (user) {
-            res.status(400).send({ error: ERROR.ALERADY_REGISTERED });
+            res.status(400).send({ error: ERROR.ALREADY_REGISTERED });
             return;
         }
         body["_id"] = new mongoose.Types.ObjectId();

@@ -556,6 +556,23 @@ function getIcon(name: string) {
                 </>
             )
         }
+
+        case "skip": {
+            return (
+                <>
+                    <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10Z" clipRule="evenodd"></path>
+                    <path d="m7.5 7.5 9 9"></path>
+                </>
+            )
+        }
+
+        case "invite": {
+            return (
+                <>
+                    <path d="M22 20.007a1 1 0 0 1-.992.993H2.992A.993.993 0 0 1 2 20.007V19h18V7.3l-8 7.2-10-9V4a1 1 0 0 1 1-1h18a1 1 0 0 1 1 1v16.007ZM4.434 5 12 11.81 19.566 5H4.434ZM0 15h8v2H0v-2Zm0-5h5v2H0v-2Z"></path>
+                </>
+            )
+        }
     }
 }
 

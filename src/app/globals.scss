@@ -282,3 +282,35 @@ input[type='range']::-webkit-slider-thumb {
     opacity: 1;
   }
 }
+
+.animate-fade-in-l{
+  animation: animate-fade-in-l 0.5s ease-in-out forwards;
+}
+
+@keyframes animate-fade-in-l {
+  0% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.animate-float-in-l {
+  animation: animate-float-in-l 0.5s ease-in-out forwards;
+}
+
+@keyframes animate-float-in-l {
+  0% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}

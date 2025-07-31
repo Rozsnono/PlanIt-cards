@@ -8,7 +8,7 @@ import lobbyModel from "../models/lobby.model";
 import { Cards } from "../cards/cards";
 import mongoose from "mongoose";
 import { ERROR } from "../enums/error.enum";
-import { Icard, Ilobby } from "../interfaces/interface";
+import { Icard, Igame, Ilobby } from "../interfaces/interface";
 import { GameChecker } from "../services/game.service";
 import { GameHistorySolitaire } from "../services/history.services";
 import gameHistoryModel from "../models/game.history.model";
@@ -23,6 +23,7 @@ export default class SolitaireController implements Controller {
     private GameHistorySolitaire = new GameHistorySolitaire();
 
 
+    private wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
 
     constructor() {
@@ -48,6 +49,10 @@ export default class SolitaireController implements Controller {
 
         this.router.post("/prevSteps/:lobbyId/:gameId/solitaire", hasAuth([Auth["UNO.PLAY"]]), (req, res, next) => {
             this.prevSteps(req, res).catch(next);
+        });
+
+        this.router.post("/done/:lobbyId/solitaire", hasAuth([Auth["UNO.PLAY"]]), (req, res, next) => {
+            this.doneCards(req, res).catch(next);
         });
 
 
@@ -323,6 +328,81 @@ export default class SolitaireController implements Controller {
             return;
         }
         res.send({ message: "Card played successfully!" });
+    }
+
+    private doneCards = async (req: Request, res: Response) => {
+        const lobbyId = req.params.lobbyId;
+        const playerId = await getIDfromToken(req);
+        const lobby = await this.lobby.findOne({ _id: lobbyId });
+        if (!lobby) {
+            res.status(404).send({ error: ERROR.LOBBY_NOT_FOUND });
+            return;
+        }
+        if (!lobby.users.find((player) => player.toString() == playerId)) {
+            res.status(403).send({ error: ERROR.NOT_IN_LOBBY });
+            return;
+        }
+        const gameId = lobby.game_id;
+        const game = await this.game.findOne({ _id: gameId });
+        if (!game) {
+            res.status(404).send({ error: ERROR.GAME_NOT_FOUND });
+            return;
+        }
+        if (game.playedCards.find((pack) => pack.cards.find((card) => !card.isJoker)) || game.droppedCards.length !== 0 || game.shuffledCards.length !== 0) {
+            res.status(400).send({ error: ERROR.AN_ERROR_OCCURRED });
+            return;
+        }
+
+        const cards: Icard[] = [];
+
+        game.playedCards.forEach((pack) => {
+            pack.cards.forEach((card: Icard) => {
+                if (card.isJoker) {
+                    cards.push(card);
+                }
+            });
+        });
+
+        cards.sort((a, b) => {
+            return a.rank - b.rank;
+        });
+
+        do {
+            const card = cards.shift();
+            if (!card) break;
+            await this.checkAllCards(card, game, res);
+        } while (cards.length > 0);
+
+        res.send({ message: "Cards done successfully!" });
+    }
+
+    private checkAllCards = async (card: Icard, game: any, res: Response) => {
+        await this.wait(300);
+        const dealer = new SolitaireDealer(game.shuffledCards);
+
+        let placedCards: Icard[] = [];
+        let index = 0;
+        do {
+            try {
+                placedCards = Object.values(game.playerCards)[index] as any[];
+                index++;
+            } catch {
+                res.status(400).send({ error: ERROR.AN_ERROR_OCCURRED });
+                return;
+            }
+        } while (!dealer.validatePlay(card, placedCards));
+
+        game.playerCards = { ...game.playerCards, [card.suit]: game.playerCards[card.suit].concat(card) };
+        game.playedCards = game.playedCards.map((pack: any) => {
+            if (pack.cards.find((c: any) => c.name === card.name)) {
+                pack.cards = pack.cards.filter((c: any) => c.name !== card.name);
+            }
+            return pack;
+        });
+
+        game.currentPlayer = { playerId: game.currentPlayer.playerId, time: 0 };
+        await this.game.updateOne({ _id: game._id }, game, { runValidators: true });
+
     }
 
     private prevSteps = async (req: Request, res: Response) => {

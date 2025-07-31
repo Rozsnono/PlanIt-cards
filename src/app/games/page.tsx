@@ -327,10 +327,8 @@ function FilterSideBarContent({ onClose }: Readonly<{ onClose?: () => void }>) {
     }
 
     function setFilterByParam(key: string, value: any) {
-        console.log(filter, (filter as any)[key])
         if ((filter as any)[key] === value) {
             delete (filter as any)[key];
-            console.log(filter, (filter as any)[key])
             setFilter({ ...filter });
         } else {
             setFilter({ ...filter, [key]: value });

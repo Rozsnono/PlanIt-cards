@@ -5,6 +5,7 @@ import React, { useEffect, useState } from "react";
 export default function StarBackground() {
     const [isClient, setIsClient] = useState(false);
     const pathName = usePathname();
+    const gameUrls = ['rummy', 'uno', 'solitaire', 'schnapps'];
 
     useEffect(() => {
         setIsClient(true);
@@ -12,7 +13,7 @@ export default function StarBackground() {
 
     if (!isClient) return null; // vagy valami skeleton
 
-    if ((pathName.includes("rummy") || pathName.includes("uno") || pathName.includes("solitaire")) && !pathName.includes('end')) return null; // ha a games oldalakon nem akarod megjeleníteni
+    if ((gameUrls.find((url) => pathName.includes(url)) && !pathName.includes('end'))) return null; // ha a games oldalakon nem akarod megjeleníteni
 
     function getPlanetPos() {
         return { saturn: new Date().getMinutes() * (100 / 60), uranus: new Date().getDate() * (100 / 30), neptun: new Date().getHours() * 2.5 * (100 / 60), redgiant: new Date().getMonth() * (100 / 12), moon: new Date().getSeconds() * (200 / 60) - 50 };

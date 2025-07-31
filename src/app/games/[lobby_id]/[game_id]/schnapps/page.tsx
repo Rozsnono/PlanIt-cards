@@ -32,85 +32,129 @@ export default function Game() {
     const [sortType, setSortType] = useState<"num" | "abc" | "">("");
     const [isGameOver, setIsGameOver] = useState(false);
 
-    const [playerCards, setPlayerCards] = useState<Icard[]>([]);
+    const [playerCards, setPlayerCards] = useState<Icard[]>([
+        {
+            name: "Y2",
+            pack: 1,
+            suit: "Y",
+            rank: 2,
+            value: 2,
+        },
+        {
+            name: "Y2",
+            pack: 1,
+            suit: "Y",
+            rank: 2,
+            value: 2,
+        },
+        {
+            name: "Y2",
+            pack: 1,
+            suit: "Y",
+            rank: 2,
+            value: 2,
+        },
+        {
+            name: "Y2",
+            pack: 1,
+            suit: "Y",
+            rank: 2,
+            value: 2,
+        },
+        {
+            name: "Y2",
+            pack: 1,
+            suit: "Y",
+            rank: 2,
+            value: 2,
+        }
+    ]);
 
     const [drawedCard, setDrawedCard] = useState<Icard | null>(null);
     const playerCardsRef = useRef<Icard[]>([]);
 
-    useEffect(() => {
-        const socket = new WebSocket(IP.WEBSOCKET);
+    // useEffect(() => {
+    //     const socket = new WebSocket(IP.WEBSOCKET);
 
-        socket.addEventListener('open', () => {
-            console.log('WebSocket is connected');
-            socket.send(JSON.stringify({ _id: lobby_id, player_id: user!._id }));
-        });
+    //     socket.addEventListener('open', () => {
+    //         console.log('WebSocket is connected');
+    //         socket.send(JSON.stringify({ _id: lobby_id, player_id: user!._id }));
+    //     });
 
-        socket.addEventListener('message', async (event) => {
-            try {
-                const { playerCards, lobby, game, game_over, refresh } = gameService.getDataFromWebsocket(JSON.parse(event.data), socket, { _id: lobby_id, player_id: user!._id }) ?? {};
-                if (refresh) {
-                    return;
-                }
-                if (game_over) {
-                    if (game) {
-                        setGame(game);
-                    }
-                    setIsGameOver(true);
-                    console.log("Game Over");
-                    socket.close();
-                    return;
-                }
-                if (!lobby && !game) {
-                    router.push(`/games`);
-                    socket.close();
-                    return;
-                }
-                if (!game && !lobby.game_id && !game_over && !isGameOver) {
-                    router.push(`/games/${lobby_id}`);
-                    socket.close();
-                    return;
-                }
-                if (lobby) {
-                    setLobby(lobby);
-                }
-                if (game) {
-                    setGame(game);
-                    if (game.currentPlayer.playerId === user?._id) {
-                        if (game.lastAction && game.lastAction.playerId !== user?._id && game.lastAction.actions >= 25) {
-                            //TODO
-                        } else {
-                            setSelectedCards(playerCards.filter((card: any) => { return game.droppedCards[game.droppedCards.length - 1].card.suit === card.suit || game.droppedCards[game.droppedCards.length - 1].card.rank === card.rank || card.isJoker }));
-                        }
-                    } else {
-                        setSelectedCards([]);
-                    }
-                    if (game.currentPlayer == user?._id) {
-                        timerClass.start();
-                    }
-                }
-                if (playerCards) {
-                    const tmpDrawedCard = game.playerCards.find((e: Icard) => playerCardsRef.current.filter((pc: Icard) => { return JSON.stringify(pc) === JSON.stringify(e) }).length == 0) || null;
-                    if (game.currentPlayer.playerId === user?._id && game.drawedCard.lastDrawedBy === user?._id) {
-                        setDrawedCard(tmpDrawedCard);
-                    }
-                    setPlayerCards(playerCards);
-                    playerCardsRef.current = playerCards;
-                }
-            } catch {
-                router.push(`/games`);
-                socket.close();
-            }
+    //     socket.addEventListener('message', async (event) => {
+    //         try {
+    //             const { playerCards, lobby, game, game_over, refresh } = gameService.getDataFromWebsocket(JSON.parse(event.data), socket, { _id: lobby_id, player_id: user!._id }) ?? {};
+    //             if (refresh) {
+    //                 return;
+    //             }
+    //             if (game_over) {
+    //                 if (game) {
+    //                     setGame(game);
+    //                 }
+    //                 setIsGameOver(true);
+    //                 console.log("Game Over");
+    //                 socket.close();
+    //                 return;
+    //             }
+    //             if (!lobby && !game) {
+    //                 router.push(`/games`);
+    //                 socket.close();
+    //                 return;
+    //             }
+    //             if (!game && !lobby.game_id && !game_over && !isGameOver) {
+    //                 router.push(`/games/${lobby_id}`);
+    //                 socket.close();
+    //                 return;
+    //             }
+    //             if (lobby) {
+    //                 setLobby(lobby);
+    //             }
+    //             if (game) {
+    //                 setGame(game);
+    //                 if (game.currentPlayer.playerId === user?._id) {
+    //                     if (game.lastAction && game.lastAction.playerId !== user?._id && game.lastAction.actions >= 25) {
+    //                         //TODO
+    //                     } else {
+    //                         setSelectedCards(playerCards.filter((card: any) => { return game.droppedCards[game.droppedCards.length - 1].card.suit === card.suit || game.droppedCards[game.droppedCards.length - 1].card.rank === card.rank || card.isJoker }));
+    //                     }
+    //                 } else {
+    //                     setSelectedCards([]);
+    //                 }
+    //                 if (game.currentPlayer == user?._id) {
+    //                     timerClass.start();
+    //                 }
+    //             }
+    //             if (playerCards) {
+    //                 const tmpDrawedCard = game.playerCards.find((e: Icard) => playerCardsRef.current.filter((pc: Icard) => { return JSON.stringify(pc) === JSON.stringify(e) }).length == 0) || null;
+    //                 if (game.currentPlayer.playerId === user?._id && game.drawedCard.lastDrawedBy === user?._id) {
+    //                     setDrawedCard(tmpDrawedCard);
+    //                 }
+    //                 setPlayerCards(playerCards);
+    //                 playerCardsRef.current = playerCards;
+    //             }
+    //         } catch {
+    //             router.push(`/games`);
+    //             socket.close();
+    //         }
 
-        });
+    //     });
 
-        return () => {
-            socket.close();
-        };
-    }, [])
+    //     return () => {
+    //         socket.close();
+    //     };
+    // }, [])
 
     const { user } = useContext(UserContext);
-    const [game, setGame] = useState<Igame | any>();
-    const [lobby, setLobby] = useState<Ilobby>();
+    const [game, setGame] = useState<Igame | any>({
+        _id: game_id,
+        lobby_id: lobby_id,
+        currentPlayer: { playerId: user?._id, time: new Date().getTime() },
+        droppedCards: [],
+        playerCards: [],
+        allCards: {},
+        lastAction: { actions: 0, isUno: false, playerId: user?._id },
+    });
+    const [lobby, setLobby] = useState<Ilobby | any>();
     const [nextTurnLoader, setNextTurnLoader] = useState(false);
     const [colorPickerShow, setCPshow] = useState(false);
 
@@ -226,35 +270,46 @@ export default function Game() {
                 </div>
             }
 
-            <main className="bg-rose-900 rounded-md w-full relative flex justify-center items-center">
+            <main className="bg-orange-900 rounded-md w-full relative flex justify-center items-center">
                 {
                     error && <ErrorModal errorCode={error} closeError={() => { setError(null) }}></ErrorModal>
                 }
-                <TurnDisplayComponent playerName={lobby!.users.find((u) => u._id === game.currentPlayer.playerId)?.username || null} />
-                <TurnDisplayComponent playerName={lobby!.bots.find((u) => u._id === game.currentPlayer.playerId)?.name || null} />
+                {/* <TurnDisplayComponent playerName={lobby!.users.find((u) => u._id === game.currentPlayer.playerId)?.username || null} />
+                <TurnDisplayComponent playerName={lobby!.bots.find((u) => u._id === game.currentPlayer.playerId)?.name || null} /> */}
+
+
                 <div className="flex justify-center items-center w-full h-full absolute gap-7">
 
-                    <div className="flex relative z-50" onDragOver={overDrag} onDrop={checkCard} >
-                        {
+                    <div className="flex relative z-50 w-[20rem] h-[20rem]" onDragOver={overDrag} onDrop={checkCard} >
+                        {/* {
                             game.droppedCards.length > 1 &&
                             <Image className="absolute left-1 top-1 rotate-1" draggable={false} src={"/assets/cards/uno/" + new CardsUrls().getUnoCardUrl(game.droppedCards[game.droppedCards.length - 2].card.name)} width={150} height={180} alt="card"></Image>
                         }
                         {
                             game.droppedCards.length > 0 &&
                             <Image className="relative right-1 bottom-1 rotate-12 border border-transparent rounded-lg" src={"/assets/cards/uno/" + new CardsUrls().getUnoCardUrl(game.droppedCards[game.droppedCards.length - 1].card.name)} width={150} height={180} alt="card"></Image>
-                        }
+                        } */}
+
+                        <div className="absolute w-[8rem] -top-16 left-[50%] translate-x-[-50%]">
+                            <Image className="" draggable={false} src={"/" + new CardsUrls().getFullCardUrl('Y2')} width={150} height={180} alt="card"></Image>
+                        </div>
+
+                        <div className="absolute w-[8rem] -bottom-16 left-[50%] translate-x-[-50%]">
+                            <Image className="" draggable={false} src={"/" + new CardsUrls().getFullCardUrl('Y2')} width={150} height={180} alt="card"></Image>
+                        </div>
+
+                        <div className="absolute w-[8rem] top-[50%] translate-y-[-50%] -left-16">
+                            <Image className="" draggable={false} src={"/" + new CardsUrls().getFullCardUrl('Y2')} width={150} height={180} alt="card"></Image>
+                        </div>
+
+                        <div className="absolute w-[8rem] bottom-[50%] translate-y-[50%] -right-16">
+                            <Image className="" draggable={false} src={"/" + new CardsUrls().getFullCardUrl('Y2')} width={150} height={180} alt="card"></Image>
+                        </div>
+
                     </div>
                 </div>
 
-                <div className="flex gap-10 w-full absolute top-2 p-2 justify-center">
-                    <div className="flex relative cursor-pointer z-50">
-                        <Image className="relative top-1 left-1" draggable={false} src={"/assets/cards/uno/Deck.png"} width={150} height={180} alt="card"></Image>
-                        <Image onClick={drawingCard} draggable={false} className="absolute border-2 border-transparent hover:border-green-500 rounded-3xl" src={"/assets/cards/uno/Deck.png"} width={230} height={200} alt="card"></Image>
-                    </div>
-
-                </div>
-
-                <div className="absolute top-0 left-2 h-full flex flex-col justify-between items-center">
+                {/* <div className="absolute top-0 left-2 h-full flex flex-col justify-between items-center">
                     <div></div>
                     {
                         lobby?.users.filter((u) => { return u._id !== user?._id }).slice(0, lobby?.users.length / 2).reverse().map((user, j) => {
@@ -291,7 +346,7 @@ export default function Game() {
                         })
                     }
                     <div></div>
-                </div>
+                </div> */}
 
                 <div className="flex gap-1 w-full absolute bottom-0 p-2 justify-center">
                     {
@@ -316,26 +371,10 @@ export default function Game() {
                     }
 
                     {
-                        game.lastAction.actions > 25 && game.lastAction.playerId != user?._id && game.currentPlayer.playerId == user?._id &&
-                        <div className="absolute -top-4 h-4 duration-500">
-                            <Icon name="skip" size={128} stroke strokeWidth={2} className="text-red-950"></Icon>
-                        </div>
-                    }
-
-                    {
                         game.currentPlayer.playerId == user?._id && !isGameOver && game.lastAction.actions < 25 && game.lastAction.playerId !== user?._id &&
                         <div style={{ width: `${Math.floor(75 - (timer / gameSettings.timeLimit) * 75)}%`, backgroundColor: `${timer > (gameSettings.timeLimit - (gameSettings.timeLimit / 6)) ? '#ec003f' : '#9ae600'}` }} className="absolute -top-10 h-4 bg-emerald-500 rounded-xl duration-500">
                             <div className="absolute -top-6 w-full flex justify-center items-center text-sm text-zinc-200">
                                 {gameSettings.timeLimit - timer < 0 ? 0 : gameSettings.timeLimit - timer}s
-                            </div>
-                        </div>
-                    }
-
-                    {
-                        playerCards.length == 2 && game.currentPlayer.playerId == user?._id && !isGameOver &&
-                        <div onClick={() => { setIsUno(true) }} className={`absolute right-10 justify-center items-center flex rounded-full bottom-4`}>
-                            <div className={`w-[6rem] h-[6rem] bg-rose-900 rounded-full ring-[0.3rem] ring-lime-300 flex items-center justify-center text-xl group duration-100  group ${isUno ? 'shadow-lg shadow-white cursor-default' : 'text-lime-400 hover:scale-110 cursor-pointer '}`}>
-                                <span className={`font-mono opacity-100 group-hover:flex flex duration-100 italic text-4xl group-hover:rotate-[0deg] ${isUno ? 'rotate-[0deg] text-lime-100' : 'rotate-[-25deg]'}`}>UNO</span>
                             </div>
                         </div>
                     }
@@ -353,13 +392,52 @@ export default function Game() {
                     <div className="p-10 border-[2rem] border-[#ffffff10] rounded-full h-[30rem] w-[30rem] flex justify-center items-center">
                         <Image loading="eager" src={"/assets/icon.png"} width={300} height={300} draggable={false} alt="" className="opacity-10"></Image>
                     </div>
-
-                    {
-                        colorPickerShow &&
-                        <ColorPicker choosen={(e) => { cardDropped(e) }}></ColorPicker>
-                    }
-
                 </div>
+
+                {
+                    false &&
+                    <main className="fixed bottom-4 right-4 z-[100] bg-zinc-900/50 backdrop-blur-md p-4 rounded-lg flex flex-col gap-2 items-center">
+                        <div className="text-zinc-200 font-bold text-lg">
+                            Válassz adu színt:
+                        </div>
+                        <hr className="w-full" />
+                        <div className="w-fit h-fit rounded-lg p-2 bg-zinc-800/50 flex justify-center items-center gap-2 hover:scale-110 duration-200 cursor-pointer">
+                            <Icon name="card" stroke size={32}></Icon>
+                        </div>
+                        <div className="w-fit h-fit rounded-lg p-2 bg-zinc-800/50 flex justify-center items-center gap-2 hover:scale-110 duration-200 cursor-pointer">
+                            <Icon name="card" stroke size={32}></Icon>
+                        </div>
+                        <div className="w-fit h-fit rounded-lg p-2 bg-zinc-800/50 flex justify-center items-center gap-2 hover:scale-110 duration-200 cursor-pointer">
+                            <Icon name="card" stroke size={32}></Icon>
+                        </div>
+                        <div className="w-fit h-fit rounded-lg p-2 bg-zinc-800/50 flex justify-center items-center gap-2 hover:scale-110 duration-200 cursor-pointer">
+                            <Icon name="card" stroke size={32}></Icon>
+                        </div>
+
+                    </main>
+                }
+
+
+                <main className="fixed bottom-4 right-4 z-[100] bg-zinc-900/50 backdrop-blur-md p-4 w-64 rounded-lg flex flex-col gap-2 items-center">
+                    <div className="text-zinc-200 font-bold text-lg">
+                       Call something?
+                    </div>
+                    <hr className="w-full " />
+
+                    <div className="w-36 text-zinc-100 h-fit rounded-lg p-2 bg-zinc-800/50 flex justify-center items-center gap-2 hover:scale-110 duration-200 cursor-pointer">
+                        Call
+                    </div>
+                    <div className="w-36 text-zinc-100 h-fit rounded-lg p-2 bg-zinc-800/50 flex justify-center items-center gap-2 hover:scale-110 duration-200 cursor-pointer">
+                        Bettli
+                    </div>
+                    <div className="w-36 text-zinc-100 h-fit rounded-lg p-2 bg-zinc-800/50 flex justify-center items-center gap-2 hover:scale-110 duration-200 cursor-pointer">
+                        Schnapps
+                    </div>
+                    <div className="w-36 text-zinc-100 h-fit rounded-lg p-2 bg-zinc-800/50 flex justify-center items-center gap-2 hover:scale-110 duration-200 cursor-pointer">
+                        Gangli
+                    </div>
+
+                </main>
 
                 <div className="fixed bottom-4 left-4 text-rose-200/40">
                     GameId: {game._id}

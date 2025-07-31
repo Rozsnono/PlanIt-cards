@@ -10,7 +10,7 @@ export class LogService {
         return LogService.instance;
     }
 
-    public log(message: string): void {
+    public log(message: string, data?: any): void {
         console.log(`[LOG] ${new Date().getHours()}:${new Date().getMinutes()}:${new Date().getSeconds()} - ${message}`);
     }
 

@@ -49,6 +49,11 @@ export default function End() {
         router.push('/games/' + lobby_id);
     }
 
+    async function recalibrateResult() {
+        await gameSerivce.RecalibrateHistory(data.data._id, game_id!.toString());
+        data.refetch();
+    }
+
     if (data.isLoading || !player) {
         return <Loading></Loading>;
     }
@@ -132,6 +137,10 @@ export default function End() {
                             <Icon name="watch"></Icon>
                             Watch replay
                         </Link>
+                        <button disabled={data.data.position[0].pos !== 0} onClick={recalibrateResult} className="text-zinc-200 justify-center bg-gradient-to-r from-rose-400/70 to-red-500/50 p-2 px-4 rounded-md hover:bg-zinc-400 focus:bg-zinc-800 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-zinc-800">
+                            <Icon name="refresh" stroke></Icon>
+                            Recalibrate result
+                        </button>
                         <div onClick={returnToLobby} className="text-zinc-200 p-2 px-4 justify-center rounded-md bg-zinc-800 hover:bg-zinc-700 focus:bg-zinc-800 flex items-center gap-1 cursor-pointer">
                             <Icon name="join"></Icon>
                             Return to lobby

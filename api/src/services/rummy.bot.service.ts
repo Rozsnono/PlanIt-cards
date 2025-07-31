@@ -58,14 +58,14 @@ export class RummyBot {
                 this.playedCards.push({ playedBy: this.name, cards: meld });
             })
         }
-        if(this.playedCards.find((meld: any) => meld.playedBy === this.name)){
+        if (this.playedCards.find((meld: any) => meld.playedBy === this.name)) {
             const puttingPlayedCards = this.searchForPuttableCards();
             this.playedCards = puttingPlayedCards;
         }
 
         if (this.playerCards.length > 0) {
             const dropCard = this.dropCard();
-            this.droppedCards.push({ droppebBy: "68359c77bb13b4cb0d42d95f", card: dropCard, _id: new mongoose.Types.ObjectId() });
+            this.droppedCards.push({ droppedBy: "bot", card: dropCard, _id: new mongoose.Types.ObjectId() });
             this.playerCards = this.playerCards.filter((card: Icard) => JSON.stringify(card) != JSON.stringify(dropCard));
         } else {
             throw new Error('No cards to drop');
@@ -247,7 +247,8 @@ export class RummyBot {
                 const card = this.playerCards.filter((card: Icard) => !card.isJoker)[Math.floor(Math.random() * this.playerCards.filter((card: Icard) => !card.isJoker).length)];
                 return card ? card : this.playerCards[Math.floor(Math.random() * this.playerCards.length)];
             case 'hard':
-                return this.playerCards[Math.floor(Math.random() * this.playerCards.length)];
+                const cardHard = this.playerCards.filter((card: Icard) => !card.isJoker)[Math.floor(Math.random() * this.playerCards.filter((card: Icard) => !card.isJoker).length)];
+                return cardHard ? cardHard : this.playerCards[Math.floor(Math.random() * this.playerCards.length)];
             default:
                 throw new Error('Invalid difficulty');
         }

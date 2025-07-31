@@ -7,14 +7,13 @@ import { Ilobby } from "@/interfaces/interface";
 import Image from "next/image";
 import React from "react";
 import Link from "next/link";
-import Loader from "@/components/loader.component";
 import { GameService } from "@/services/game.service";
 import LobbyService from "@/services/lobby.service";
 import LobbySettings from "@/components/lobby/lobby.settings.component";
 import ProfileService from "@/services/profile.service";
 import Loading from "@/app/loading";
+import { useQuery } from "react-query";
 const lobbyService = new LobbyService();
-const gameService = new GameService("rummy");
 
 export default function LobbyId() {
     const lobby_id = useParams().lobby_id;
@@ -25,11 +24,16 @@ export default function LobbyId() {
     const [lobby, setLobby] = useState<Ilobby | null>(null);
     const [isChanged, setIsChanged] = useState(false);
     const [tmpForm, setTmpForm] = useState<any>({});
+    const [friendInvite, setFriendInvite] = useState(false);
+    const [friendSearch, setFriendSearch] = useState("");
 
+    const friends = useQuery('friends', async () => {
+        const res = await new ProfileService().getFriends(friendSearch);
+        return res;
+    });
 
     useEffect(() => {
         const socket = lobbyService.connectWebSocket(lobby_id as string, user!._id, (data: any) => {
-            console.log("Lobby data received", data);
             if (data.status) {
                 lobbyService.joinLobby(lobby_id as string).then((data2: any) => {
                     if (data2.error) {
@@ -104,7 +108,6 @@ export default function LobbyId() {
         if (!form) return false;
         const keys = Object.keys(form);
         setTmpForm(form);
-        console.log("Checking if changed", form, "Default:", lobby.settings);
         for (const key of keys) {
             if (form[key] !== (lobby.settings as any)[key]) {
                 setIsChanged(true);
@@ -118,6 +121,7 @@ export default function LobbyId() {
     function removePlayer(id: string) {
         lobbyService.kickFromLobby(lobby_id as string, id);
     }
+
 
     return (
         <main className="flex flex-col md:flex-row gap-2 justify-center w-full md:w-3/4 mx-auto h-full">
@@ -153,6 +157,60 @@ export default function LobbyId() {
                         }
                     </div>
                 </div>
+
+                {
+                    !friends.isLoading && friends.data && friends.data.length > 0 &&
+                    <div className="w-full rounded-2xl border border border-purple-800/50 bg-black/40 p-3 gap-2 flex flex-col">
+                        <div className="text-purple-600 text-lg font-bold flex items-center gap-2 p-2">
+                            <Icon name="users" size={32}></Icon>
+                            Friends
+                        </div>
+
+                        <div className="border-b-[0.1rem] border-purple-800/50"></div>
+
+                        <div className="flex flex-col w-full justify-end mx-auto ">
+                            <button onClick={() => setFriendInvite(true)} className="bg-gradient-to-l from-purple-500 to-purple-700 hover:from-purple-600 hover:to-purple-400 disabled:from-purple-500/50 disabled:to-purple-700/50 w-full rounded-lg p-2 px-5 text-zinc-200 font-bold duration-200 focus:ring-2 disabled:text-zinc-400 disabled:cursor-not-allowed">Invite Friends</button>
+                        </div>
+
+                        {
+                            friendInvite &&
+                            <main className="fixed top-0 left-0 w-full h-full bg-black/50 z-[4000] flex items-center justify-center">
+                                <div className="w-full rounded-2xl border border border-purple-800/50 bg-black/40 shadow-lg p-6 flex flex-col gap-4 max-w-md">
+                                    <div className="text-purple-600 text-lg font-bold flex items-center gap-2 p-2">
+                                        <Icon name="users" size={32}></Icon>
+                                        Invite Friends
+                                    </div>
+                                    <div className="border-b-[0.1rem] border-purple-800/50"></div>
+
+                                    <input type="text" value={friendSearch} onChange={(e) => setFriendSearch(e.target.value)} onKeyDown={(e) => {
+                                        if (e.key === "Enter") {
+                                            friends.refetch();
+                                        }
+                                    }} placeholder="Enter username" className="w-full p-2 rounded-md bg-purple-700/40 border border-purple-500/30 text-white" />
+                                    <div className="border-b-[0.1rem] border-purple-800/50"></div>
+
+                                    <div className="flex flex-col gap-4 h-full overflow-auto">
+                                        {
+                                            friends.isLoading ? (
+                                                <div className="text-zinc-400">Loading friends...</div>
+                                            ) : (
+                                                friends.data.map((friend: any) => (
+                                                    <PlayerCard key={friend._id} playerData={friend} onlyInvite invitePlayer={(id) => {
+                                                        new ProfileService().createGameInvite(lobby._id, friend.customId);
+                                                        console.log(`Inviting ${id}`)
+                                                    }}></PlayerCard>
+                                                ))
+                                            )
+                                        }
+                                    </div>
+                                </div>
+                            </main>
+                        }
+
+                    </div>
+                }
+
+
 
                 <div className="w-full rounded-2xl border border border-purple-800/50 bg-black/40 p-3 gap-2 flex flex-col h-full">
                     <div className="text-purple-600 text-lg font-bold flex items-center gap-2 p-2">
@@ -278,7 +336,7 @@ export default function LobbyId() {
     )
 }
 
-function PlayerCard({ playerData, loading, bot, createdBy, removePlayer, mutePlayer, currentPlayer }: { playerData?: any, loading?: boolean, bot?: boolean, createdBy?: string, removePlayer?: (id: string) => void, mutePlayer?: (id: string) => void, currentPlayer?: string }) {
+function PlayerCard({ playerData, loading, bot, createdBy, onlyInvite, removePlayer, mutePlayer, invitePlayer, currentPlayer }: { playerData?: any, loading?: boolean, bot?: boolean, createdBy?: string, onlyInvite?: boolean, removePlayer?: (id: string) => void, mutePlayer?: (id: string) => void, invitePlayer?: (id: string) => void, currentPlayer?: string }) {
     if (loading) {
         return (
             <main className="w-full bg-black/40 rounded-lg px-3 py-2 flex gap-2 border-2 border-purple-800/50 select-none items-center">
@@ -320,20 +378,29 @@ function PlayerCard({ playerData, loading, bot, createdBy, removePlayer, mutePla
                 </div>
             </div>
             {
-                currentPlayer !== playerData._id &&
+                currentPlayer !== playerData._id && !onlyInvite &&
                 <div className="flex gap-2 flex-wrap justify-end">
-                    <div onClick={() => { new ProfileService().createFriendRequest(playerData.customId) }} className="p-1 rounded-full bg-gradient-to-br from-blue-400 to-indigo-700 w-fit h-fit cursor-pointer">
+                    <div onClick={() => { new ProfileService().createFriendRequest(playerData.customId) }} className="p-1 rounded-full bg-gradient-to-br from-blue-400 to-indigo-700 w-fit h-fit cursor-pointer hover:scale-110 transition-transform duration-200">
                         <Icon name="add-friend" size={16} />
                     </div>
-                    <Link href={`/profile/${playerData.customId}`} className="p-1 rounded-full bg-gradient-to-br from-sky-500 to-purple-500 w-fit h-fit">
+                    <Link href={`/profile/${playerData.customId}`} className="p-1 rounded-full bg-gradient-to-br from-sky-500 to-purple-500 w-fit h-fit cursor-pointer hover:scale-110 transition-transform duration-200">
                         <Icon name="info" size={16} />
                     </Link>
                     {
                         playerData._id !== createdBy &&
-                        <div onClick={() => { removePlayer!(playerData._id) }} className="p-1 rounded-full bg-gradient-to-bl from-indigo-500 to-red-700 w-fit h-fit cursor-pointer">
+                        <div onClick={() => { removePlayer!(playerData._id) }} className="p-1 rounded-full bg-gradient-to-bl from-indigo-500 to-red-700 w-fit h-fit cursor-pointer hover:scale-110 transition-transform duration-200">
                             <Icon name="close" size={16} />
                         </div>
                     }
+                </div>
+            }
+
+            {
+                onlyInvite &&
+                <div className="flex gap-2 flex-wrap justify-end">
+                    <div onClick={() => { invitePlayer!(playerData._id) }} className="p-1 rounded-full bg-gradient-to-bl from-indigo-500 to-sky-700 w-fit h-fit cursor-pointer hover:scale-110 transition-transform duration-200">
+                        <Icon name="invite" size={16} />
+                    </div>
                 </div>
             }
         </main>

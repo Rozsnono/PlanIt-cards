@@ -10,12 +10,15 @@ import ProfileService from "@/services/profile.service";
 import { Iplayer } from "@/interfaces/interface";
 import Link from "next/link";
 import Loading from "@/app/loading";
+import { ProfileIcon } from "@/assets/profile-pics";
 
 export default function ProfilePage() {
 
     const player_id = useParams().id;
 
     const [page, setPage] = React.useState(1);
+
+    const [search, setSearch] = React.useState("");
 
     const profileService = new ProfileService();
 
@@ -25,7 +28,7 @@ export default function ProfilePage() {
     }
 
     function getPlayers() {
-        return profileService.getPlayers().then(res => res.json());
+        return profileService.getPlayers(search).then(res => res.json());
     }
 
     const player = useQuery("player", getPlayer, { enabled: !!player_id, refetchOnWindowFocus: false });
@@ -36,34 +39,6 @@ export default function ProfilePage() {
     return (
         <main className="flex flex-col md:flex-row gap-6 justify-center w-full md:w-3/4 mx-auto h-full">
             <main className="w-full rounded-2xl flex flex-col p-6 gap-2">
-
-                <div className="w-full rounded-2xl border border border-purple-800/50 bg-black/40 p-3 gap-2 flex flex-col">
-                    <div className="text-purple-600 text-lg font-bold flex items-center gap-2 p-2">
-                        <Icon name="users" size={32}></Icon>
-                        Players
-                    </div>
-
-                    <div className="border-b-[0.1rem] border-purple-800/50"></div>
-
-                    <div className="flex flex-col gap-2 p-2 h-full">
-
-                    </div>
-
-                    <div className="border-b-[0.1rem] border-purple-800/50"></div>
-
-                    <div className="flex flex-col gap-4 w-full">
-
-                        {
-                            players.data.data.map((player: Iplayer) => (
-                                <Players key={player.customId} player={player}></Players>
-                            ))
-                        }
-                    </div>
-                </div>
-            </main>
-
-            <main className="w-1/2 h-full rounded-2xl flex flex-col p-6 gap-6">
-
                 <div className="w-full rounded-2xl border border border-purple-800/50 bg-black/40 p-3 gap-2 flex flex-col">
                     <div className="text-purple-600 text-lg font-bold flex items-center gap-2 p-2">
                         <Icon name="users" size={32}></Icon>
@@ -93,6 +68,38 @@ export default function ProfilePage() {
                     </div>
                 </div>
 
+            </main>
+
+            <main className="w-1/2 h-full rounded-2xl flex flex-col p-6 gap-6">
+                <div className="w-full rounded-2xl border border border-purple-800/50 bg-black/40 p-3 gap-2 flex flex-col">
+                    <div className="text-purple-600 text-lg font-bold flex items-center gap-2 p-2">
+                        <Icon name="users" size={32}></Icon>
+                        Players
+                    </div>
+
+                    <div className="border-b-[0.1rem] border-purple-800/50"></div>
+
+                    <div className="flex flex-col gap-2 p-2 h-full">
+                        <input value={search} onChange={(e) => { setSearch(e.target.value) }} onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                                players.refetch();
+                            }
+                        }} type="text" placeholder="Search players..." className="bg-transparent border border-purple-800/50 rounded-lg p-2 focus:outline-none focus:outline-purple-600/50 text-purple-100" />
+                    </div>
+
+                    <div className="border-b-[0.1rem] border-purple-800/50"></div>
+
+                    <div className="flex flex-col p-2 gap-4 w-full">
+
+                        {
+                            players.data.data.map((player: Iplayer) => (
+                                <Players key={player.customId} player={player}></Players>
+                            ))
+                        }
+                    </div>
+                </div>
+
+
                 <div className="w-full rounded-2xl border border border-purple-800/50 bg-black/40 p-3 gap-2 flex flex-col">
                     <div className="text-purple-600 text-lg font-bold flex items-center gap-2 p-2">
                         <Icon name="pedding" size={32}></Icon>
@@ -102,7 +109,11 @@ export default function ProfilePage() {
                     <div className="border-b-[0.1rem] border-purple-800/50"></div>
 
                     <div className="flex flex-col gap-2 p-2 h-full">
-
+                        {
+                            player.data.pendingFriends.map((pending: Iplayer) => (
+                                <Players key={pending.customId} player={pending} isPending onRefresh={() => { player.refetch(); }}></Players>
+                            ))
+                        }
                     </div>
                 </div>
 
@@ -113,40 +124,44 @@ export default function ProfilePage() {
 }
 
 
-function Players({ player, isFriend, isPedding }: { player: Iplayer, isFriend?: boolean, isPedding?: boolean }) {
+function Players({ player, isFriend, isPending, onRefresh }: { player: Iplayer, isFriend?: boolean, isPending?: boolean, onRefresh?: () => void }) {
 
     return (
         <div className={`flex items-center justify-between gap-4 p-2 rounded-lg w-full hover:bg-purple-800/30 border border-purple-400/20 transition-colors duration-200 bg-purple-800/20`}>
-            <div className="flex items-center gap-4">
-                <div style={{ backgroundColor: getColorByInitials(player).background, color: getColorByInitials(player).text }} className="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center text-sm">{getUserInitialsByName(player.firstName + " " + player.lastName)}</div>
-                <div className="text-lg font-bold text-zinc-300">{player!.firstName} {player!.lastName}</div>
+            <div className="flex items-center gap-2">
+                <ProfileIcon settings={player.settings} size={2} className="text-[1rem]" />
+                <div className="text-lg font-bold text-zinc-300">{player!.username}</div>
             </div>
-            <div className="flex items-center">
-                <span style={{ color: getRankName(player.rank).color }} className="flex items-center gap-1 text-lg">
-                    <div dangerouslySetInnerHTML={{ __html: getRankName(player.rank).icon }}></div>
-                    {getRankName(player.rank).title}
-                </span>
-            </div>
+            {
+                !isPending &&
+                <div className="flex items-center">
+                    <span style={{ color: getRankName(player.rank).color }} className="flex items-center gap-1 text-lg">
+                        <div dangerouslySetInnerHTML={{ __html: getRankName(player.rank).icon }}></div>
+                        {getRankName(player.rank).title}
+                    </span>
+                </div>
+            }
             <div className="flex items-center gap-2">
                 {
-                    !isFriend &&
-                    <button onClick={() => { new ProfileService().createFriendRequest(player.customId) }} className="text-purple-600 hover:text-purple-400 transition-colors duration-200">
+                    !isFriend && !isPending &&
+                    <button onClick={() => { new ProfileService().createFriendRequest(player.customId) }} className="text-purple-600 hover:text-purple-400 transition-colors duration-200 hover:scale-110">
                         <Icon name="add-friend" size={20}></Icon>
                     </button>
                 }
                 {
-                    isPedding ?
+                    isPending ?
                         <>
-                            <Icon name="check" size={20} className="text-green-500"></Icon>
-                            <Icon name="close" size={20} className="text-red-500"></Icon>
+                            <Icon name="check-empty" onClick={() => { new ProfileService().acceptFriendRequest(player.customId); onRefresh(); }} size={20} className="text-green-500 cursor-pointer hover:text-green-400 hover:scale-110 duration-200"></Icon>
+                            <Icon name="close" size={20} className="text-red-500 cursor-pointer hover:text-red-400 hover:scale-110 duration-200"></Icon>
                         </>
                         : null
                 }
 
-                <Link href={`/profile/${player.customId}`} className="text-indigo-600 hover:text-indigo-400 transition-colors duration-200">
+                <Link href={`/profile/${player.customId}`} className="text-indigo-600 hover:text-indigo-400 transition-colors hover:scale-110 duration-200">
                     <Icon name="info" size={20}></Icon>
                 </Link>
             </div>
         </div>
     )
 }
+

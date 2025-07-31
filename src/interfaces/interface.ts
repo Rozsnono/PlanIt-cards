@@ -21,6 +21,13 @@ export interface Iplayer {
     friends: string[];
     pendingFriends: any[] | number;
     customId: string;
+    gameInvites: {
+        _id: string;
+        gameId: string;
+        gameType: "UNO" | "RUMMY" | "SOLITAIRE";
+        invitedBy: any;
+        lobbyCode?: string | null;
+    }[];
     settings: {
         backgroundColor: string;
         textColor: string;
@@ -43,7 +50,7 @@ export interface Iplayer {
 export interface Ilobby {
     _id: string;
     users: Iplayer[];
-    bots: { _id: string, name: string }[];
+    bots: { _id: string, name: string, customId: string }[];
     mutedPlayers: string[];
     settings: {
         numberOfPlayers: number;

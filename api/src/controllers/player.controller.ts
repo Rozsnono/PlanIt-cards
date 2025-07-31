@@ -7,11 +7,13 @@ import { ERROR } from "../enums/error.enum";
 import bcrypt from 'bcryptjs';
 import mongoose from "mongoose";
 import { UserSettings } from "../cards/user";
+import lobbyModel from "../models/lobby.model";
 
 
 export default class PlayerController implements Controller {
     public router = Router();
     public user = userModel.userModel
+    public lobby = lobbyModel.lobbyModel;
 
     constructor() {
 
@@ -51,9 +53,31 @@ export default class PlayerController implements Controller {
             this.acceptFriendRequest(req, res).catch(next);
         });
 
-        this.router.post("/players/game/invite", hasAuth([Auth["PLAYER.GET.INFO"]]), (req, res, next) => {
+        this.router.post("/players/game/invite/:id/:playerId", hasAuth([Auth["PLAYER.GET.INFO"]]), (req, res, next) => {
             this.createGameInvite(req, res).catch(next);
         });
+
+        this.router.delete("/players/game/invite/:id", hasAuth([Auth["PLAYER.GET.INFO"]]), (req, res, next) => {
+            this.deleteGameInvite(req, res).catch(next);
+        });
+
+        this.router.get("/get/player/friends", hasAuth([Auth["PLAYER.GET.INFO"]]), (req, res, next) => {
+            this.getPlayerFriends(req, res).catch(next);
+        });
+    }
+
+    private getPlayerFriends = async (req: Request, res: Response) => {
+        const username = req.query.username as string;
+        const id = await getIDfromToken(req);
+        let players;
+        if (username && username !== "") {
+            players = await this.user.find({ username: { $regex: username, $options: 'i' } });
+        } else {
+            const player = await this.user.findOne({ _id: id }).populate("friends", "customId firstName lastName username rank settings");
+            players = player?.friends || [];
+        }
+
+        res.send(players);
     }
 
     private createFriendRequest = async (req: Request, res: Response) => {
@@ -89,38 +113,76 @@ export default class PlayerController implements Controller {
     }
 
     private createGameInvite = async (req: Request, res: Response) => {
-        const body = req.body;
-        const customId = await getCustomIdFromToken(req);
 
-        if (!body.customId) {
+        const lobbyId = req.params.id;
+        const playerId = req.params.playerId;
+        const id = await getIDfromToken(req);
+
+        if (!lobbyId || !playerId) {
             res.status(400).send({ error: ERROR.AN_ERROR_OCCURRED });
             return;
         }
 
-        const player = await this.user.findOne({ customId: body.customId });
-
+        const player = await this.user.findOne({ customId: playerId });
         if (!player) {
             res.status(404).send({ error: ERROR.USER_NOT_FOUND });
             return;
         }
 
-        if (player.gameInvites.filter((invite: any) => invite.invitedBy === customId).length > 3) {
+        const lobby = await this.lobby.findById(lobbyId);
+        if (!lobby) {
+            res.status(404).send({ error: ERROR.LOBBY_NOT_FOUND });
+            return;
+        }
+
+
+        if (player.gameInvites.filter((invite: any) => invite.invitedBy === id).length > 3) {
             res.status(409).send({ error: ERROR.AN_ERROR_OCCURRED });
+            return;
+        }
+
+        const inviter = await this.user.findOne({ _id: id });
+        if (!inviter) {
+            res.status(404).send({ error: ERROR.USER_NOT_FOUND });
             return;
         }
 
         player.gameInvites.push(
             {
-                invitedBy: customId,
-                gameType: body.gameType,
-                gameId: body.gameId,
-                code: body.code,
+                invitedBy: {
+                    customId: inviter.customId,
+                    firstName: inviter.firstName,
+                    lastName: inviter.lastName,
+                    username: inviter.username,
+                    rank: inviter.rank,
+                    settings: inviter.settings,
+                },
+                gameType: lobby!.settings!.cardType,
+                gameId: lobby!._id,
+                code: lobby!.settings!.lobbyCode,
                 createdAt: new Date(),
             }
         );
         await player.save();
 
         res.send({ message: "Game invite sent successfully!" });
+    }
+
+    private deleteGameInvite = async (req: Request, res: Response) => {
+        const id = await getIDfromToken(req);
+        const inviteId = req.params.id;
+
+        const player = await this.user.findOne({ _id: id });
+
+        if (!player) {
+            res.status(404).send({ error: ERROR.USER_NOT_FOUND });
+            return;
+        }
+
+        player.gameInvites = player.gameInvites.filter((invite: any) => invite.gameId.toString() !== inviteId);
+        await player.save();
+
+        res.send({ message: "Game invite deleted successfully!" });
     }
 
     private acceptFriendRequest = async (req: Request, res: Response) => {
@@ -218,12 +280,13 @@ export default class PlayerController implements Controller {
             paging.limit = parseInt(query.limit.toString()) || 14;
         }
 
-        const players = await this.user.find({ $and: [{ _id: { $ne: _id } }, { ...query }] }).skip((paging.page - 1) * paging.limit).limit(paging.limit).sort({ created_at: -1 });
-
-        if (!players || players.length === 0) {
-            res.status(404).send({ error: ERROR.USER_NOT_FOUND });
-            return;
-        }
+        const players = await this.user.find({
+            $and: [
+                { _id: { $ne: _id } },
+                { username: { $regex: query.username, $options: "i" } },
+                { friends: { $nin: [new mongoose.Types.ObjectId(_id)] } }
+            ]
+        }).skip((paging.page - 1) * paging.limit).limit(paging.limit).sort({ created_at: -1 });
 
         const playerData = players.map(player => ({
             customId: player.customId,
@@ -306,7 +369,7 @@ export default class PlayerController implements Controller {
 
     private getPlayerById = async (req: Request, res: Response) => {
         const id = req.params.id;
-        const player = await this.user.findOne({ customId: id }).populate("friends", "customId firstName lastName username rank settings").populate("achievements", "name description imageUrl");
+        const player = await this.user.findOne({ customId: id }).populate("friends", "customId firstName lastName username rank settings").populate("achievements", "name description imageUrl").populate("pendingFriends", "customId firstName lastName username rank settings");
 
         if (!player) {
             res.status(404).send({ error: ERROR.USER_NOT_FOUND });
@@ -324,6 +387,7 @@ export default class PlayerController implements Controller {
             username: player.username,
             rank: player.rank,
             gameHistory: player.gameHistory,
+            pendingFriends: player.pendingFriends,
             friends: player.friends,
             gamesStats: player.gamesStats,
             achievements: player.achievements,

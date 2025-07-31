@@ -18,6 +18,8 @@ export function Providers({ children, className }: { children: React.ReactNode, 
 
     const notAllowedURLs = ['rummy', 'uno', 'solitaire', 'observatory', 'login', 'register'];
 
+    const gameUrls = ['rummy', 'uno', 'solitaire', 'schnapps'];
+
 
     function setUserData(user: Iplayer | null) {
         setUser(user);
@@ -33,7 +35,7 @@ export function Providers({ children, className }: { children: React.ReactNode, 
         if (path.includes('end')) {
             return { backgroundImage: 'linear-gradient(50deg,rgba(255, 255, 255, 0) 0%, rgba(226, 99, 255, 0.18) 20%, rgba(255, 255, 255, 0) 50%, rgba(206, 53, 255, 0.12) 85%, rgba(255, 255, 255, 0) 100%)', paddingTop: "5.5rem" }
         }
-        if (path === "/" || (path.includes('rummy') || path.includes('uno') || path.includes('solitaire') || path.includes('schnapsen') && !path.includes('end'))) {
+        if (path === "/" || (gameUrls.find((url) => path.includes(url)) && !path.includes('end'))) {
             return { backgroundImage: 'linear-gradient(50deg,rgba(255, 255, 255, 0) 0%, rgba(226, 99, 255, 0.18) 20%, rgba(255, 255, 255, 0) 50%, rgba(206, 53, 255, 0.12) 85%, rgba(255, 255, 255, 0) 100%)' }
         }
         return { backgroundImage: 'linear-gradient(50deg,rgba(255, 255, 255, 0) 0%, rgba(226, 99, 255, 0.18) 20%, rgba(255, 255, 255, 0) 50%, rgba(206, 53, 255, 0.12) 85%, rgba(255, 255, 255, 0) 100%)', paddingTop: "5.5rem" }
