@@ -17,11 +17,24 @@ const gameSchema = new Schema(
                 timeLimit: { type: Number, required: true, default: 180 },
                 gameType: { type: String, required: true, default: "RUMMY" },
                 robotDifficulty: { type: String, required: true, default: "EASY" },
+                isGameOver: { type: Boolean, default: false },
+                gameTurn: { type: Number, default: 1 },
+                maxGameTurns: { type: Number, default: 1 },
+                pointsByTurns: {
+                    type: Object,
+                    default: {}
+                },
+                currentTurn: { type: Number, default: 1 },
             },
             default: {
                 timeLimit: 180,
                 gameType: "RUMMY",
-                robotDifficulty: "EASY"
+                robotDifficulty: "EASY",
+                isGameOver: false,
+                gameTurn: 1,
+                maxGameTurns: 1,
+                currentTurn: 1,
+                pointsByTurns: {}
             }
         },
         playerCards: {
@@ -62,7 +75,9 @@ const gameSchema = new Schema(
             type: {
                 playerId: { type: String },
                 actions: { type: Number },
-                isUno: { type: Boolean, default: false }
+                isUno: { type: Boolean, default: false },
+                trump: { type: Object, default: { suit: "", card: "" }, nullable: true },
+                trumpWith: { type: String, default: null, nullable: true }
             },
             default: null,
             nullable: true

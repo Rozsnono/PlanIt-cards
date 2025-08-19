@@ -7,6 +7,7 @@ import GameHistoryController from "./controllers/game.history.controller";
 import UnoController from "./controllers/uno.controller";
 import SolitaireController from "./controllers/solitaire.controller";
 import AchivementController from "./controllers/achievement.controller";
+import SchnappsController from "./controllers/schnapps.controller";
 
 
 new App([
@@ -17,5 +18,6 @@ new App([
     new GameHistoryController(),
     new UnoController(),
     new SolitaireController(),
-    new AchivementController()
+    new AchivementController(),
+    new SchnappsController()
 ]);  

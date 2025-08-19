@@ -64,9 +64,21 @@ export interface Igame {
     playedCards: Icard[][];
     drawedCard: { lastDrawedBy: string };
     droppedCards: { droppedBy: string, card: Icard }[];
+    secretSettings: {
+        timeLimit: number,
+        gameType: string,
+        robotDifficulty: string,
+        isGameOver: boolean,
+        gameTurn: number,
+        maxGameTurns: number,
+        currentTurn: number,
+        pointsByTurns: any
+    }
     lastAction: {
         playerId: string;
         actions: number;
         isUno?: boolean;
+        trump?: { suit: string, card: string } | null;
+        trumpWith?: string | null;
     }
 }

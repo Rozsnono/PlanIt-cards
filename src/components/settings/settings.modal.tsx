@@ -21,7 +21,7 @@ export default function SettingsModal({ isOpen, onClose }: { isOpen: boolean, on
     }
 
     return (
-        <main className="w-screen h-screen bg-[#00000060] fixed top-0 left-0 flex items-center justify-end p-6 z-[1000]">
+        <main className="w-screen h-screen bg-[#00000060] absolute top-0 p-6 z-[1000]">
 
             <form onSubmit={saveSettings} className={`bg-zinc-900 text-zinc-300 rounded-md p-6 w-96 h-96 flex flex-col gap-2 border border-zinc-600 relative duration-300`}>
                 <h1 className="text-xl flex items-center gap-2"> <Icon name="settings"></Icon> Settings</h1>

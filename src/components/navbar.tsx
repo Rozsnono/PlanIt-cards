@@ -157,6 +157,8 @@ function UserHeader({ isLogged }: { isLogged: boolean }) {
 
     const { user } = useContext(UserContext);
 
+    const { isLowModeOn, setLowMode } = useContext(MenuContext);
+
     const [u, setU] = useState<Iplayer | null>(user);
     useEffect(() => {
         setU(user);
@@ -174,7 +176,7 @@ function UserHeader({ isLogged }: { isLogged: boolean }) {
         window.location.reload();
     }
 
-    if (!isLogged) {
+    if (!isLogged && !u) {
         return (
             <div className="flex items-center gap-4 mr-4">
                 <Link href={"/login"}><div className="text-zinc-300 text-lg cursor-pointer hover:text-white hover:font-bold duration-100">Sign in</div></Link>
@@ -191,7 +193,7 @@ function UserHeader({ isLogged }: { isLogged: boolean }) {
                     <ProfileIcon settings={u!.settings} size={2} className='p-0' />
                 }
                 <div className="flex items-center gap-2 text-zinc-300 group-hover:text-white duration-100 cursor-pointer relative">
-                    <div className="text-lg ">{u!.firstName} {u!.lastName}</div>
+                    <div className="text-lg ">{u && u.firstName} {u && u.lastName}</div>
                     <Icon name='arrow-down'></Icon>
                 </div>
 
@@ -206,20 +208,17 @@ function UserHeader({ isLogged }: { isLogged: boolean }) {
                         <button className="hover:bg-zinc-700/50 text-zinc-300 w-full rounded-lg p-2 more-modal-input text-left flex gap-1 items-center relative">
                             <Icon name="users" size={16} className='text-purple-400'></Icon> Friends
                             {
-                                typeof u!.pendingFriends === "number" && u!.pendingFriends > 0 &&
+                                u && typeof u!.pendingFriends === "number" && u!.pendingFriends > 0 &&
                                 <div className='absolute top-[-0.1rem] right-[-0.1rem] w-2 h-2 bg-red-300 rounded-full animate-ping duration-400'></div>
                             }
                         </button>
                     </Link>
-                    {/* <button onClick={() => { setSettingsOpen(true) }} className="hover:bg-zinc-700/50 text-zinc-400 w-full rounded-lg p-2 more-modal-input text-left flex gap-1 items-center"> <Icon name="settings" size={16}></Icon> Settings</button> */}
+                    <button onClick={() => setLowMode(!isLowModeOn)} className="hover:bg-zinc-700/50 text-zinc-300 w-full rounded-lg p-2 more-modal-input text-left flex gap-1 items-center relative">
+                        <Icon name={isLowModeOn ? "check-empty" : "circle"} size={16} className='text-purple-400'></Icon> Low priority mode
+                    </button>
                 </div>
                 <button onClick={LogOut} className="text-red-400 hover:bg-zinc-950/50 rounded-lg flex items-center gap-1 p-2" ><Icon name="sign-out" size={16}></Icon> Sign out</button>
             </modal.FilterModal>
-
-
-
-            <SettingsModal isOpen={settingsOpen} onClose={() => { setSettingsOpen(false) }}>
-            </SettingsModal>
         </React.Fragment>
     )
 }

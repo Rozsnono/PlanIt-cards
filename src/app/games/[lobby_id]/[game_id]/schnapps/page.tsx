@@ -4,10 +4,10 @@ import ErrorModal from "@/components/error.modal";
 import Loader from "@/components/loader.component";
 import { SettingsContext } from "@/contexts/settings.context";
 import { UserContext } from "@/contexts/user.context";
-import { dropCard, placeCardToIndex, playCard, sortUnoCards } from "@/functions/card.function";
+import { dropCard, placeCardToIndex, playCard, sortSchnapsenCards, sortUnoCards } from "@/functions/card.function";
 import { getColorByInitials, getUserInitials } from "@/functions/user.function";
 import { Icard, Igame, Ilobby } from "@/interfaces/interface";
-import { GameService, UnoService } from "@/services/game.service";
+import { GameService, SchnappsService, UnoService } from "@/services/game.service";
 import { Timer } from "@/services/timer.service";
 import Image from "next/image"
 import { useParams, useRouter } from "next/navigation";
@@ -18,8 +18,10 @@ import ColorPicker from "@/components/color.picker";
 import GameUser, { GameBot } from "@/components/user/game.user.component";
 import { IP } from "@/enums/ip.enum";
 import TurnDisplayComponent from "@/components/game/turn.display.component";
+import PingDisplayComponent from "@/components/game/ping.display.component";
+import Loading from "@/app/loading";
 
-const gameService = new UnoService();
+const gameService = new SchnappsService();
 const timerClass = new Timer();
 
 export default function Game() {
@@ -32,129 +34,83 @@ export default function Game() {
     const [sortType, setSortType] = useState<"num" | "abc" | "">("");
     const [isGameOver, setIsGameOver] = useState(false);
 
-    const [playerCards, setPlayerCards] = useState<Icard[]>([
-        {
-            name: "Y2",
-            pack: 1,
-            suit: "Y",
-            rank: 2,
-            value: 2,
-        },
-        {
-            name: "Y2",
-            pack: 1,
-            suit: "Y",
-            rank: 2,
-            value: 2,
-        },
-        {
-            name: "Y2",
-            pack: 1,
-            suit: "Y",
-            rank: 2,
-            value: 2,
-        },
-        {
-            name: "Y2",
-            pack: 1,
-            suit: "Y",
-            rank: 2,
-            value: 2,
-        },
-        {
-            name: "Y2",
-            pack: 1,
-            suit: "Y",
-            rank: 2,
-            value: 2,
-        }
-    ]);
+    const trumps = {
+        suits: ['A', 'B', 'H', 'L'],
+        cards: [['A', 'T'], ['K', 'O'], ['U', '9']],
+        call: { 1: 'Call', 6: 'Bettli', 7: 'Schnapps', 8: 'Gangli' }
+    }
+
+    const [playerCards, setPlayerCards] = useState<Icard[]>([]);
 
     const [drawedCard, setDrawedCard] = useState<Icard | null>(null);
     const playerCardsRef = useRef<Icard[]>([]);
 
-    // useEffect(() => {
-    //     const socket = new WebSocket(IP.WEBSOCKET);
+    useEffect(() => {
+        const socket = new WebSocket(IP.WEBSOCKET);
 
-    //     socket.addEventListener('open', () => {
-    //         console.log('WebSocket is connected');
-    //         socket.send(JSON.stringify({ _id: lobby_id, player_id: user!._id }));
-    //     });
+        socket.addEventListener('open', () => {
+            console.log('WebSocket is connected');
+            socket.send(JSON.stringify({ _id: lobby_id, player_id: user!._id }));
+        });
 
-    //     socket.addEventListener('message', async (event) => {
-    //         try {
-    //             const { playerCards, lobby, game, game_over, refresh } = gameService.getDataFromWebsocket(JSON.parse(event.data), socket, { _id: lobby_id, player_id: user!._id }) ?? {};
-    //             if (refresh) {
-    //                 return;
-    //             }
-    //             if (game_over) {
-    //                 if (game) {
-    //                     setGame(game);
-    //                 }
-    //                 setIsGameOver(true);
-    //                 console.log("Game Over");
-    //                 socket.close();
-    //                 return;
-    //             }
-    //             if (!lobby && !game) {
-    //                 router.push(`/games`);
-    //                 socket.close();
-    //                 return;
-    //             }
-    //             if (!game && !lobby.game_id && !game_over && !isGameOver) {
-    //                 router.push(`/games/${lobby_id}`);
-    //                 socket.close();
-    //                 return;
-    //             }
-    //             if (lobby) {
-    //                 setLobby(lobby);
-    //             }
-    //             if (game) {
-    //                 setGame(game);
-    //                 if (game.currentPlayer.playerId === user?._id) {
-    //                     if (game.lastAction && game.lastAction.playerId !== user?._id && game.lastAction.actions >= 25) {
-    //                         //TODO
-    //                     } else {
-    //                         setSelectedCards(playerCards.filter((card: any) => { return game.droppedCards[game.droppedCards.length - 1].card.suit === card.suit || game.droppedCards[game.droppedCards.length - 1].card.rank === card.rank || card.isJoker }));
-    //                     }
-    //                 } else {
-    //                     setSelectedCards([]);
-    //                 }
-    //                 if (game.currentPlayer == user?._id) {
-    //                     timerClass.start();
-    //                 }
-    //             }
-    //             if (playerCards) {
-    //                 const tmpDrawedCard = game.playerCards.find((e: Icard) => playerCardsRef.current.filter((pc: Icard) => { return JSON.stringify(pc) === JSON.stringify(e) }).length == 0) || null;
-    //                 if (game.currentPlayer.playerId === user?._id && game.drawedCard.lastDrawedBy === user?._id) {
-    //                     setDrawedCard(tmpDrawedCard);
-    //                 }
-    //                 setPlayerCards(playerCards);
-    //                 playerCardsRef.current = playerCards;
-    //             }
-    //         } catch {
-    //             router.push(`/games`);
-    //             socket.close();
-    //         }
+        socket.addEventListener('message', async (event) => {
+            try {
+                const { playerCards, lobby, game, game_over, refresh } = gameService.getDataFromWebsocket(JSON.parse(event.data), socket, { _id: lobby_id, player_id: user!._id }) ?? {};
+                console.log(JSON.parse(event.data));
+                if (refresh) {
+                    return;
+                }
+                if (game_over) {
+                    if (game) {
+                        setGame(game);
+                    }
+                    setIsGameOver(true);
+                    console.log("Game Over");
+                    socket.close();
+                    return;
+                }
+                if (!lobby && !game) {
+                    router.push(`/games`);
+                    socket.close();
+                    return;
+                }
+                if (!game && !lobby.game_id && !game_over && !isGameOver) {
+                    router.push(`/games/${lobby_id}`);
+                    socket.close();
+                    return;
+                }
+                if (lobby) {
+                    setLobby(lobby);
+                }
+                if (game) {
+                    setGame(game);
+                    if (game.currentPlayer == user?._id) {
+                        timerClass.start();
+                    }
+                }
+                if (playerCards) {
+                    const tmpDrawedCard = game.playerCards.find((e: Icard) => playerCardsRef.current.filter((pc: Icard) => { return JSON.stringify(pc) === JSON.stringify(e) }).length == 0) || null;
+                    if (game.currentPlayer.playerId === user?._id && game.drawedCard.lastDrawedBy === user?._id) {
+                        setDrawedCard(tmpDrawedCard);
+                    }
+                    setPlayerCards(playerCards);
+                    playerCardsRef.current = playerCards;
+                }
+            } catch {
+                router.push(`/games`);
+                socket.close();
+            }
 
-    //     });
+        });
 
-    //     return () => {
-    //         socket.close();
-    //     };
-    // }, [])
+        return () => {
+            socket.close();
+        };
+    }, [])
 
     const { user } = useContext(UserContext);
-    const [game, setGame] = useState<Igame | any>({
-        _id: game_id,
-        lobby_id: lobby_id,
-        currentPlayer: { playerId: user?._id, time: new Date().getTime() },
-        droppedCards: [],
-        playerCards: [],
-        allCards: {},
-        lastAction: { actions: 0, isUno: false, playerId: user?._id },
-    });
-    const [lobby, setLobby] = useState<Ilobby | any>();
+    const [gameState, setGame] = useState<Igame | null>(null);
+    const [lobbyState, setLobby] = useState<Ilobby | null>(null);
     const [nextTurnLoader, setNextTurnLoader] = useState(false);
     const [colorPickerShow, setCPshow] = useState(false);
 
@@ -162,6 +118,8 @@ export default function Game() {
     const [draggedCard, setDraggedCard] = useState<Icard | null>(null);
     const [choosedCard, setChoosedCard] = useState<Icard | null>(null);
     const [dragEnter, setDragEnter] = useState<number | null>(null);
+
+    const [selectedTrump, setSelectedTrump] = useState<{ suit: string, cardName?: string, call?: string }>({ suit: 'H', cardName: 'S_AH', call: 'Call' });
 
     function checkIfCardIsSelected(card: Icard) {
         return selectedCards.find((e: Icard) => { return JSON.stringify(e) === JSON.stringify(card) });
@@ -188,12 +146,13 @@ export default function Game() {
         setDraggedCard(null);
     }
 
-    async function cardDropped(color?: string) {
+    async function cardDropped() {
         const card = draggedCard || choosedCard;
+        console.log("Card dropped", card);
         if (!card) return;
         if (!user) return;
         setCPshow(false);
-        const res = await gameService.dropCard(lobby!._id, { droppedCard: card, color: color, isUno: isUno });
+        const res = await gameService.dropCard(lobbyState!._id, { droppedCard: card });
         setError(res.error);
         setDraggedCard(null);
     }
@@ -202,59 +161,97 @@ export default function Game() {
         if (!draggedCard) return;
         if (!user) return;
         setChoosedCard(draggedCard);
-
-        if (draggedCard.isJoker) {
-            setCPshow(true);
-        } else {
-            cardDropped();
-        }
-    }
-
-    async function drawingCard() {
-        if (!user) return;
-        if (!lobby) return;
-        const res = await gameService.drawCard(lobby!._id);
-        setError(res.error);
+        cardDropped();
     }
 
 
     const [timer, setTimer] = useState(60);
-    const [isUno, setIsUno] = useState(false);
 
-    const [displayIsUno, setDisplayIsUno] = useState(false);
+    const [displayTrump, setDisplayTrump] = useState(false);
+    const [endOfTurn, setEndOfTurn] = useState(false);
+    const [winner, setWinner] = useState<string | null>(null);
 
-    const [gameSettings, setGameSettings] = useState(game?.secretSettings || { timeLimit: 60 });
+    const [gameSettings, setGameSettings] = useState(gameState?.secretSettings || { timeLimit: 60 });
 
     useEffect(() => {
-        if (!game) return;
-        if (game.currentPlayer.playerId !== user?._id) return;
-        setGameSettings(game.secretSettings);
+        if (!gameState) return;
+        if (gameState.currentPlayer.playerId !== user?._id) return;
+        setGameSettings(gameState.secretSettings);
         const interval = setInterval(() => {
             try {
-                setTimer(parseInt(((new Date().getTime() - game.currentPlayer.time) / 1000).toFixed(0)));
+                setTimer(parseInt(((new Date().getTime() - gameState.currentPlayer.time) / 1000).toFixed(0)));
             } catch { }
         }, 1000);
         return () => clearInterval(interval);
-    }, [game]);
+    }, [gameState]);
 
     useEffect(() => {
-        if (!game) return;
-        setDisplayIsUno(game.lastAction.isUno || false);
+        if (!gameState) return;
+        setDisplayTrump(!!gameState.lastAction.actions);
         setTimeout(() => {
-            setDisplayIsUno(false);
-            setIsUno(false);
-        }, 1000);
-    }, [game && game.lastAction.isUno]);
+            setDisplayTrump(false);
+        }, 2000);
+    }, [gameState && gameState.lastAction.playerId]);
+
+    useEffect(() => {
+        if (!gameState) return;
+        if (gameState.secretSettings.currentTurn > 1 && gameState.playedCards.length > 0 && gameState.currentPlayer.playerId !== user?._id && gameState.droppedCards.length == 0 && !isGameOver) {
+            setEndOfTurn(true);
+            switch (Object.keys(gameState.allCards).indexOf(gameState.playedCards[gameState.playedCards.length - 1].playedBy)) {
+                case 0:
+                    setWinner('animate-group-and-leave-b');
+                    break;
+                case 1:
+                    setWinner('animate-group-and-leave-l');
+                    break;
+                case 2:
+                    setWinner('animate-group-and-leave-t');
+                    break;
+                case 3:
+                    setWinner('animate-group-and-leave-r');
+                    break;
+            }
+            setTimeout(() => {
+                setEndOfTurn(false);
+            }, 3000);
+        }
+
+    }, [gameState && gameState.secretSettings.currentTurn && gameState.playedCards.length]);
 
     const [error, setError] = useState<string | null>(null);
 
-    if (!game) return <Loader></Loader>
+    function GetTrumpIcon({ suit }: { suit: string }) {
+        switch (suit) {
+            case 'H':
+                return <Icon name="heart" size={64} className="text-red-600"></Icon>;
+            case 'A':
+                return <Icon name="acorn" size={64} className="text-zinc-200" stroke></Icon>;
+            case 'B':
+                return <Icon name="bell" size={64} className="text-yellow-700" stroke></Icon>;
+            case 'L':
+                return <Icon name="leaf" size={64} className="text-green-600"></Icon>;
+            default:
+                return null;
+        }
+    }
+
+    function setTrumpSelection() {
+        if (!selectedTrump.call || !selectedTrump.cardName || !selectedTrump.suit) return;
+        if (!lobbyState) return;
+        gameService.selectTrump(lobbyState._id, { selectedTrump: selectedTrump }).then((res) => {
+            setError(res.error);
+            setSelectedCards([]);
+            setSelectedTrump({ suit: 'H', cardName: 'S_AH', call: 'Call' });
+        });
+    }
+
+    if (!gameState) return <Loading />
 
     return (
         <main className="flex w-full h-full rounded-md p-3 relative select-none">
             {
                 isGameOver &&
-                <div className="w-full h-full absolute z-[100] bg-zinc-900/70 top-0 left-0 flex flex-col justify-center items-center">
+                <div className="w-full h-full absolute z-[1000] bg-zinc-900/70 top-0 left-0 flex flex-col justify-center items-center">
                     <div className="text-5xl text-zinc-200 font-bold p-4 rounded-md animate-pulse">
                         Game Over
                     </div>
@@ -277,53 +274,87 @@ export default function Game() {
                 {/* <TurnDisplayComponent playerName={lobby!.users.find((u) => u._id === game.currentPlayer.playerId)?.username || null} />
                 <TurnDisplayComponent playerName={lobby!.bots.find((u) => u._id === game.currentPlayer.playerId)?.name || null} /> */}
 
-
+                <PingDisplayComponent />
                 <div className="flex justify-center items-center w-full h-full absolute gap-7">
 
-                    <div className="flex relative z-50 w-[20rem] h-[20rem]" onDragOver={overDrag} onDrop={checkCard} >
-                        {/* {
-                            game.droppedCards.length > 1 &&
-                            <Image className="absolute left-1 top-1 rotate-1" draggable={false} src={"/assets/cards/uno/" + new CardsUrls().getUnoCardUrl(game.droppedCards[game.droppedCards.length - 2].card.name)} width={150} height={180} alt="card"></Image>
-                        }
-                        {
-                            game.droppedCards.length > 0 &&
-                            <Image className="relative right-1 bottom-1 rotate-12 border border-transparent rounded-lg" src={"/assets/cards/uno/" + new CardsUrls().getUnoCardUrl(game.droppedCards[game.droppedCards.length - 1].card.name)} width={150} height={180} alt="card"></Image>
-                        } */}
+                    {
+                        !endOfTurn &&
+                        <div className="flex relative z-50 w-[20rem] h-[20rem]" onDragOver={overDrag} onDrop={checkCard} >
+                            {
+                                gameState.droppedCards.find((c: any) => c.droppedBy === Object.keys(gameState.allCards).filter((c) => c !== user?._id)[1]) &&
+                                <div className="absolute w-[8rem] -top-16 left-[50%] translate-x-[-50%]">
+                                    <Image className="" draggable={false} src={"/" + new CardsUrls().getFullCardUrl(gameState.droppedCards.find((c: any) => c.droppedBy === Object.keys(gameState.allCards).filter((c) => c !== user?._id)[1])!.card.name)} width={150} height={180} alt="card"></Image>
+                                </div>
+                            }
 
-                        <div className="absolute w-[8rem] -top-16 left-[50%] translate-x-[-50%]">
-                            <Image className="" draggable={false} src={"/" + new CardsUrls().getFullCardUrl('Y2')} width={150} height={180} alt="card"></Image>
+                            {
+                                gameState.droppedCards.find((c: any) => c.droppedBy === user!._id) &&
+                                <div className="absolute w-[8rem] -bottom-16 left-[50%] translate-x-[-50%]">
+                                    <Image className="" draggable={false} src={"/" + new CardsUrls().getFullCardUrl(gameState.droppedCards.find((c: any) => c.droppedBy === user!._id)!.card.name)} width={150} height={180} alt="card"></Image>
+                                </div>
+                            }
+
+                            {
+                                gameState.droppedCards.find((c: any) => c.droppedBy === Object.keys(gameState.allCards).filter((c) => c !== user?._id)[0]) &&
+                                <div className="absolute w-[8rem] top-[50%] translate-y-[-50%] -left-16">
+                                    <Image className="" draggable={false} src={"/" + new CardsUrls().getFullCardUrl(gameState.droppedCards.find((c: any) => c.droppedBy === Object.keys(gameState.allCards).filter((c) => c !== user?._id)[0])!.card.name)} width={150} height={180} alt="card"></Image>
+                                </div>
+                            }
+
+                            {
+                                gameState.droppedCards.find((c: any) => c.droppedBy === Object.keys(gameState.allCards).filter((c) => c !== user?._id)[2]) &&
+                                <div className="absolute w-[8rem] bottom-[50%] translate-y-[50%] -right-16">
+                                    <Image className="" draggable={false} src={"/" + new CardsUrls().getFullCardUrl(gameState.droppedCards.find((c: any) => c.droppedBy === Object.keys(gameState.allCards).filter((c) => c !== user?._id)[2])!.card.name)} width={150} height={180} alt="card"></Image>
+                                </div>
+                            }
                         </div>
+                    }
 
-                        <div className="absolute w-[8rem] -bottom-16 left-[50%] translate-x-[-50%]">
-                            <Image className="" draggable={false} src={"/" + new CardsUrls().getFullCardUrl('Y2')} width={150} height={180} alt="card"></Image>
+                    {
+                        endOfTurn &&
+                        <div className={"flex relative z-50 w-[20rem] h-[20rem] " + winner}  >
+                            <div className="absolute w-[8rem] -top-16 left-[50%] translate-x-[-50%]">
+                                <Image className="" draggable={false} src={"/" + new CardsUrls().getFullCardUrl(gameState.playedCards[gameState.playedCards.length - 1].cards[2].name)} width={150} height={180} alt="card"></Image>
+                            </div>
+
+                            <div className="absolute w-[8rem] -bottom-16 left-[50%] translate-x-[-50%]">
+                                <Image className="" draggable={false} src={"/" + new CardsUrls().getFullCardUrl(gameState.playedCards[gameState.playedCards.length - 1].cards[0].name)} width={150} height={180} alt="card"></Image>
+                            </div>
+
+                            <div className="absolute w-[8rem] top-[50%] translate-y-[-50%] -left-16">
+                                <Image className="" draggable={false} src={"/" + new CardsUrls().getFullCardUrl(gameState.playedCards[gameState.playedCards.length - 1].cards[1].name)} width={150} height={180} alt="card"></Image>
+                            </div>
+
+                            <div className="absolute w-[8rem] bottom-[50%] translate-y-[50%] -right-16">
+                                <Image className="" draggable={false} src={"/" + new CardsUrls().getFullCardUrl(gameState.playedCards[gameState.playedCards.length - 1].cards[3].name)} width={150} height={180} alt="card"></Image>
+                            </div>
                         </div>
-
-                        <div className="absolute w-[8rem] top-[50%] translate-y-[-50%] -left-16">
-                            <Image className="" draggable={false} src={"/" + new CardsUrls().getFullCardUrl('Y2')} width={150} height={180} alt="card"></Image>
-                        </div>
-
-                        <div className="absolute w-[8rem] bottom-[50%] translate-y-[50%] -right-16">
-                            <Image className="" draggable={false} src={"/" + new CardsUrls().getFullCardUrl('Y2')} width={150} height={180} alt="card"></Image>
-                        </div>
-
-                    </div>
+                    }
                 </div>
 
-                {/* <div className="absolute top-0 left-2 h-full flex flex-col justify-between items-center">
+                <div className="absolute top-0 left-2 h-full flex flex-col justify-between items-center">
                     <div></div>
+
                     {
-                        lobby?.users.filter((u) => { return u._id !== user?._id }).slice(0, lobby?.users.length / 2).reverse().map((user, j) => {
-                            return (
-                                <GameUser key={j} user={user} currentPlayer={game.currentPlayer.playerId} cardNumber={game.allCards[user._id]}></GameUser>
-                            )
-                        })
+                        lobbyState?.users.find((u) => { return u._id === Object.keys(gameState.allCards).filter((c) => c !== user?._id)[0] }) &&
+                        <GameUser isCaller={gameState.lastAction.playerId === lobbyState?.users.find((u) => { return u._id === Object.keys(gameState.allCards).filter((c) => c !== user?._id)[0] })!._id} user={lobbyState?.users.find((u) => { return u._id === Object.keys(gameState.allCards).filter((c) => c !== user?._id)[0] })} currentPlayer={gameState.currentPlayer.playerId} cardNumber={gameState.allCards[Object.keys(gameState.allCards).filter((c) => c !== user?._id)[0]]}></GameUser>
                     }
                     {
-                        lobby?.bots.slice(0, lobby?.bots.length / 2).reverse().map((bot, j) => {
-                            return (
-                                <GameBot key={j} bot={bot} currentPlayer={game.currentPlayer.playerId} cardNumber={game.allCards[bot.customId.replace('-', '')]}></GameBot>
-                            )
-                        })
+                        lobbyState?.bots.find((u) => { return u._id === Object.keys(gameState.allCards).filter((c) => c !== user?._id)[0] }) &&
+                        <GameBot isCaller={gameState.lastAction.playerId === lobbyState?.bots.find((u) => { return u._id === Object.keys(gameState.allCards).filter((c) => c !== user?._id)[0] })!._id} bot={lobbyState?.bots.find((u) => { return u._id === Object.keys(gameState.allCards).filter((c) => c !== user?._id)[0] })} currentPlayer={gameState.currentPlayer.playerId} cardNumber={gameState.allCards[Object.keys(gameState.allCards).filter((c) => c !== user?._id)[0]]}></GameBot>
+                    }
+                    <div></div>
+                </div>
+
+                <div className="absolute top-2 right-2 w-full flex flex-col justify-between items-center">
+                    <div></div>
+                    {
+                        lobbyState?.users.find((u) => { return u._id === Object.keys(gameState.allCards).filter((c) => c !== user?._id)[1] }) &&
+                        <GameUser isCaller={gameState.lastAction.playerId === lobbyState?.users.find((u) => { return u._id === Object.keys(gameState.allCards).filter((c) => c !== user?._id)[1] })!._id} isOnTop user={lobbyState?.users.find((u) => { return u._id === Object.keys(gameState.allCards).filter((c) => c !== user?._id)[1] })} currentPlayer={gameState.currentPlayer.playerId} cardNumber={gameState.allCards[Object.keys(gameState.allCards).filter((c) => c !== user?._id)[1]]}></GameUser>
+                    }
+                    {
+                        lobbyState?.bots.find((u) => { return u._id === Object.keys(gameState.allCards).filter((c) => c !== user?._id)[1] }) &&
+                        <GameBot isCaller={gameState.lastAction.playerId === lobbyState?.bots.find((u) => { return u._id === Object.keys(gameState.allCards).filter((c) => c !== user?._id)[1] })!._id} isOnTop bot={lobbyState?.bots.find((u) => { return u._id === Object.keys(gameState.allCards).filter((c) => c !== user?._id)[1] })} currentPlayer={gameState.currentPlayer.playerId} cardNumber={gameState.allCards[Object.keys(gameState.allCards).filter((c) => c !== user?._id)[1]]}></GameBot>
                     }
                     <div></div>
                 </div>
@@ -331,38 +362,38 @@ export default function Game() {
                 <div className="absolute top-0 right-2 h-full flex flex-col justify-between items-center">
                     <div></div>
                     {
-                        lobby?.users.filter((u) => { return u._id !== user?._id }).slice(lobby?.users.length / 2).map((user, j) => {
-                            return (
-                                <GameUser key={j} user={user} currentPlayer={game.currentPlayer.playerId} cardNumber={game.allCards[user._id]}></GameUser>
-                            )
-                        })
+                        lobbyState?.users.find((u) => { return u._id === Object.keys(gameState.allCards).filter((c) => c !== user?._id)[2] }) &&
+                        <GameUser isCaller={gameState.lastAction.playerId === lobbyState?.users.find((u) => { return u._id === Object.keys(gameState.allCards).filter((c) => c !== user?._id)[2] })!._id} user={lobbyState?.users.find((u) => { return u._id === Object.keys(gameState.allCards).filter((c) => c !== user?._id)[2] })} currentPlayer={gameState.currentPlayer.playerId} cardNumber={gameState.allCards[Object.keys(gameState.allCards).filter((c) => c !== user?._id)[2]]}></GameUser>
                     }
-
                     {
-                        lobby?.bots.slice(lobby?.bots.length / 2).map((bot, j) => {
-                            return (
-                                <GameBot key={j} bot={bot} currentPlayer={game.currentPlayer.playerId} cardNumber={game.allCards[bot.customId.replace('-', '')]}></GameBot>
-                            )
-                        })
+                        lobbyState?.bots.find((u) => { return u._id === Object.keys(gameState.allCards).filter((c) => c !== user?._id)[2] }) &&
+                        <GameBot isCaller={gameState.lastAction.playerId === lobbyState?.bots.find((u) => { return u._id === Object.keys(gameState.allCards).filter((c) => c !== user?._id)[2] })!._id} bot={lobbyState?.bots.find((u) => { return u._id === Object.keys(gameState.allCards).filter((c) => c !== user?._id)[2] })} currentPlayer={gameState.currentPlayer.playerId} cardNumber={gameState.allCards[Object.keys(gameState.allCards).filter((c) => c !== user?._id)[2]]}></GameBot>
                     }
                     <div></div>
-                </div> */}
+                </div>
 
-                <div className="flex gap-1 w-full absolute bottom-0 p-2 justify-center">
+
+                <div className={`flex gap-1 w-full absolute bottom-0 p-2 justify-center ${gameState.currentPlayer.playerId !== user?._id || gameState.secretSettings.currentTurn == 1 ? 'pointer-events-none' : ''}`}>
                     {
-                        sortUnoCards(playerCards, true, 'abc').map((card, i) => {
+                        sortSchnapsenCards(playerCards, true, 'abc').map((card, i) => {
                             return (
                                 <React.Fragment key={i}>
-                                    <div draggable className={`cursor-pointer w-12 overflow-visible hover:cursor-grab group rounded-lg duration-200 
+                                    <div draggable className={`cursor-pointer w-16 overflow-visible hover:cursor-grab group rounded-lg duration-200 relative
                                          ${checkIfCardIsSelected(card) ? 'border-green-400 translate-y-[-1rem]' : ''}
                                          ${draggedCard && JSON.stringify(draggedCard) === JSON.stringify(card) ? 'opacity-10' : ''}
                                          
                                          `}>
-                                        <Image onDragEnter={(e) => { onDragEnter(e, i) }} className={`${drawedCard?.name === card.name && drawedCard?.pack === card.pack ? 'ring ring-sky-600' : ''} border-2 border-transparent group-hover:border-green-400 rounded-lg`} style={{ width: "6rem", maxWidth: "6rem" }} loading="eager" onDragEnd={() => { setDraggedCard(null) }} onDragStart={() => { startDrag(card) }} onDrop={() => { dropDrag(i) }} onDragOver={overDrag} src={"/assets/cards/uno/" + new CardsUrls().getUnoCardUrl(card.name)} width={100} height={100} alt={new CardsUrls().getUnoCardUrl(card.name)}></Image>
+                                        <Image onDragEnter={(e) => { onDragEnter(e, i) }} className={`${drawedCard?.name === card.name && drawedCard?.pack === card.pack ? 'ring ring-sky-600' : ''} border-2 border-transparent group-hover:border-green-400 rounded-lg`} style={{ width: "8rem", maxWidth: "8rem" }} loading="eager" onDragEnd={() => { setDraggedCard(null) }} onDragStart={() => { startDrag(card) }} onDrop={() => { dropDrag(i) }} onDragOver={overDrag} src={"/" + new CardsUrls().getFullCardUrl(card.name)} width={100} height={100} alt={card.name}></Image>
+                                        {
+                                            card.isJoker && card.rank == 4 &&
+                                            <div className="absolute -top-14 rounded-full bg-gradient-to-br from-orange-600/60 to-yellow-600/40 w-12 h-12 flex justify-center items-center text-zinc-100 text-xl cursor-pointer hover:scale-105 hover:shadow-lg hover:shadow-white/30">
+                                                {gameState.lastAction.trump!.suit === card.suit ? 40 : 20}
+                                            </div>
+                                        }
                                     </div>
                                     <div onDragOver={overDrag} className={`${draggedCard && JSON.stringify(draggedCard) !== JSON.stringify(card) && dragEnter === i ? "w-[5.8rem]" : "w-0"} bg-[#00000040] rounded-lg duration-100`}>
                                         {draggedCard &&
-                                            <Image className="opacity-75" loading="eager" onDrop={() => { dropDrag(i) }} onDragOver={overDrag} src={"/assets/cards/uno/" + new CardsUrls().getUnoCardUrl(draggedCard.name)} width={100} height={100} alt={new CardsUrls().getUnoCardUrl(draggedCard.name)}></Image>
+                                            <Image className="opacity-75" loading="eager" onDrop={() => { dropDrag(i) }} onDragOver={overDrag} src={"/" + new CardsUrls().getFullCardUrl(draggedCard.name)} width={100} height={100} alt={new CardsUrls().getUnoCardUrl(draggedCard.name)}></Image>
                                         }
                                     </div>
                                 </React.Fragment>
@@ -371,8 +402,8 @@ export default function Game() {
                     }
 
                     {
-                        game.currentPlayer.playerId == user?._id && !isGameOver && game.lastAction.actions < 25 && game.lastAction.playerId !== user?._id &&
-                        <div style={{ width: `${Math.floor(75 - (timer / gameSettings.timeLimit) * 75)}%`, backgroundColor: `${timer > (gameSettings.timeLimit - (gameSettings.timeLimit / 6)) ? '#ec003f' : '#9ae600'}` }} className="absolute -top-10 h-4 bg-emerald-500 rounded-xl duration-500">
+                        gameState.currentPlayer.playerId == user?._id && !isGameOver &&
+                        <div style={{ width: `${Math.floor(75 - (timer / gameSettings.timeLimit) * 75)}%`, backgroundColor: `${timer > (gameSettings.timeLimit - (gameSettings.timeLimit / 6)) ? '#ec003f' : '#9ae600'}` }} className="absolute -top-20 h-4 bg-emerald-500 rounded-xl duration-500">
                             <div className="absolute -top-6 w-full flex justify-center items-center text-sm text-zinc-200">
                                 {gameSettings.timeLimit - timer < 0 ? 0 : gameSettings.timeLimit - timer}s
                             </div>
@@ -380,67 +411,146 @@ export default function Game() {
                     }
                 </div>
                 {
-                    displayIsUno &&
+                    displayTrump && !endOfTurn && gameState.secretSettings.currentTurn < 3 &&
                     <div className="fixed top-0 left-0 w-full h-full bg-black/30 flex justify-center items-center z-[100]">
-                        <div className="text-[8rem] text-white stroke-black font-bold font-mono animate-float-in-t">
-                            UNO
+                        <div className="text-[8rem] text-white stroke-black font-bold font-mono animate-float-in-t flex flex-col justify-center items-center gap-4">
+                            <div >
+                                <Image className="w-48" src={"/" + new CardsUrls().getFullCardUrl(gameState.lastAction.trump!.card)} width={400} height={400} alt={new CardsUrls().getFullCardUrl(gameState.lastAction.trump!.card)!}></Image>
+                            </div>
+                            {(trumps.call as any)[gameState.lastAction.actions]}
                         </div>
                     </div>
                 }
 
                 <div className="w-full h-full flex justify-center items-center">
                     <div className="p-10 border-[2rem] border-[#ffffff10] rounded-full h-[30rem] w-[30rem] flex justify-center items-center">
-                        <Image loading="eager" src={"/assets/icon.png"} width={300} height={300} draggable={false} alt="" className="opacity-10"></Image>
+                        {gameState.lastAction.trump!.suit ?
+                            <Icon name={gameState.lastAction.trump!.suit === 'H' ? 'heart' :
+                                (gameState.lastAction.trump!.suit === 'A' ? 'acorn' :
+                                    (gameState.lastAction.trump!.suit === 'B' ? 'bell' : 'leaf'))
+                            }
+                                stroke={gameState.lastAction.trump!.suit === 'A' || gameState.lastAction.trump!.suit === 'B' ? true : false}
+                                size={256} className="opacity-10 text-white"></Icon> :
+                            <Image loading="eager" src={"/assets/icon.png"} width={300} height={300} draggable={false} alt="" className="opacity-10"></Image>
+                        }
                     </div>
                 </div>
 
                 {
-                    false &&
-                    <main className="fixed bottom-4 right-4 z-[100] bg-zinc-900/50 backdrop-blur-md p-4 rounded-lg flex flex-col gap-2 items-center">
-                        <div className="text-zinc-200 font-bold text-lg">
-                            Válassz adu színt:
-                        </div>
-                        <hr className="w-full" />
-                        <div className="w-fit h-fit rounded-lg p-2 bg-zinc-800/50 flex justify-center items-center gap-2 hover:scale-110 duration-200 cursor-pointer">
-                            <Icon name="card" stroke size={32}></Icon>
-                        </div>
-                        <div className="w-fit h-fit rounded-lg p-2 bg-zinc-800/50 flex justify-center items-center gap-2 hover:scale-110 duration-200 cursor-pointer">
-                            <Icon name="card" stroke size={32}></Icon>
-                        </div>
-                        <div className="w-fit h-fit rounded-lg p-2 bg-zinc-800/50 flex justify-center items-center gap-2 hover:scale-110 duration-200 cursor-pointer">
-                            <Icon name="card" stroke size={32}></Icon>
-                        </div>
-                        <div className="w-fit h-fit rounded-lg p-2 bg-zinc-800/50 flex justify-center items-center gap-2 hover:scale-110 duration-200 cursor-pointer">
-                            <Icon name="card" stroke size={32}></Icon>
+                    gameState.playedCards.find((f) => f.playedBy === user?._id) &&
+                    <main className="fixed bottom-4 right-4 z-[100] bg-zinc-900/50 backdrop-blur-md p-2 rounded-lg flex flex-col gap-2 items-center group cursor-zoom-in">
+                        <Image loading="eager" src={"/assets/cards/schnapps/back.png"} width={100} height={100} alt={"Back"}></Image>
+                        <div className="absolute bottom-[105%] -left-44 flex flex-col bg-black/30 rounded-lg group-hover:opacity-100 opacity-0 duration-200 pointer-events-none p-2 gap-2">
+
+                            {
+                                gameState.playedCards.filter((f) => f.playedBy === user?._id).map((cards, i) => {
+                                    return (
+                                        <div key={i} className="w-full flex gap-2">
+
+                                            {
+                                                cards.cards.map((card, j) => {
+                                                    return (
+                                                        <Image key={j} loading="eager" className="w-16 h-fit" src={"/" + new CardsUrls().getFullCardUrl(card.name)} width={50} height={50} alt={card.name}></Image>
+                                                    )
+                                                })
+                                            }
+                                        </div>
+                                    )
+                                })
+                            }
                         </div>
 
+                        <div className="text-zinc-200 font-bold text-3xl absolute right-[105%] bottom-2">
+                            {
+                                gameState.lastAction.isUno && gameState.lastAction.trumpWith !== user?._id ?
+                                    <span>
+                                        {
+                                            gameState.playedCards.filter((f) => f.playedBy === user?._id).map((f) => f.cards.map((card) => card.value).reduce((a, b) => a + b, 0)).reduce((a, b) => a + b, 0)!
+                                            +
+                                            gameState.playedCards.filter((f) => f.playedBy === gameState.lastAction.trumpWith).map((f) => f.cards.map((card) => card.value).reduce((a, b) => a + b, 0)).reduce((a, b) => a + b, 0)!
+                                        }
+
+                                    </span> :
+                                    <span className="">
+                                        {gameState.playedCards.filter((f) => f.playedBy === user?._id).map((f) => f.cards.map((card) => card.value).reduce((a, b) => a + b, 0)).reduce((a, b) => a + b, 0)}
+                                    </span>
+                            }
+                        </div>
                     </main>
                 }
 
 
-                <main className="fixed bottom-4 right-4 z-[100] bg-zinc-900/50 backdrop-blur-md p-4 w-64 rounded-lg flex flex-col gap-2 items-center">
-                    <div className="text-zinc-200 font-bold text-lg">
-                       Call something?
-                    </div>
-                    <hr className="w-full " />
+                {
+                    gameState && gameState.secretSettings.currentTurn == 1 && gameState.currentPlayer.playerId === user?._id &&
+                    <main className="fixed bottom-4 right-4 z-[100] bg-zinc-900/50 backdrop-blur-md p-4 rounded-lg flex flex-col gap-2 items-center">
+                        <div className="text-zinc-200 font-bold text-lg uppercase">
+                            Set trump and call
+                        </div>
+                        <hr className="w-full my-2" />
+                        <div className="flex gap-4">
+                            <div className="flex flex-col gap-2">
 
-                    <div className="w-36 text-zinc-100 h-fit rounded-lg p-2 bg-zinc-800/50 flex justify-center items-center gap-2 hover:scale-110 duration-200 cursor-pointer">
-                        Call
-                    </div>
-                    <div className="w-36 text-zinc-100 h-fit rounded-lg p-2 bg-zinc-800/50 flex justify-center items-center gap-2 hover:scale-110 duration-200 cursor-pointer">
-                        Bettli
-                    </div>
-                    <div className="w-36 text-zinc-100 h-fit rounded-lg p-2 bg-zinc-800/50 flex justify-center items-center gap-2 hover:scale-110 duration-200 cursor-pointer">
-                        Schnapps
-                    </div>
-                    <div className="w-36 text-zinc-100 h-fit rounded-lg p-2 bg-zinc-800/50 flex justify-center items-center gap-2 hover:scale-110 duration-200 cursor-pointer">
-                        Gangli
-                    </div>
+                                {
+                                    trumps.suits.map((suit, i) => {
+                                        return (
+                                            <div key={i} onClick={() => { setSelectedTrump({ suit: suit }) }} className={`w-fit h-fit rounded-lg p-2 bg-zinc-800/50 flex justify-center items-center gap-2 hover:bg-zinc-600/50 hover:scale-110 duration-200 cursor-pointer hover:shadow-md hover:shadow-zinc-300/20 ${selectedTrump.suit === suit ? 'ring-2 ring-green-400' : ''}`}>
+                                                <GetTrumpIcon suit={suit} />
+                                            </div>
+                                        )
+                                    })
+                                }
+                            </div>
 
-                </main>
+                            <div className="flex flex-col gap-2">
+
+                                {
+                                    trumps.cards.map((cards, i) => {
+                                        return (
+                                            <div key={i} className="flex gap-1">
+                                                {
+                                                    cards.map((card, j) => {
+                                                        return (
+                                                            <div key={j} onClick={() => { setSelectedTrump({ suit: selectedTrump.suit, cardName: `S_${card}${selectedTrump.suit}` }) }} className={`w-fit h-fit rounded-lg p-2 bg-zinc-800/50 flex justify-center items-center gap-2 hover:bg-zinc-600/50 hover:scale-110 duration-200 cursor-pointer hover:shadow-md hover:shadow-zinc-300/20 ${selectedTrump.cardName === `S_${card}${selectedTrump.suit}` ? 'ring-2 ring-green-400' : ''}`}>
+                                                                <Image className="w-fit h-fit" src={`/${new CardsUrls().getFullCardUrl('S_' + card + selectedTrump.suit)}`} width={40} height={40} alt={`${selectedTrump.suit} ${card}`}></Image>
+                                                            </div>
+                                                        )
+                                                    })
+                                                }
+                                            </div>
+                                        )
+                                    })
+                                }
+
+                            </div>
+
+                            <div className="flex flex-col gap-2 justify-between">
+                                <div className="flex flex-col gap-2">
+                                    {
+                                        Object.values(trumps.call).map((call, i) => {
+                                            return (
+                                                <div key={i} onClick={() => { setSelectedTrump({ ...selectedTrump, call: call }) }} className={`w-36 text-zinc-100 h-fit rounded-lg p-2 bg-zinc-800/50 flex justify-center items-center gap-2 hover:scale-110 duration-200 cursor-pointer hover:shadow-md hover:shadow-zinc-300/20 ${selectedTrump.call === call ? 'ring-2 ring-green-400' : ''}`}>
+                                                    {call}
+                                                </div>
+                                            )
+                                        })
+                                    }
+                                </div>
+
+
+                                <div className="flex gap-1 h-full">
+                                    <button onClick={setTrumpSelection} disabled={!(selectedTrump.call && selectedTrump.cardName && selectedTrump.suit)} className="bg-gradient-to-br p-2 from-red-600 to-red-400 rounded-lg text-zinc-200 font-bold text-lg hover:scale-110 duration-200 cursor-pointer hover:shadow-md hover:shadow-zinc-300/20 w-full mt-auto disabled:opacity-50 disabled:cursor-not-allowed">
+                                        Select
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+
+                    </main>
+                }
 
                 <div className="fixed bottom-4 left-4 text-rose-200/40">
-                    GameId: {game._id}
+                    GameId: {gameState._id}
                 </div>
             </main>
 

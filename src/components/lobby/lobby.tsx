@@ -22,6 +22,8 @@ export default function LobbyCard({ lobbyDatas, lobbyNumber, isAdmin }: { lobbyD
                 return "/assets/images/rummy.png";
             case "SOLITAIRE":
                 return "/assets/images/rummy.png";
+            case "SCHNAPPS":
+                return "/assets/images/schnapps.png";
         }
     }
 
@@ -33,6 +35,8 @@ export default function LobbyCard({ lobbyDatas, lobbyNumber, isAdmin }: { lobbyD
                 return "bg-gradient-to-br from-purple-800 to-gray-600";
             case "SOLITAIRE":
                 return "bg-gradient-to-br from-purple-800 to-blue-600";
+            case "SCHNAPPS":
+                return "bg-gradient-to-br from-purple-800 to-orange-900";
         }
     }
 
@@ -98,8 +102,8 @@ export default function LobbyCard({ lobbyDatas, lobbyNumber, isAdmin }: { lobbyD
     }
 
     return (
-        <main className="flex flex-col rounded-xl bg-zinc-800/70 overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 max-h-[35rem]">
-            <div className={`w-full bg-gradient-to-l  flex items-center justify-between p-4 ${getCardStyleByType()}`}>
+        <main className="flex flex-col rounded-xl bg-zinc-800/70 overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 3xl:max-h-[35rem] max-h-fit">
+            <div className={`w-full bg-gradient-to-l flex items-center justify-between p-4 ${getCardStyleByType()}`}>
                 <div className="text-white font-bold text-lg flex flex-col ">
                     <span>Lobby {lobbyNumber}</span>
                     <span className="text-sm font-thin tracking-widest ms-2 orbitron">
@@ -110,7 +114,8 @@ export default function LobbyCard({ lobbyDatas, lobbyNumber, isAdmin }: { lobbyD
                     {(lobbyDatas.users.length || 0) + (lobbyDatas.bots.length || 0)}/{lobbyDatas.settings.numberOfPlayers}
                 </div>
             </div>
-            <div className="h-full w-full p-2 flex flex-col gap-2 ">
+            <div className="p-4 3xl:hidden flex"></div>
+            <div className="h-full w-full p-2 flex-col gap-2 3xl:flex hidden">
                 {
                     lobbyDatas.users?.filter((p) => p._id == user?._id).map(player => (
                         <div key={player.username} className={`flex justify-between gap-1 p-2 text-zinc-200 items-center w-full mx-auto border border-purple-500 rounded-md`}>
@@ -170,7 +175,7 @@ export default function LobbyCard({ lobbyDatas, lobbyNumber, isAdmin }: { lobbyD
                 </div>
                 <div className="flex items-center gap-2 text-sm text-zinc-400">
                     {
-                        !lobbyDatas.settings.privateLobby && !lobbyDatas.game_id && (lobbyDatas.users.length || 0) + (lobbyDatas.bots.length || 0) < lobbyDatas.settings.numberOfPlayers &&
+                        !lobbyDatas.settings.privateLobby && !lobbyDatas.game_id && (lobbyDatas.users.length || 0) + (lobbyDatas.bots.length || 0) == lobbyDatas.settings.numberOfPlayers &&
                         <>
                             <div className="w-2 h-2 bg-yellow-400 animate-pulse rounded-full"></div>
                             Waiting
@@ -184,7 +189,7 @@ export default function LobbyCard({ lobbyDatas, lobbyNumber, isAdmin }: { lobbyD
                         </>
                     }
                     {
-                        !lobbyDatas.game_id && (lobbyDatas.users.length || 0) + (lobbyDatas.bots.length || 0) == lobbyDatas.settings.numberOfPlayers &&
+                        !lobbyDatas.game_id && (lobbyDatas.users.length || 0) + (lobbyDatas.bots.length || 0) < lobbyDatas.settings.numberOfPlayers &&
                         <>
                             <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                             Ready

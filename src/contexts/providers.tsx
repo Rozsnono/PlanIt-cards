@@ -2,12 +2,12 @@
 import { usePathname } from "next/navigation";
 import { CSSProperties, useEffect, useState } from "react";
 import { QueryClient, QueryClientProvider } from "react-query";
-import { MenuContext } from "./menu.context";
+import { MenuContext, MenuProvider } from "./menu.context";
 import StarBackground from "@/components/star-background";
 import Navbar from "@/components/navbar";
 import { Iplayer } from "@/interfaces/interface";
 import { getUser, PlayerWebSocket } from "@/functions/user.function";
-import { UserContext } from "./user.context";
+import { UserContext, UserProvider } from "./user.context";
 import Icon from "@/assets/icons";
 import { IP } from "@/enums/ip.enum";
 import Help from "@/components/help/help.component";
@@ -30,15 +30,15 @@ export function Providers({ children, className }: { children: React.ReactNode, 
 
     function getStyle(): CSSProperties | undefined {
         if (path.includes('observatory') || path.includes('login') || path.includes('register')) {
-            return { backgroundImage: 'linear-gradient(50deg,rgba(255, 255, 255, 0) 0%, rgba(226, 99, 255, 0.18) 20%, rgba(255, 255, 255, 0) 50%, rgba(206, 53, 255, 0.12) 85%, rgba(255, 255, 255, 0) 100%)' }
+            return {}
         }
         if (path.includes('end')) {
-            return { backgroundImage: 'linear-gradient(50deg,rgba(255, 255, 255, 0) 0%, rgba(226, 99, 255, 0.18) 20%, rgba(255, 255, 255, 0) 50%, rgba(206, 53, 255, 0.12) 85%, rgba(255, 255, 255, 0) 100%)', paddingTop: "5.5rem" }
+            return { paddingTop: "5.5rem" }
         }
         if (path === "/" || (gameUrls.find((url) => path.includes(url)) && !path.includes('end'))) {
-            return { backgroundImage: 'linear-gradient(50deg,rgba(255, 255, 255, 0) 0%, rgba(226, 99, 255, 0.18) 20%, rgba(255, 255, 255, 0) 50%, rgba(206, 53, 255, 0.12) 85%, rgba(255, 255, 255, 0) 100%)' }
+            return {}
         }
-        return { backgroundImage: 'linear-gradient(50deg,rgba(255, 255, 255, 0) 0%, rgba(226, 99, 255, 0.18) 20%, rgba(255, 255, 255, 0) 50%, rgba(206, 53, 255, 0.12) 85%, rgba(255, 255, 255, 0) 100%)', paddingTop: "5.5rem" }
+        return { paddingTop: "5.5rem" }
     }
 
     useEffect(() => {
@@ -53,11 +53,9 @@ export function Providers({ children, className }: { children: React.ReactNode, 
 
 
     return (
-        <MenuContext.Provider value={{ isOpen, setOpen }}>
-            <UserContext.Provider value={{ user, setUser }}>
-
+        <MenuProvider>
+            <UserProvider>
                 <QueryClientProvider client={queryClient}>
-
                     <body className={`bg-zinc-900 duration-200 relative h-screen ${className}`}>
                         <StarBackground></StarBackground>
                         <Navbar></Navbar>
@@ -67,8 +65,8 @@ export function Providers({ children, className }: { children: React.ReactNode, 
                         </main>
                     </body>
                 </QueryClientProvider>
-            </UserContext.Provider>
-        </MenuContext.Provider>
+            </UserProvider>
+        </MenuProvider>
     );
 }
 

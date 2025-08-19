@@ -3,7 +3,7 @@ import Controller from "../interfaces/controller_interface";
 import { getIDfromToken, hasAuth } from "../middleware/middleware";
 import { Auth } from "../enums/auth.enum";
 import gameModel from "../models/game.model";
-import { UnoDealer } from "../services/dealer.services";
+import { SchnappsDealer, UnoDealer } from "../services/dealer.services";
 import lobbyModel from "../models/lobby.model";
 import { Cards } from "../cards/cards";
 import mongoose from "mongoose";
@@ -12,7 +12,7 @@ import GameHistoryService from "../services/history.services";
 import { GameChecker } from "../services/game.service";
 
 
-export default class UnoController implements Controller {
+export default class SchnappsController implements Controller {
     public router = Router();
     public validate = gameModel.validate;
     public game = gameModel.gameModel;
@@ -23,19 +23,19 @@ export default class UnoController implements Controller {
 
     constructor() {
         // API route to start a game
-        this.router.post("/start/:lobbyId/uno", hasAuth([Auth["START.GAME"]]), (req, res, next) => {
+        this.router.post("/start/:lobbyId/schnapps", hasAuth([Auth["START.GAME"]]), (req, res, next) => {
             this.startGame(req, res).catch(next);
         });
         // API route to draw a card
-        this.router.put("/draw/:lobbyId/uno", hasAuth([Auth["UNO.PLAY"]]), (req, res, next) => {
-            this.drawCard(req, res).catch(next);
+        this.router.put("/select/:lobbyId/schnapps", hasAuth([Auth["UNO.PLAY"]]), (req, res, next) => {
+            this.selectTrump(req, res).catch(next);
         });
         // API route to get the next turn
-        this.router.put("/next/:lobbyId/uno", hasAuth([Auth["UNO.PLAY"]]), (req, res, next) => {
+        this.router.put("/next/:lobbyId/schnapps", hasAuth([Auth["UNO.PLAY"]]), (req, res, next) => {
             this.nextTurn(req, res).catch(next);
         });
         // API route to drop a card
-        this.router.put("/drop/:lobbyId/uno", hasAuth([Auth["UNO.PLAY"]]), (req, res, next) => {
+        this.router.put("/drop/:lobbyId/schnapps", hasAuth([Auth["UNO.PLAY"]]), (req, res, next) => {
             this.dropCard(req, res).catch(next);
         });
 
@@ -64,20 +64,38 @@ export default class UnoController implements Controller {
         }
 
         // check card type of the lobby
-        const cards = new Cards().uno;
+        const cards = new Cards().schnapps;
         // create a new card dealer
-        const dealer = new UnoDealer(cards);
+        const dealer = new SchnappsDealer(cards);
         // set the game state
         body["shuffledCards"] = dealer.shuffleDeck();
         // deal the cards
-        body["playerCards"] = dealer.dealCards(lobby?.users.concat(lobby?.bots.map((bot: any) => { return bot._id }) as any), 8, false);
-        body["currentPlayer"] = { playerId: lobby?.users[0], time: new Date().getTime() };
-        body["drawedCard"] = { lastDrawedBy: null };
-        body['secretSettings'] = { timeLimit: body.timeLimit || 60, gameType: "UNO", robotDifficulty: lobby.settings?.robotsDifficulty || "EASY" };
+        const players = lobby?.users.concat(lobby?.bots.map((bot: any) => { return bot._id }) as any);
+        body["playerCards"] = dealer.dealCards(players, 6, false);
+        Object.values(body.playerCards).forEach((cards: any) => {
+            const c = cards.sort((a: any, b: any) => {
+                if (a.suit === b.suit) {
+                    return a.rank - b.rank;
+                }
+                return a.suit.localeCompare(b.suit);
+            });
 
-        body["droppedCards"] = dealer.validStartCard().map((card: any) => {
-            return { droppedBy: '', card: card };
+            c.forEach((card: any, index: number) => {
+                if (
+                    index < c.length - 1 &&
+                    card.rank === 3 &&
+                    c[index + 1].rank === 4 &&
+                    card.suit === c[index + 1].suit
+                ) {
+                    card.isJoker = true;
+                    c[index + 1].isJoker = true;
+                }
+            });
         });
+
+        body["currentPlayer"] = { playerId: Object.keys(body.playerCards)[0], time: new Date().getTime() };
+        body["drawedCard"] = { lastDrawedBy: null };
+        body['secretSettings'] = { timeLimit: body.timeLimit || 60, gameType: "SCHNAPPS", robotDifficulty: lobby.settings?.robotsDifficulty || "EASY" };
         body["lastAction"] = { playerId: "", actions: 0, isUno: false };
         body["_id"] = new mongoose.Types.ObjectId();
         const newGame = new this.game(body);
@@ -97,11 +115,33 @@ export default class UnoController implements Controller {
         }
         const gameId = lobby.game_id;
         const playerId = await getIDfromToken(req);
-        await this.gameService.nextTurnUno(gameId, playerId);
+        const game = await this.game.findOne({ _id: gameId });
+        if (!game) {
+            res.status(404).send({ error: ERROR.GAME_NOT_FOUND });
+            return;
+        }
+        // check if the player is the current player
+        if (playerId.toString() !== game.currentPlayer.playerId.toString()) {
+            res.status(403).send({ error: ERROR.NOT_YOUR_TURN });
+            return;
+        }
+
+        const { winner, cards } = new SchnappsDealer(game.shuffledCards).validateNextTurn(game.droppedCards as any, game.lastAction.trump.suit);
+        game.playedCards.push({ playedBy: winner, cards: cards });
+
+        if (game.droppedCards.find((c) => c.card.suit === game.lastAction.trump.suit && c.card.rank === game.lastAction.trump.card.rank)) {
+            game.lastAction.isUno = true;
+            game.lastAction.trumpWith = game.droppedCards.find((c) => c.card.suit === game.lastAction.trump.suit && c.card.rank === game.lastAction.trump.card.rank)?.droppedBy || "";
+        }
+
+        game.currentPlayer.playerId = this.nextPlayer(Object.keys(game.playerCards), game.currentPlayer.playerId);
+
+        await this.game.updateOne({ _id: gameId }, game, { runValidators: true });
+
         res.send({ message: "Next turn!" });
     }
 
-    private drawCard = async (req: Request, res: Response) => {
+    private selectTrump = async (req: Request, res: Response) => {
         const lobbyId = req.params.lobbyId;
         const playerId = await getIDfromToken(req);
         const lobby = await this.lobby.findOne({ _id: lobbyId });
@@ -124,22 +164,28 @@ export default class UnoController implements Controller {
             res.status(403).send({ error: ERROR.NOT_YOUR_TURN });
             return;
         }
-        if (game.drawedCard.lastDrawedBy === playerId) {
-            res.status(403).send({ error: ERROR.ALREADY_DRAWN });
+
+        const { suit, cardName, call } = req.body.selectedTrump;
+        if (!suit || !cardName || !call || game.secretSettings.currentTurn > 1) {
+            res.status(400).send({ error: ERROR.AN_ERROR_OCCURRED });
             return;
         }
-        const dealer = new UnoDealer(game.shuffledCards);
-        game.playerCards[playerId] = game.playerCards[playerId].concat(dealer.drawCard(1));
-        if (game.shuffledCards.length === 0) {
-            // reshuffle the dropped cards into the deck
-            game.shuffledCards = dealer.reShuffleDeck(game.droppedCards.slice(game.droppedCards.length - 2).map((d: any) => d.card));
+
+        game.lastAction.trump = { suit, card: cardName };
+        game.lastAction.playerId = playerId;
+        game.lastAction.actions = ({ 'CALL': 1, 'BETTLI': 6, 'SCHNAPPS': 7, 'GANGLI': 8 } as any)[call.toUpperCase()] || 0;
+        game.lastAction.isUno = false;
+
+        game.currentPlayer = { playerId: this.nextPlayer(Object.keys(game.playerCards), playerId), time: new Date().getTime() };
+
+        if (game.currentPlayer.playerId.toString() == Object.keys(game.playerCards)[0]) {
+            game.secretSettings.currentTurn += 1;
         }
-        game.droppedCards[game.droppedCards.length - 1].droppedBy = playerId;
-        game.shuffledCards = dealer.deck;
-        game.drawedCard.lastDrawedBy = playerId;
+
         await this.game.updateOne({ _id: gameId }, game, { runValidators: true });
 
-        this.nextTurn(req, res);
+        res.send({ message: "Trump selected!", game });
+        return;
     };
 
     private nextPlayer(users: string[], current: string): string {
@@ -181,38 +227,29 @@ export default class UnoController implements Controller {
             return;
         }
 
-        if (game.droppedCards.length > 0 && game.droppedCards[game.droppedCards.length - 1].droppedBy === playerId) {
-            res.status(400).send({ error: ERROR.ALREADY_DROPPED });
-            return;
-        }
-
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         if (!game.playerCards[playerId].find((card: any) => JSON.stringify(card) === JSON.stringify(body.droppedCard))) {
             res.status(400).send({ error: ERROR.CARD_NOT_FOUND });
             return;
         }
 
-        const dealer = new UnoDealer(game.shuffledCards);
+        const dealer = new SchnappsDealer(game.shuffledCards);
 
-        if (!dealer.validateDrop(game.droppedCards.map((d: any) => d.card), body.droppedCard)) {
+        if (!dealer.validatePlaying(body.droppedCard, game.droppedCards.map((d: any) => d.card), game.playerCards[playerId], game.lastAction.trump.suit, game.lastAction.actions, game.secretSettings.currentTurn)) {
             res.status(400).send({ error: ERROR.INVALID_CARD_SELECTED });
             return;
         }
 
         game.playerCards[playerId] = game.playerCards[playerId].filter((card: any) => JSON.stringify(card) !== JSON.stringify(body.droppedCard));
-        if (body.color) {
-            body.droppedCard.suit = body.color;
-            body.droppedCard.name = body.color + body.droppedCard.name;
-        }
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         game.droppedCards.push({ droppedBy: playerId, card: body.droppedCard });
 
-        const lastDroppedCard = game.droppedCards[game.droppedCards.length - 1].card.rank;
-        game.lastAction = { playerId: playerId, actions: lastDroppedCard > 24 && lastDroppedCard < 30 ? lastDroppedCard : 0, isUno: body.isUno || false };
-
         await this.game.updateOne({ _id: gameId }, game, { runValidators: true });
-        this.nextTurn(req, res);
+
+        this.gameService.nextTurnSchnapps(game._id.toString(), game.currentPlayer.playerId);
+        res.send({ message: "Card dropped!", game });
+
     }
 
     private checkGame = async (req: Request, res: Response) => {

@@ -13,6 +13,7 @@ import { useContext, useEffect, useState } from "react";
 import CardsUrls from "@/contexts/cards.context";
 import { IP } from "@/enums/ip.enum";
 import GameUser, { GameBot } from "@/components/user/game.user.component";
+import Loading from "@/app/loading";
 
 const gameService = new GameService("rummy");
 const timerClass = new Timer();
@@ -62,7 +63,7 @@ export default function Game() {
 
     const [error, setError] = useState<string | null>(null);
 
-    if (!game) return <Loader></Loader>
+    if (!game) return <Loading />
 
     return (
         <main className="flex w-full h-full rounded-md p-3 relative">

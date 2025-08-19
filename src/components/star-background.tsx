@@ -1,17 +1,26 @@
 "use client";
+import { MenuContext } from "@/contexts/menu.context";
 import { usePathname } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 
 export default function StarBackground() {
     const [isClient, setIsClient] = useState(false);
     const pathName = usePathname();
     const gameUrls = ['rummy', 'uno', 'solitaire', 'schnapps'];
 
+    const { isLowModeOn } = useContext(MenuContext);
+
     useEffect(() => {
         setIsClient(true);
     }, []);
 
     if (!isClient) return null; // vagy valami skeleton
+    if (isLowModeOn) return (
+        <main className="fixed top-0 left-0 w-[100%] h-screen overflow-hidden z-[-1]">
+            
+            <div style={{ backgroundImage: 'linear-gradient(50deg,rgba(255, 255, 255, 0) 0%, rgba(226, 99, 255, 0.18) 20%, rgba(255, 255, 255, 0) 50%, rgba(206, 53, 255, 0.12) 85%, rgba(255, 255, 255, 0) 100%)' }} className="w-screen h-screen absolute top-0 left-0"></div>
+        </main>
+    );
 
     if ((gameUrls.find((url) => pathName.includes(url)) && !pathName.includes('end'))) return null; // ha a games oldalakon nem akarod megjeleníteni
 
@@ -19,8 +28,7 @@ export default function StarBackground() {
         return { saturn: new Date().getMinutes() * (100 / 60), uranus: new Date().getDate() * (100 / 30), neptun: new Date().getHours() * 2.5 * (100 / 60), redgiant: new Date().getMonth() * (100 / 12), moon: new Date().getSeconds() * (200 / 60) - 50 };
     }
     return (
-        <main className="absolute top-0 left-0 w-[100%] h-screen overflow-hidden z-[-1]">
-
+        <main className="fixed top-0 left-0 w-[100%] h-screen overflow-hidden z-[-1]">
             <>
                 <div className="star" style={{ "left": "42%", "top": "33%", "animationDelay": "2.26s", "width": "1px", "height": "1px", "background": "#dadfe8" }}></div>
                 <div className="star" style={{ "left": "3%", "top": "62%", "animationDelay": "4.95s", "width": "1px", "height": "1px", "background": "#96aad4" }}></div>
@@ -614,7 +622,8 @@ export default function StarBackground() {
 
 
 
-
+            <div style={{ backgroundImage: 'linear-gradient(129deg,rgba(255, 255, 255, 0) 0%, rgba(99, 211, 255, 0.06) 50%, rgba(255, 255, 255, 0) 60%, rgba(255, 53, 53, 0.10) 72%, rgba(255, 255, 255, 0) 100%)' }} className="w-screen h-screen absolute top-0 left-0"></div>
+            <div style={{ backgroundImage: 'linear-gradient(50deg,rgba(255, 255, 255, 0) 0%, rgba(226, 99, 255, 0.18) 20%, rgba(255, 255, 255, 0) 50%, rgba(206, 53, 255, 0.12) 85%, rgba(255, 255, 255, 0) 100%)' }} className="w-screen h-screen absolute top-0 left-0"></div>
 
             {/* <div className="planet" style={{ width: "150px", height: "150px", right: "10%", bottom: "10%", background: "radial-gradient(circle at 30% 30%, #59b667, #000000)" }}></div>
             <div className="planet" style={{ width: "350px", height: "350px", left: "4%", bottom: "4%", background: "radial-gradient(circle at 50% 30%, #9c0f00, #000000)" }}></div> */}

@@ -519,7 +519,7 @@ const cards = {
             const allCards: any = [];
             this.suits.forEach(suit => {
                 this.cards.forEach(card => {
-                    allCards.push({ ...card, name: card.name + suit, suit: suit, pack: 1 });
+                    allCards.push({ ...card, name: "R_" + card.name + suit, suit: suit, pack: 1 });
                 });
             });
             this.jokers.forEach(joker => {
@@ -557,7 +557,7 @@ const cards = {
             const allCards: any = [];
             this.suits.forEach(suit => {
                 this.cards.forEach(card => {
-                    allCards.push({ ...card, name: suit + card.name, suit: suit, pack: 1 });
+                    allCards.push({ ...card, name: "U_" + suit + card.name, suit: suit, pack: 1 });
                 });
             });
             this.jokers.forEach(joker => {

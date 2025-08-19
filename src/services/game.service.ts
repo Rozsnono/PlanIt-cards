@@ -3,7 +3,7 @@ import { Icard, Igame, Ilobby } from "@/interfaces/interface";
 
 export class GameService {
     private type: string = "rummy";
-    constructor(type: "rummy" | "uno" | '' | 'solitaire') {
+    constructor(type: "rummy" | "uno" | '' | 'solitaire' | 'schnapps') {
         this.type = type;
     }
 
@@ -123,8 +123,8 @@ export class GameService {
             socket.send(JSON.stringify(data));
             return { lobby: null, game: null, playerCards: null, refresh: true };
         }
-        if (object.game_over) {
-            return { game_over: true, lobby: null, game: null, playerCards: null } as any;
+        if (object.game_over || object.game?.secretSettings?.isGameOver) {
+            return { game_over: true, lobby: null, game: object.game || null, playerCards: null } as any;
         }
         if (!object.game) {
             return { lobby: object.lobby, game: null, playerCards: null } as any;
@@ -203,6 +203,7 @@ export class UnoService extends GameService {
     }
 
     async dropCard(lobbyId: string, body: { droppedCard: Icard, color?: string, isUno?: boolean }) {
+        const start = performance.now();
         const response = await fetch(`/api/drop/${lobbyId}/uno`, {
             method: "PUT",
             body: JSON.stringify(body),
@@ -212,7 +213,8 @@ export class UnoService extends GameService {
             }
         });
         const res = await response.json();
-        return res;
+        const end = performance.now();
+        return { res, time: (end - start) / 10 };
     }
 }
 
@@ -305,6 +307,25 @@ export class SolitaireService extends GameService {
     async doneCards(lobbyId: string) {
         const response = await fetch(`/api/done/${lobbyId}/solitaire`, {
             method: "POST",
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${getCookie("token")}`
+            }
+        });
+        const res = await response.json();
+        return res;
+    }
+}
+
+export class SchnappsService extends GameService {
+    constructor() {
+        super("schnapps");
+    }
+
+    async selectTrump(lobbyId: string, body: { selectedTrump: { suit: string, cardName?: string, call?: string } }) {
+        const response = await fetch(`/api/select/${lobbyId}/schnapps`, {
+            method: "PUT",
+            body: JSON.stringify(body),
             headers: {
                 'Content-Type': 'application/json',
                 Authorization: `Bearer ${getCookie("token")}`

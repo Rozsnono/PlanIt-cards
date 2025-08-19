@@ -309,7 +309,9 @@ export const uno = [
     }
 ];
 
-export const schnapsen = [];
+export const schnapsen = [
+
+];
 
 export class Cards {
     constructor() { }
@@ -324,6 +326,10 @@ export class Cards {
 
     public get solitaire(): Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number, value: number }> {
         return this.getSolitaireCards();
+    }
+
+    public get schnapps(): Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number, value: number }> {
+        return this.getSchnappsCards();
     }
 
     private getUnoCards(): Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number, value: number }> {
@@ -348,18 +354,41 @@ export class Cards {
         for (let pack = 0; pack < 2; pack++) {
             for (const suit of suits) {
                 for (const { name, rank, value } of ranks) {
-                    uno.push({ name: `${suit}${name}`, rank, suit, pack, value });
+                    uno.push({ name: `U_${suit}${name}`, rank, suit, pack, value });
                 }
             }
 
-            uno.push({ name: "W4", rank: 28, isJoker: true, pack, value: 50 });
-            uno.push({ name: "W4", rank: 28, isJoker: true, pack, value: 50 });
-            uno.push({ name: "WC", rank: 30, isJoker: true, pack, value: 50 });
-            uno.push({ name: "WC", rank: 30, isJoker: true, pack, value: 50 });
+            uno.push({ name: "U_W4", rank: 28, isJoker: true, pack, value: 50 });
+            uno.push({ name: "U_W4", rank: 28, isJoker: true, pack, value: 50 });
+            uno.push({ name: "U_WC", rank: 30, isJoker: true, pack, value: 50 });
+            uno.push({ name: "U_WC", rank: 30, isJoker: true, pack, value: 50 });
         }
 
         return uno as any;
 
+    }
+
+    private getSchnappsCards(): Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number, value: number }> {
+        const schnapps = [];
+        const suits = ['A', 'B', 'H', 'L'];
+        const ranks = [
+            { name: "9", rank: 1, value: 0 },
+            { name: 'U', rank: 2, value: 2 },
+            { name: 'O', rank: 3, value: 3 },
+            { name: 'K', rank: 4, value: 4 },
+            { name: 'T', rank: 10, value: 10 },
+            { name: 'A', rank: 11, value: 11 },
+        ];
+
+        for (let pack = 0; pack < 1; pack++) {
+            for (const suit of suits) {
+                for (const { name, rank, value } of ranks) {
+                    schnapps.push({ name: `S_${name}${suit}`, rank, suit, pack, value });
+                }
+            }
+        }
+
+        return schnapps as any;
     }
 
 
@@ -385,11 +414,11 @@ export class Cards {
         for (let pack = 1; pack <= 2; pack++) {
             for (const suit of suits) {
                 for (const { name, rank, value } of ranks) {
-                    rummy.push({ name: `${name}${suit}`, rank, suit, pack: pack, value });
+                    rummy.push({ name: `R_${name}${suit}`, rank, suit, pack: pack, value });
                 }
             }
-            rummy.push({ name: "BJ", rank: 50, suit: "J", isJoker: true, pack: pack, value: 10 });
-            rummy.push({ name: "RJ", rank: 50, suit: "J", isJoker: true, pack: pack, value: 10 });
+            rummy.push({ name: "R_BJ", rank: 50, suit: "J", isJoker: true, pack: pack, value: 10 });
+            rummy.push({ name: "R_RJ", rank: 50, suit: "J", isJoker: true, pack: pack, value: 10 });
         }
 
         return rummy;
@@ -425,7 +454,7 @@ export class Cards {
         for (let pack = 1; pack <= 1; pack++) {
             for (const suit of suits) {
                 for (const { name, rank, value } of ranks) {
-                    cards.push({ name: `${name}${suit}`, rank, suit, pack: pack, value });
+                    cards.push({ name: `R_${name}${suit}`, rank, suit, pack: pack, value });
                 }
             }
         }

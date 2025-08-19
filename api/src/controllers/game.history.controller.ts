@@ -5,7 +5,7 @@ import { Auth } from "../enums/auth.enum";
 import gameHistoryModel from "../models/game.history.model";
 import userModel from "../models/player.model";
 import gameModel from "../models/game.model";
-import GameHistoryService from "../services/history.services";
+import GameHistoryService, { GameHistorySchnapps } from "../services/history.services";
 
 
 export default class GameHistoryController implements Controller {
@@ -53,6 +53,9 @@ export default class GameHistoryController implements Controller {
             case "RUMMY":
                 maxPoints = Object.keys(gameHistory.turns[1]).filter((key) => !key.includes("bot")).length * 20 + Object.keys(gameHistory.turns[1]).filter((key) => key.includes("bot")).length * 10 + 10;
                 break;
+            case "Schnapps":
+                maxPoints = Object.keys(gameHistory.turns[1]).filter((key) => !key.includes("bot")).length * 20 + Object.keys(gameHistory.turns[1]).filter((key) => key.includes("bot")).length * 10 + 10;
+                break;
             default:
                 maxPoints = 10;
                 return;
@@ -62,8 +65,11 @@ export default class GameHistoryController implements Controller {
             res.status(404).send({ error: "Last turn not found!" });
             return;
         }
-        
-        await new GameHistoryService().reCalibrateStatsForHistory(game_id, maxPoints, {...lastTurn, createdAt: gameHistory.createdAt });
+        if (gameHistory.type !== "Schnapps") {
+            await new GameHistoryService().reCalibrateStatsForHistory(game_id, maxPoints, { ...lastTurn, createdAt: gameHistory.createdAt });
+        } else {
+            await new GameHistorySchnapps().reCalibrateStatsForHistory(game_id, maxPoints, { ...lastTurn, createdAt: gameHistory.createdAt });
+        }
 
         res.send({ message: "Game history recalibrated successfully!" });
     };

@@ -1,15 +1,17 @@
 
 export default class CardsUrls {
 
-    public getFullCardUrl(card: string) {
+    public getFullCardUrl(cardName: string) {
         try {
-            if (['R', 'Y', 'G', 'B', 'W'].includes(card[0]) && !['J'].includes(card[1])) {
-                return `assets/cards/uno/${this.getUnoCardUrl(card)}`;
-            }else{
-                return `assets/cards/rummy/${this.getRummyCardUrl(card)}`;
+            const type = cardName[0].toUpperCase();
+            const card = cardName.split('_')[1];
+            switch (type) {
+                case "R": return `assets/cards/rummy/${this.getRummyCardUrl(card)}`;
+                case "U": return `assets/cards/uno/${this.getUnoCardUrl(card)}`;
+                case "S": return `assets/cards/schnapps/${this.getSchnappsCardUrl(card)}`;
             }
         } catch {
-            return `assets/cards/back.png`;
+            return `assets/cards/uno/back.png`;
         }
     }
 
@@ -50,6 +52,31 @@ export default class CardsUrls {
             }
         } catch {
             return `Deck.png`;
+        }
+    }
+
+    public getSchnappsCardUrl(card: string) {
+
+        const suits = {
+            'A': 'acorn',
+            'B': 'bell',
+            'H': 'heart',
+            'L': 'leaf',
+        }
+        const values = {
+            'A': 'ace',
+            'U': 'unter',
+            'O': 'ober',
+            'K': 'king',
+            'T': 'ten',
+            '9': 'nine',
+        }
+
+        try {
+            const { v, s } = { v: card[0].toUpperCase(), s: card.slice(1).toUpperCase() };
+            return `${(suits as any)[s]}-${(values as any)[v]}.png`;
+        } catch {
+            return `assets/cards/schnapps/back.png`;
         }
     }
 }

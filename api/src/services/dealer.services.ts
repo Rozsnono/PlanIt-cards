@@ -302,3 +302,140 @@ export class SolitaireDealer extends CardDealer {
         return true;
     }
 }
+
+export class SchnappsDealer extends CardDealer {
+    constructor(cards: Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number, value: number }>) {
+        super(cards);
+    }
+
+    public reShuffleDeck(deck: Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number, value: number }>): Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number, value: number }> {
+        let currentIndex = deck.length, randomIndex;
+        while (currentIndex !== 0) {
+            randomIndex = Math.floor(Math.random() * currentIndex);
+            currentIndex--;
+            [deck[currentIndex], deck[randomIndex]] = [deck[randomIndex], deck[currentIndex]];
+        }
+        this.deck = deck;
+        return deck;
+    }
+
+    public validatePlaying(
+        droppedCard: Icard,
+        droppedCards: Array<Icard>,
+        playerCards: Array<Icard>,
+        trumpSuit: string,
+        actions: number = 1,
+        currentTurn: number = 1
+    ): boolean {
+        if (droppedCards.length === 0) {
+            return true;
+        }
+
+        const lastDroppedCard = droppedCards.filter((card) => card.suit === droppedCards[0].suit && (droppedCards[0].suit == trumpSuit ? true : card.suit !== trumpSuit)).sort((a, b) => b.rank - a.rank)[0] || droppedCards[0];
+
+        let hasTrump, trumpCard;
+
+        switch (true) {
+            case [1, 7].includes(actions):
+                hasTrump = droppedCards.find(card => card.suit === trumpSuit) && droppedCards[0].suit !== trumpSuit;
+                trumpCard = hasTrump ? droppedCards.sort((a, b) => b.rank - a.rank).find(card => card.suit === trumpSuit)! : null;
+
+                if (droppedCard.suit === lastDroppedCard.suit && hasTrump) {
+                    return true;
+                }
+                if (droppedCard.suit === lastDroppedCard.suit && droppedCard.rank < lastDroppedCard.rank && playerCards.find(card => card.rank > lastDroppedCard.rank && card.suit === droppedCard.suit)) {
+                    return false;
+                }
+                if (droppedCard.suit !== lastDroppedCard.suit && droppedCard.suit !== trumpSuit && playerCards.find(card => card.suit === lastDroppedCard.suit)) {
+                    return false;
+                }
+                if (droppedCard.suit !== lastDroppedCard.suit && droppedCard.suit === trumpSuit && hasTrump && trumpCard && trumpCard.rank > lastDroppedCard.rank && playerCards.find(card => card.suit === trumpCard!.suit && card.rank > trumpCard!.rank)) {
+                    return false;
+                }
+                break;
+            case [6].includes(actions):
+                if (droppedCard.suit === lastDroppedCard.suit) {
+                    return true;
+                }
+                if (droppedCard.suit === lastDroppedCard.suit && droppedCard.rank < lastDroppedCard.rank && playerCards.find(card => card.rank > lastDroppedCard.rank && card.suit === droppedCard.suit)) {
+                    return false;
+                }
+                if (droppedCard.suit !== lastDroppedCard.suit && droppedCard.suit !== trumpSuit && playerCards.find(card => card.suit === lastDroppedCard.suit)) {
+                    return false;
+                }
+                break;
+            case [8].includes(actions):
+                if (currentTurn > 2) {
+                    if (droppedCard.suit === lastDroppedCard.suit) {
+                        return true;
+                    }
+                    if (droppedCard.suit === lastDroppedCard.suit && droppedCard.rank < lastDroppedCard.rank && playerCards.find(card => card.rank > lastDroppedCard.rank && card.suit === droppedCard.suit)) {
+                        return false;
+                    }
+                    if (droppedCard.suit !== lastDroppedCard.suit && droppedCard.suit !== trumpSuit && playerCards.find(card => card.suit === lastDroppedCard.suit)) {
+                        return false;
+                    }
+                } else {
+                    hasTrump = droppedCards.find(card => card.suit === trumpSuit) && droppedCards[0].suit !== trumpSuit;
+                    trumpCard = hasTrump ? droppedCards.sort((a, b) => b.rank - a.rank).find(card => card.suit === trumpSuit)! : null;
+
+                    if (droppedCard.suit === lastDroppedCard.suit && hasTrump) {
+                        return true;
+                    }
+                    if (droppedCard.suit === lastDroppedCard.suit && droppedCard.rank < lastDroppedCard.rank && playerCards.find(card => card.rank > lastDroppedCard.rank && card.suit === droppedCard.suit)) {
+                        return false;
+                    }
+                    if (droppedCard.suit !== lastDroppedCard.suit && droppedCard.suit !== trumpSuit && playerCards.find(card => card.suit === lastDroppedCard.suit)) {
+                        return false;
+                    }
+                    if (droppedCard.suit !== lastDroppedCard.suit && droppedCard.suit === trumpSuit && hasTrump && trumpCard && trumpCard.rank > lastDroppedCard.rank && playerCards.find(card => card.suit === trumpCard!.suit && card.rank > trumpCard!.rank)) {
+                        return false;
+                    }
+                }
+                break;
+            default:
+                break;
+        }
+
+
+        return true;
+    }
+
+    public validateNextTurn(
+        droppedCards: Array<{ droppedBy: string, card: Icard }> | any,
+        trumpSuit: string,
+    ) {
+        let winnerCard: Icard = droppedCards[0].card;
+        droppedCards.forEach((droppedCard: any) => {
+            if (!winnerCard) {
+                winnerCard = droppedCard.card;
+            } else if (winnerCard.suit === trumpSuit && droppedCard.card.suit === trumpSuit && droppedCard.card.rank > winnerCard.rank) {
+                winnerCard = droppedCard.card;
+            } else if (winnerCard.suit !== trumpSuit && droppedCard.card.suit === trumpSuit) {
+                winnerCard = droppedCard.card;
+            } else if (winnerCard.suit === droppedCard.card.suit && droppedCard.card.rank > winnerCard.rank) {
+                winnerCard = droppedCard.card;
+            }
+        })
+
+        return { winner: droppedCards.find((droppedCard: any) => droppedCard.card.rank === winnerCard.rank && droppedCard.card.suit === winnerCard.suit)!.droppedBy, cards: droppedCards.map((droppedCard: any) => droppedCard.card) };
+    }
+
+    public validStartCard(): Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number, value: number }> {
+        const removedCards: Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number, value: number }> = [];
+        let card: { name: string, rank: number, suit: string, isJoker?: boolean, pack: number, value: number };
+        do {
+            card = this.deck.pop()!;
+            removedCards.push(card);
+        } while (card.rank > 10 || card.isJoker)
+
+
+        return removedCards;
+    }
+
+    public reShuffleCards(playedCards: Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number, value: number }>): Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number, value: number }> {
+        this.deck = playedCards.concat(this.deck);
+        return this.deck;
+    }
+
+}

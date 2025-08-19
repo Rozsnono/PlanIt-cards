@@ -175,7 +175,12 @@ export default function LobbyId() {
                         {
                             friendInvite &&
                             <main className="fixed top-0 left-0 w-full h-full bg-black/50 z-[4000] flex items-center justify-center">
-                                <div className="w-full rounded-2xl border border border-purple-800/50 bg-black/40 shadow-lg p-6 flex flex-col gap-4 max-w-md">
+                                <div className="w-full rounded-2xl border border border-purple-800/50 bg-black/40 shadow-lg p-6 flex flex-col gap-4 max-w-md relative">
+                                    <div className="absolute top-4 right-4">
+                                        <button onClick={() => setFriendInvite(false)} className="text-purple-400 hover:text-purple-300">
+                                            <Icon name="close" size={24}></Icon>
+                                        </button>
+                                    </div>
                                     <div className="text-purple-600 text-lg font-bold flex items-center gap-2 p-2">
                                         <Icon name="users" size={32}></Icon>
                                         Invite Friends

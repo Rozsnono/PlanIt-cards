@@ -16,6 +16,7 @@ import CardsUrls from "@/contexts/cards.context";
 import { IP } from "@/enums/ip.enum";
 import GameUser, { GameBot } from "@/components/user/game.user.component";
 import gameModel from "../../../../../../api/src/models/game.model";
+import Loading from "@/app/loading";
 
 const gameService = new GameService("rummy");
 const timerClass = new Timer();
@@ -195,7 +196,7 @@ export default function Game() {
 
     const [error, setError] = useState<string | null>(null);
 
-    if (!gameState) return <Loader></Loader>
+    if (!gameState) return <Loading />  
 
     return (
         <main className="flex w-full h-full rounded-md p-3 relative">

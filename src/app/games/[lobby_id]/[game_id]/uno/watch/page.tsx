@@ -16,6 +16,7 @@ import { useContext, useEffect, useState } from "react";
 import CardsUrls from "@/contexts/cards.context";
 import ColorPicker from "@/components/color.picker";
 import GameUser, { GameBot } from "@/components/user/game.user.component";
+import Loading from "@/app/loading";
 
 const gameService = new UnoService();
 const timerClass = new Timer();
@@ -69,7 +70,7 @@ export default function Game() {
 
     const [error, setError] = useState<string | null>(null);
 
-    if (!game) return <Loader></Loader>
+    if (!game) return <Loading />;
 
     return (
         <main className="flex w-full h-full rounded-md p-3 relative">

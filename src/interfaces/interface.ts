@@ -61,7 +61,7 @@ export interface Ilobby {
         fillWithRobots: boolean;
         numberOfRobots?: number | null;
         robotsDifficulty?: "EASY" | "MEDIUM" | "HARD";
-        cardType: "UNO" | "RUMMY" | "SOLITAIRE";
+        cardType: "UNO" | "RUMMY" | "SOLITAIRE" | "SCHNAPPS";
     }
     chat: Imessage[];
     game_id?: string;
@@ -78,8 +78,27 @@ export interface Imessage {
 export interface Igame {
     _id: string;
     shuffledCards: Icard[];
-    currentPlayer: string;
+    currentPlayer: { playerId: string, time: number };
     playerCards: { [player_id: string]: Icard[] };
     playedCards: { playedBy: string, cards: Icard[] }[];
+    drawedCard: { lastDrawedBy: string };
     droppedCards: { droppedBy: string, card: Icard }[];
+    lastAction: {
+        playerId: string;
+        actions: number;
+        isUno?: boolean;
+        trump?: { suit: string, card: string } | null;
+        trumpWith?: string | null;
+    },
+    secretSettings: {
+        timeLimit: number;
+        gameType: string,
+        robotDifficulty: string,
+        isGameOver: boolean,
+        gameTurn: number,
+        maxGameTurns: number,
+        currentTurn: number,
+        pointsByTurns?: { [turn: number]: { [playerId: string]: number } }
+    },
+    allCards: { [playerId: string]: number };
 }

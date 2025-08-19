@@ -164,42 +164,6 @@ import { Iplayer } from "@/interfaces/interface";
 //     )
 // }
 
-function GameReplays({ pos, type, date, link }: { pos: any, type: string, date: string, link: string }) {
-    function getGameTypeImage() {
-        switch (type) {
-            case "UNO":
-                return "/assets/images/uno.png";
-            case "RUMMY":
-                return "/assets/images/rummy.png";
-            default:
-                return "/assets/images/rummy.png";
-        }
-    }
-    const { user } = useContext(UserContext);
-
-    return (
-        <div className={`w-full bg-zinc-700 rounded-md p-3 text-zinc-200 flex justify-between ${pos == 1 ? "border border-green-700" : ""}`}>
-            <Image className="hidden md:flex" src={getGameTypeImage()} width={100} height={100} alt={'cardType'}></Image>
-            <div className="flex flex-col gap-3 items-center justify-center">
-                <div className="text-2xl">
-                    #{pos.pos}
-                </div>
-            </div>
-            <div className="flex flex-col gap-3 items-center justify-center">
-                <div>
-                    <Link href={link}>
-                        <button className="flex justify-center items-center gap-1 bg-green-700 text-white p-2 px-2 rounded-xl justify-center hover:bg-green-600 flex items-center gap-1 duration-200"><Icon name="watch"></Icon>Watch</button>
-                    </Link>
-                </div>
-                <div className="flex gap-1 justify-between items-end select-none">
-                    <div className="font-thin text-xs">{new Date(date).toLocaleTimeString()}</div>
-                    <div className="font-thin text-xs">-</div>
-                    <div className="font-thin text-[0.5rem]">{new Date(date).toLocaleDateString()}</div>
-                </div>
-            </div>
-        </div>
-    )
-}
 
 function Achievements({ imageSrc, name, description }: { imageSrc: string, name: string, description?: string }) {
 
@@ -227,7 +191,11 @@ function Achievements({ imageSrc, name, description }: { imageSrc: string, name:
     )
 }
 
-function Friends({ name, color }: { name: string, color: string }) {
+function Friends({ settings }: { settings: any }) {
+
+    return (
+        <ProfileIcon settings={settings} size={3} className='p-0' />
+    )
     return (
         <main style={{ backgroundColor: color }} className={"flex justify-center items-center w-16 h-16 rounded-full text-xl"}>
             {name.toUpperCase()[0]}
@@ -265,8 +233,24 @@ export default function ProfilePage() {
     if (player.isLoading || player!.data.length == 0) return <Loading />;
 
     return (
-        <main className="flex flex-col md:flex-row gap-8 justify-center w-full md:w-3/4 mx-auto h-full overflow-y-auto">
+        <main className="flex flex-col md:flex-row gap-8 justify-center w-full md:w-3/4 mx-auto h-full">
             <div className="flex flex-col gap-8 w-full">
+                <Card className="w-full flex-col items-center justify-center gap-5 3xl:hidden flex">
+                    <div className="flex justify-between items-center w-full">
+                        <div className="font-bold text-2xl">Detailed Stats</div>
+                    </div>
+
+                    <div className="grid grid-cols-4 w-full gap-4">
+                        <StatCard icon={<Icon name="game" stroke size={12} />} title={'Game played'} number={player.data.gamesStats.numberOfGames || 0} format={(num) => { return num.toString() }} />
+                        <StatCard icon={<Icon name="trophy" stroke size={12} />} title={'Win rate'} number={player.data.gamesStats.winRate || 0} format={(num) => { return num.toString() + "%" }} />
+                        <StatCard icon={<Icon name="trophy" stroke size={12} />} title={'Highest rank'} number={player.data.gamesStats.highestRank || 0} format={(num) => { return getRankName(num).title }} />
+                        <StatCard icon={<Icon name="timer" stroke size={12} />} title={'Total playtime'} number={player.data.gamesStats.totalPlayTime || 0} format={(num) => {
+                            const time = [Math.floor(num / (3600 * 24)), Math.floor(Math.floor(num % 3600) / 60), Math.floor((num % 3600) / 60)];
+                            return time.join(':').replace(/(\d+):(\d+):(\d+)/, (_, d, h, m) => `${d > 0 ? d + "d" : ''} ${h}h ${d > 100 ? '' : m + 'm'}`);
+                        }} />
+                    </div>
+                </Card>
+
                 <Card className="w-full flex flex-col items-center justify-center gap-5">
                     <div className="flex justify-between items-center w-full">
                         <div className="font-bold text-2xl">Game Stats</div>
@@ -443,7 +427,7 @@ export default function ProfilePage() {
                                 player.data.friends.map((friend: any, i: number) => {
                                     return (
                                         <Link key={i} href={`/profile/${friend.customId}`}>
-                                            <Friends name={friend.username} color={getColorByInitials(friend).background}></Friends>
+                                            <Friends settings={friend.settings}></Friends>
                                         </Link>
                                     )
                                 })
@@ -456,9 +440,44 @@ export default function ProfilePage() {
                             }
                         </div>
                     </div>
+
+                    <hr className="border-zinc-500/50 w-full 3xl:hidden flex" />
+
+                    <div className="flex flex-col gap-6 w-full items-center justify-center 3xl:hidden flex">
+                        <div className="text-lg text-zinc-400 font-bold">Quick Actions</div>
+
+
+                        <div className="flex flex-col w-full gap-2">
+
+                            {
+                                user && user.customId === player_id &&
+                                <Link href={`/games`}>
+                                    <button className="bg-purple-600/70 text-zinc-200 rounded-lg p-2 px-5 flex items-center justify-center gap-1 hover:bg-purple-500/80 transition-all duration-200 w-full">
+                                        <Icon name="game" size={16} stroke></Icon>Start New Game
+                                    </button>
+                                </Link>
+                            }
+
+                            {
+                                user && user.customId != player_id && player.data.friends && player.data.friends.find((f: any) => f.customId !== user.customId) &&
+                                <button className="bg-zinc-600/70 text-zinc-200 rounded-lg p-2 px-5 flex items-center justify-center gap-1 hover:bg-zinc-500/80 transition-all duration-200 w-full">
+                                    <Icon name="users" size={16}></Icon>Add Friends
+                                </button>
+                            }
+
+                            {
+                                user && user.customId != player_id && player.data.friends && player.data.friends.find((f: any) => f.customId === user.customId) &&
+                                <div className="bg-zinc-900/70 text-zinc-200 border border-zinc-500/60 rounded-lg p-2 px-5 flex items-center justify-center gap-1 transition-all duration-200 w-full">
+                                    <Icon name="users" size={16}></Icon>You are already friends
+                                </div>
+                            }
+
+
+                        </div>
+                    </div>
                 </Card>
 
-                <Card className="w-full flex flex-col items-center justify-center gap-5">
+                <Card className="w-full flex-col items-center justify-center gap-5 3xl:flex hidden">
                     <div className="flex justify-between items-center w-full">
                         <div className="font-bold text-2xl">Detailed Stats</div>
                     </div>
@@ -483,22 +502,26 @@ export default function ProfilePage() {
                         <div className="flex flex-col w-full gap-2">
 
                             {
-                                user && user.customId === player_id ?
-                                    <Link href={`/games`}>
-                                        <button className="bg-purple-600/70 text-zinc-200 rounded-lg p-2 px-5 flex items-center justify-center gap-1 hover:bg-purple-500/80 transition-all duration-200 w-full">
-                                            <Icon name="game" size={16} stroke></Icon>Start New Game
-                                        </button>
-                                    </Link> :
-                                    <button className="bg-indigo-600/70 text-zinc-200 rounded-lg p-2 px-5 flex items-center justify-center gap-1 hover:bg-indigo-500/80 transition-all duration-200 w-full">
-                                        <Icon name="send" size={16}></Icon>Invite to Game
+                                user && user.customId === player_id &&
+                                <Link href={`/games`}>
+                                    <button className="bg-purple-600/70 text-zinc-200 rounded-lg p-2 px-5 flex items-center justify-center gap-1 hover:bg-purple-500/80 transition-all duration-200 w-full">
+                                        <Icon name="game" size={16} stroke></Icon>Start New Game
                                     </button>
+                                </Link>
                             }
 
                             {
-                                user && user.customId != player_id &&
+                                user && user.customId != player_id && player.data.friends && player.data.friends.find((f: any) => f.customId !== user.customId) &&
                                 <button className="bg-zinc-600/70 text-zinc-200 rounded-lg p-2 px-5 flex items-center justify-center gap-1 hover:bg-zinc-500/80 transition-all duration-200 w-full">
                                     <Icon name="users" size={16}></Icon>Add Friends
                                 </button>
+                            }
+
+                            {
+                                user && user.customId != player_id && player.data.friends && player.data.friends.find((f: any) => f.customId === user.customId) &&
+                                <div className="bg-zinc-900/70 text-zinc-200 border border-zinc-500/60 rounded-lg p-2 px-5 flex items-center justify-center gap-1 transition-all duration-200 w-full">
+                                    <Icon name="users" size={16}></Icon>You are already friends
+                                </div>
                             }
 
 
@@ -527,6 +550,8 @@ function ReplayCard({ pos, type, date, link, resultLink, index, isCorrupted, isF
                 return "/assets/images/uno.png";
             case "RUMMY":
                 return "/assets/images/rummy.png";
+            case "SCHNAPPS":
+                return "/assets/images/schnapps.png";
             default:
                 return "/assets/images/rummy.png";
         }
@@ -568,7 +593,7 @@ function ReplayCard({ pos, type, date, link, resultLink, index, isCorrupted, isF
                                 }
 
                                 {
-                                    type !== 'SOLITAIRE' &&
+                                    type !== 'SOLITAIRE' && type !== 'SCHNAPPS' &&
                                     <Link href={link}>
                                         <button className="bg-gradient-to-r from-purple-600 to-purple-800 text-zinc-200 rounded-lg p-2 px-5 flex items-center gap-1 hover:shadow-lg hover:shadow-zinc-700 hover:-translate-y-1 transition-all duration-200">
                                             <Icon name="watch" size={16}></Icon>Replay

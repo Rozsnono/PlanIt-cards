@@ -202,14 +202,14 @@ export default class UnoController implements Controller {
         game.playerCards[playerId] = game.playerCards[playerId].filter((card: any) => JSON.stringify(card) !== JSON.stringify(body.droppedCard));
         if (body.color) {
             body.droppedCard.suit = body.color;
-            body.droppedCard.name = body.color + body.droppedCard.name;
+            body.droppedCard.name = 'U_' + body.color + body.droppedCard.name.split("_")[1];
         }
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         game.droppedCards.push({ droppedBy: playerId, card: body.droppedCard });
 
         const lastDroppedCard = game.droppedCards[game.droppedCards.length - 1].card.rank;
-        game.lastAction = { playerId: playerId, actions: lastDroppedCard > 24 && lastDroppedCard < 30 ? lastDroppedCard : 0, isUno: body.isUno || false };
+        game.lastAction = { playerId: playerId, actions: lastDroppedCard > 24 && lastDroppedCard < 30 ? lastDroppedCard : 0, isUno: body.isUno || false, trump: {}, trumpWith: "" };
 
         await this.game.updateOne({ _id: gameId }, game, { runValidators: true });
         this.nextTurn(req, res);

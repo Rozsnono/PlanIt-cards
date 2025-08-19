@@ -70,8 +70,8 @@ export function LineChart({ labels, wins, losses }: { labels: string[], wins: nu
                 borderColor: '#00c951',
                 backgroundColor: gradient.wins,
                 borderWidth: 2,
-                pointRadius: 4,
-                pointHoverRadius: 4,
+                pointRadius: 1,
+                pointHoverRadius: 2,
                 fill: true,
                 tension: 0.4, // Smooth line
                 cubicInterpolationMode: 'monotone', // Smooth interpolation
@@ -82,8 +82,8 @@ export function LineChart({ labels, wins, losses }: { labels: string[], wins: nu
                 borderColor: '#fb2c36',
                 backgroundColor: gradient.losses,
                 borderWidth: 2,
-                pointRadius: 4,
-                pointHoverRadius: 4,
+                pointRadius: 1,
+                pointHoverRadius: 2,
                 fill: true,
                 tension: 0.4, // Smooth line
                 cubicInterpolationMode: 'monotone', // Smooth interpolation

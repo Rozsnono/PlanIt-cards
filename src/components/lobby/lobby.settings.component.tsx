@@ -5,13 +5,15 @@ import LobbyInputs from "./lobby.inputs";
 enum maxNumber {
     "RUMMY" = 6,
     "UNO" = 8,
-    "SOLITAIRE" = 1
+    "SOLITAIRE" = 1,
+    "SCHNAPPS" = 4
 }
 
 enum minNumber {
     "RUMMY" = 2,
     "UNO" = 2,
-    "SOLITAIRE" = 1
+    "SOLITAIRE" = 1,
+    "SCHNAPPS" = 4
 }
 
 export default function LobbySettings({ getForm, save, canEdit, title, cancel, onlyNew, children, justForm, changing }: { getForm?: any, save: (e: any) => void, canEdit?: boolean, title: string, cancel?: () => void, onlyNew?: boolean, children?: any, justForm?: boolean, changing?: (form: any) => void }) {
@@ -43,7 +45,8 @@ export default function LobbySettings({ getForm, save, canEdit, title, cancel, o
                 settingFormDataWithCondition({ id: "cardType", value: 'UNO' }, { id: "numberOfPlayers", value: 4 }, (parseInt(form['numberOfPlayers']) > 8 || parseInt(form['numberOfPlayers']) < 2));
             } else if (value === 'SOLITAIRE') {
                 settingFormDataWithCondition({ id: "cardType", value: 'SOLITAIRE' }, { id: "numberOfPlayers", value: 1 }, true);
-
+            } else if (value === 'SCHNAPPS') {
+                settingFormDataWithCondition({ id: "cardType", value: 'SCHNAPPS' }, { id: "numberOfPlayers", value: 4 }, (parseInt(form['numberOfPlayers']) > 5 || parseInt(form['numberOfPlayers']) < 3));
             }
         } else if (id === 'numberOfPlayers') {
             settingFormDataWithCondition({ id: "numberOfPlayers", value: value }, { id: "numberOfRobots", value: parseInt(value) - 1 }, parseInt(form['numberOfRobots']) > parseInt(value) - 1);
@@ -60,13 +63,13 @@ export default function LobbySettings({ getForm, save, canEdit, title, cancel, o
 
     const inputs = [
         { label: "Number of Players", id: "numberOfPlayers", value: form['numberOfPlayers'] || 4, interval: true, min: minNumber[form['cardType'] || 'RUMMY'], max: maxNumber[form['cardType'] || 'RUMMY'], disabled: onlyNew || !edit },
-        { label: "Type", id: "cardType", value: form['cardType'] || "RUMMY", buttons: true, buttonLabels: ["RUMMY", "UNO", "SOLITAIRE"], disabled: onlyNew || !edit },
+        { label: "Type", id: "cardType", value: form['cardType'] || "RUMMY", buttons: true, buttonLabels: ["RUMMY", "UNO", "SCHNAPPS", "SOLITAIRE"], disabled: onlyNew || !edit },
         { label: "Private lobby", id: "privateLobby", value: form['privateLobby'], checkbox: true, disabled: onlyNew || !edit },
         { label: "Lobby password", id: "lobbyCode", value: form['lobbyCode'] || 12345, input: true, inputType: "text", show: form['privateLobby'] === true, disabled: onlyNew || !edit },
         { label: "Unranked", id: "unranked", value: form['unranked'], checkbox: true, disabled: onlyNew || !edit, show: form['cardType'] !== 'SOLITAIRE' },
         { label: "Fill with Robots", id: "fillWithRobots", value: form['fillWithRobots'], checkbox: true, disabled: onlyNew || !edit || form['cardType'] === 'SOLITAIRE', show: form['cardType'] !== 'SOLITAIRE' },
         { label: "Number of Robots", id: "numberOfRobots", value: form['numberOfRobots'] || 1, interval: true, min: 1, max: parseInt(form['numberOfPlayers']) - 1, show: form['fillWithRobots'] === true, disabled: onlyNew || !edit },
-        { label: "Difficulty", id: "robotsDifficulty", value: form['robotsDifficulty'] || 'EASY', buttons: true, buttonLabels: ["EASY", "MEDIUM", "HARD"], show: form['fillWithRobots'] === true, disabled: true },
+        { label: "Difficulty", id: "robotsDifficulty", value: form['robotsDifficulty'] || 'EASY', buttons: true, buttonLabels: ["EASY", "MEDIUM", "HARD"], show: form['fillWithRobots'] === true && form['cardType'] !== "SOLITAIRE", disabled: onlyNew || !edit  },
     ]
 
     const inputsNew = [

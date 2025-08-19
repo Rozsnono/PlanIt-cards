@@ -14,6 +14,7 @@ import { useContext, useEffect, useState } from "react";
 import CardsUrls from "@/contexts/cards.context";
 import GameUser, { GameBot } from "@/components/user/game.user.component";
 import { useRouter } from "next/navigation";
+import Loading from "@/app/loading";
 
 const gameService = new GameService("rummy");
 
@@ -589,7 +590,7 @@ export default function Game() {
         }
     }
 
-    if (!game) return <Loader></Loader>
+    if (!game) return <Loading></Loading>
 
     return (
         <main className="flex w-full h-full rounded-md p-3 relative">

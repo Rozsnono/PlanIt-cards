@@ -114,10 +114,18 @@ export default function End() {
                                         <React.Fragment>
                                             <div style={{ width: `${getCurrentRank(player.rank + data.data.rank.find((p: any) => p.player == player._id).rank)}%` }} className="rounded-full h-2 bg-orange-400 z-50 animate-pulse duration-300"></div>
                                         </React.Fragment> :
-                                        <React.Fragment>
-                                            <div style={{ width: `${getCurrentRank(player.rank + data.data.rank.find((p: any) => p.player == player._id).rank)}%` }} className="rounded-full h-2 bg-orange-400 z-50 animate-pulse duration-300"></div>
-                                            <div style={{ width: `${getCurrentRank(player.rank)}%` }} className="rounded-full h-2 bg-gradient-to-r from-purple-500/70 to-orange-600 z-50 absolute"></div>
-                                        </React.Fragment>
+                                        (
+                                            data.data.rank.find((p: any) => p.player == player._id).rank < 0 ?
+                                                <React.Fragment>
+                                                    <div style={{ width: `${getCurrentRank(player.rank)}%` }} className="rounded-full h-2 bg-red-700 z-50 animate-pulse duration-300"></div>
+                                                    <div style={{ width: `${getCurrentRank(player.rank + data.data.rank.find((p: any) => p.player == player._id).rank)}%` }} className="rounded-full h-2 bg-gradient-to-r from-purple-500/70 to-orange-600 z-50 absolute"></div>
+                                                </React.Fragment> :
+                                                <React.Fragment>
+                                                    <div style={{ width: `${getCurrentRank(player.rank + data.data.rank.find((p: any) => p.player == player._id).rank)}%` }} className="rounded-full h-2 bg-orange-400 z-50 animate-pulse duration-300"></div>
+                                                    <div style={{ width: `${getCurrentRank(player.rank)}%` }} className="rounded-full h-2 bg-gradient-to-r from-purple-500/70 to-orange-600 z-50 absolute"></div>
+                                                </React.Fragment>
+                                        )
+
                                 }
                             </div>
                         </div>
@@ -133,10 +141,13 @@ export default function End() {
                     <div className="border-b-[0.1rem] border-purple-800/50"></div>
 
                     <div className="flex flex-col gap-2 p-2 h-full">
-                        <Link href={`/games/${lobby_id}/${game_id}/${data.data.type.toLowerCase()}/replay`} className="text-zinc-200 justify-center bg-gradient-to-r from-purple-500/70 to-pink-300/50 p-2 px-4 rounded-md hover:bg-zinc-400 focus:bg-zinc-800 flex items-center gap-1 ">
-                            <Icon name="watch"></Icon>
-                            Watch replay
-                        </Link>
+                        {
+                            data.data.type !== 'SOLITAIRE' && data.data.type !== 'SCHNAPPS' &&
+                            <Link href={`/games/${lobby_id}/${game_id}/${data.data.type.toLowerCase()}/replay`} className="text-zinc-200 justify-center bg-gradient-to-r from-purple-500/70 to-pink-300/50 p-2 px-4 rounded-md hover:bg-zinc-400 focus:bg-zinc-800 flex items-center gap-1 ">
+                                <Icon name="watch"></Icon>
+                                Watch replay
+                            </Link>
+                        }
                         <button disabled={data.data.position[0].pos !== 0} onClick={recalibrateResult} className="text-zinc-200 justify-center bg-gradient-to-r from-rose-400/70 to-red-500/50 p-2 px-4 rounded-md hover:bg-zinc-400 focus:bg-zinc-800 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-zinc-800">
                             <Icon name="refresh" stroke></Icon>
                             Recalibrate result
@@ -162,7 +173,7 @@ export default function End() {
                     <div className="flex flex-col gap-2 p-2 h-full">
 
                         {
-                            data.data.position.map((p: any, index: number) => {
+                            data.data.position.sort((a: any, b: any) => a.pos - b.pos).map((p: any, index: number) => {
                                 const u = data.data.users.find((u: any) => u._id === p.player);
                                 if (u.name) {
                                     return (

@@ -206,9 +206,9 @@ export default function Game() {
                             <div key={index} className="flex relative" onDragEnter={(e) => onDragEnter(e, index)} onDrop={() => { onDragDrop(pack) }} onDragOver={overDrag} >
                                 {pack.cards.map((card, i) => (
                                     i === 0 ?
-                                        <Image onClick={card.isJoker ? () => { playWithPress(card) } : () => { }} onDragStart={card.isJoker ? () => { startDrag(card, pack.cards) } : () => { }} key={i} draggable={!!card.isJoker && !isLoading} className={`border-2 border-transparent ${card.isJoker ? 'hover:border-green-500 ' + (isLoading ? 'cursor-progress' : 'cursor-pointer') : ''} rounded-lg`} src={card.isJoker ? ("/" + new CardsUrls().getFullCardUrl(card.name)) : '/assets/cards/rummy/gray_back.png'} width={120} height={110} alt="card"></Image>
+                                        <Image onClick={card.isJoker ? () => { playWithPress(card) } : () => { }} onDragStart={card.isJoker ? () => { startDrag(card, pack.cards) } : () => { }} key={i} draggable={!!card.isJoker && !isLoading} className={`border-2 border-transparent ${card.isJoker ? 'hover:border-green-500 ' + (isLoading ? 'cursor-progress' : 'cursor-pointer') : ''} rounded-lg`} src={card.isJoker ? ("/" + new CardsUrls().getFullCardUrl(card.name)) : '/assets/cards/rummy/red_back.png'} width={120} height={110} alt="card"></Image>
                                         :
-                                        <Image onClick={card.isJoker ? () => { playWithPress(card) } : () => { }} onDragStart={card.isJoker ? () => { startDrag(card, pack.cards) } : () => { }} key={i} draggable={!!card.isJoker && !isLoading} style={{ top: `${i * 2}rem` }} className={`absolute border-2 border-transparent ${card.isJoker ? 'hover:border-green-500 ' + (isLoading ? 'cursor-progress' : 'cursor-pointer') : ''} rounded-lg`} src={card.isJoker ? ("/" + new CardsUrls().getFullCardUrl(card.name)) : '/assets/cards/rummy/gray_back.png'} width={120} height={110} alt="card"></Image>
+                                        <Image onClick={card.isJoker ? () => { playWithPress(card) } : () => { }} onDragStart={card.isJoker ? () => { startDrag(card, pack.cards) } : () => { }} key={i} draggable={!!card.isJoker && !isLoading} style={{ top: `${i * 2}rem` }} className={`absolute border-2 border-transparent ${card.isJoker ? 'hover:border-green-500 ' + (isLoading ? 'cursor-progress' : 'cursor-pointer') : ''} rounded-lg`} src={card.isJoker ? ("/" + new CardsUrls().getFullCardUrl(card.name)) : '/assets/cards/rummy/red_back.png'} width={120} height={110} alt="card"></Image>
                                 ))}
                                 {pack.cards.length == 0
                                     &&
@@ -265,8 +265,8 @@ export default function Game() {
                             <div className="3xl:w-[6rem] 2xl:w-[5rem] lg:w-[4.7rem] md:w-[3.7rem] 3xl:h-[9rem] 2xl:h-[7.6rem] lg:h-[7rem] md:h-[6rem] border border-zinc-400 rounded-md"></div>
                             {game && game.shuffledCards.length > 0 &&
                                 <>
-                                    <Image draggable={false} className="absolute border-2 border-transparent hover:border-green-500 rounded-lg" src={"/assets/cards/rummy/gray_back.png"} width={300} height={300} alt="card"></Image>
-                                    <Image className="absolute top-1 left-1 " draggable={false} src={"/assets/cards/rummy/gray_back.png"} width={300} height={300} alt="card"></Image>
+                                    <Image draggable={false} className="absolute border-2 border-transparent hover:border-green-500 rounded-lg" src={"/assets/cards/rummy/red_back.png"} width={300} height={300} alt="card"></Image>
+                                    <Image className="absolute top-1 left-1 " draggable={false} src={"/assets/cards/rummy/red_back.png"} width={300} height={300} alt="card"></Image>
                                 </>
                             }
                         </div>

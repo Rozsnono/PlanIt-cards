@@ -12,6 +12,7 @@ import { useContext, useState } from "react";
 import { useQuery } from "react-query";
 import CardsUrls from "@/contexts/cards.context";
 import GameUser, { GameBot } from "@/components/user/game.user.component";
+import Loading from "@/app/loading";
 
 export default function Game() {
 
@@ -24,7 +25,7 @@ export default function Game() {
 
     const gameHistory = useQuery('game', async () => { return gameHistoryService.getGameHistory(user!.customId, game_id) });
 
-    if (gameHistory.isLoading) return <Loader></Loader>;
+    if (gameHistory.isLoading) return <Loading />;
     if (gameHistory.isError) return null;
 
     function getCurrentTurn(): {

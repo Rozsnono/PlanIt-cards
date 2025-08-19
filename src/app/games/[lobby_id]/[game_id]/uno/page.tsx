@@ -18,6 +18,8 @@ import ColorPicker from "@/components/color.picker";
 import GameUser, { GameBot } from "@/components/user/game.user.component";
 import { IP } from "@/enums/ip.enum";
 import TurnDisplayComponent from "@/components/game/turn.display.component";
+import PingDisplayComponent from "@/components/game/ping.display.component";
+import Loading from "@/app/loading";
 
 const gameService = new UnoService();
 const timerClass = new Timer();
@@ -150,7 +152,8 @@ export default function Game() {
         if (!user) return;
         setCPshow(false);
         const res = await gameService.dropCard(lobby!._id, { droppedCard: card, color: color, isUno: isUno });
-        setError(res.error);
+        console.log(res);
+        setError(res.res.error);
         setDraggedCard(null);
     }
 
@@ -204,7 +207,7 @@ export default function Game() {
 
     const [error, setError] = useState<string | null>(null);
 
-    if (!game) return <Loader></Loader>
+    if (!game) return <Loading />;
 
     return (
         <main className="flex w-full h-full rounded-md p-3 relative select-none">
@@ -232,16 +235,17 @@ export default function Game() {
                 }
                 <TurnDisplayComponent playerName={lobby!.users.find((u) => u._id === game.currentPlayer.playerId)?.username || null} />
                 <TurnDisplayComponent playerName={lobby!.bots.find((u) => u._id === game.currentPlayer.playerId)?.name || null} />
+
                 <div className="flex justify-center items-center w-full h-full absolute gap-7">
 
                     <div className="flex relative z-50" onDragOver={overDrag} onDrop={checkCard} >
                         {
                             game.droppedCards.length > 1 &&
-                            <Image className="absolute left-1 top-1 rotate-1" draggable={false} src={"/assets/cards/uno/" + new CardsUrls().getUnoCardUrl(game.droppedCards[game.droppedCards.length - 2].card.name)} width={150} height={180} alt="card"></Image>
+                            <Image className="absolute left-1 top-1 rotate-1" draggable={false} src={"/" + new CardsUrls().getFullCardUrl(game.droppedCards[game.droppedCards.length - 2].card.name)} width={150} height={180} alt="card"></Image>
                         }
                         {
                             game.droppedCards.length > 0 &&
-                            <Image className="relative right-1 bottom-1 rotate-12 border border-transparent rounded-lg" src={"/assets/cards/uno/" + new CardsUrls().getUnoCardUrl(game.droppedCards[game.droppedCards.length - 1].card.name)} width={150} height={180} alt="card"></Image>
+                            <Image className="relative right-1 bottom-1 rotate-12 border border-transparent rounded-lg" src={"/" + new CardsUrls().getFullCardUrl(game.droppedCards[game.droppedCards.length - 1].card.name)} width={150} height={180} alt="card"></Image>
                         }
                     </div>
                 </div>
@@ -303,11 +307,11 @@ export default function Game() {
                                          ${draggedCard && JSON.stringify(draggedCard) === JSON.stringify(card) ? 'opacity-10' : ''}
                                          
                                          `}>
-                                        <Image onDragEnter={(e) => { onDragEnter(e, i) }} className={`${drawedCard?.name === card.name && drawedCard?.pack === card.pack ? 'ring ring-sky-600' : ''} border-2 border-transparent group-hover:border-green-400 rounded-lg`} style={{ width: "6rem", maxWidth: "6rem" }} loading="eager" onDragEnd={() => { setDraggedCard(null) }} onDragStart={() => { startDrag(card) }} onDrop={() => { dropDrag(i) }} onDragOver={overDrag} src={"/assets/cards/uno/" + new CardsUrls().getUnoCardUrl(card.name)} width={100} height={100} alt={new CardsUrls().getUnoCardUrl(card.name)}></Image>
+                                        <Image onDragEnter={(e) => { onDragEnter(e, i) }} className={`${drawedCard?.name === card.name && drawedCard?.pack === card.pack ? 'ring ring-sky-600' : ''} border-2 border-transparent group-hover:border-green-400 rounded-lg`} style={{ width: "6rem", maxWidth: "6rem" }} loading="eager" onDragEnd={() => { setDraggedCard(null) }} onDragStart={() => { startDrag(card) }} onDrop={() => { dropDrag(i) }} onDragOver={overDrag} src={"/" + new CardsUrls().getFullCardUrl(card.name)} width={100} height={100} alt={new CardsUrls().getFullCardUrl(card.name)}></Image>
                                     </div>
                                     <div onDragOver={overDrag} className={`${draggedCard && JSON.stringify(draggedCard) !== JSON.stringify(card) && dragEnter === i ? "w-[5.8rem]" : "w-0"} bg-[#00000040] rounded-lg duration-100`}>
                                         {draggedCard &&
-                                            <Image className="opacity-75" loading="eager" onDrop={() => { dropDrag(i) }} onDragOver={overDrag} src={"/assets/cards/uno/" + new CardsUrls().getUnoCardUrl(draggedCard.name)} width={100} height={100} alt={new CardsUrls().getUnoCardUrl(draggedCard.name)}></Image>
+                                            <Image className="opacity-75" loading="eager" onDrop={() => { dropDrag(i) }} onDragOver={overDrag} src={"/" + new CardsUrls().getFullCardUrl(draggedCard.name)} width={100} height={100} alt={new CardsUrls().getFullCardUrl(draggedCard.name)}></Image>
                                         }
                                     </div>
                                 </React.Fragment>

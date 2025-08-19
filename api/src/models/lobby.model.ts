@@ -63,6 +63,10 @@ const lobbySchema = new Schema(
                 cardType: {
                     type: String,
                     required: true,
+                },
+                numberOfTurns: {
+                    type: Number,
+                    default: 1,
                 }
             },
         },
