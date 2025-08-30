@@ -252,7 +252,7 @@ export default class LobbyController implements Controller {
             res.status(400).send({ error: ERROR.AN_ERROR_OCCURRED });
             return;
         }
-        delete body._id; // Remove _id from body to prevent validation errors
+        delete body._id;
         lobby.settings = body;
 
         lobby.bots = (lobby.settings!.fillWithRobots ? Array.from({ length: lobby.settings!.numberOfRobots }, (_, i) => { return { name: new Bot().getRobotName(lobby.settings!.robotsDifficulty as any, i), _id: 'bot' + i, customId: 'bot-' + i } }) : []) as any;
@@ -262,7 +262,7 @@ export default class LobbyController implements Controller {
             lobby.settings.fillWithRobots = false;
             lobby.settings.numberOfRobots = 0;
             lobby.settings.robotsDifficulty = '';
-        } // Set number of players based on card type
+        }
         if (lobby) {
             await this.lobby.updateOne({ _id: id }, lobby, { runValidators: true });
             res.send({ message: "OK" });

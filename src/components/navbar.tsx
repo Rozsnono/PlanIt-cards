@@ -17,7 +17,6 @@ import ProfileService from '@/services/profile.service';
 export default function Navbar({ clear }: { clear?: boolean }) {
 
     const { user } = useContext(UserContext);
-    const { isOpen, setOpen } = useContext(MenuContext);
 
     const path = usePathname();
     const router = useRouter();
@@ -155,7 +154,7 @@ export default function Navbar({ clear }: { clear?: boolean }) {
 function UserHeader({ isLogged }: { isLogged: boolean }) {
     const router = useRouter();
 
-    const { user } = useContext(UserContext);
+    const { user, setUser } = useContext(UserContext);
 
     const { isLowModeOn, setLowMode } = useContext(MenuContext);
 
@@ -173,6 +172,7 @@ function UserHeader({ isLogged }: { isLogged: boolean }) {
         router.replace('/');
         router.refresh();
         Logout();
+        setUser(null);
         window.location.reload();
     }
 

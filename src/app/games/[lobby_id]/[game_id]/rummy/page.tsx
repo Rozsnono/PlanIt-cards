@@ -161,6 +161,13 @@ export default function Game() {
         setError(res.error);
     }
 
+    async function drawingFromTrump() {
+        if (!user) return;
+        if (!lobby) return;
+        const res = await gameService.drawFromTrump(lobby!._id);
+        setError(res.error);
+    }
+
     async function cardPlacingDrop(playedCard: { playedBy: string, cards: Icard[] }) {
         if (!playedCard) return;
         if (!user) return;
@@ -188,7 +195,7 @@ export default function Game() {
             timerClass.stop();
             setTimer(180);
             gameState.currentPlayer.playerId = null;
-        }else{
+        } else {
             setError(res.error);
         }
         setNextTurnLoader(false);
@@ -196,7 +203,7 @@ export default function Game() {
 
     const [error, setError] = useState<string | null>(null);
 
-    if (!gameState) return <Loading />  
+    if (!gameState) return <Loading />
 
     return (
         <main className="flex w-full h-full rounded-md p-3 relative">
@@ -233,7 +240,7 @@ export default function Game() {
                                             e.cards.map((card: Icard, j: number) => {
                                                 return (
                                                     <div onDrop={() => { cardPlacingDrop(e) }} key={j} className="w-8 h-16 relative group cursor-pointer overflow-visible">
-                                                        <Image className={`card-animation w-16 max-w-16 rounded-md border border-transparent ${e.playedBy === user?._id ? ' group-hover:border-green-500' : ""} `} key={j} src={"/" + new CardsUrls().getFullCardUrl(card.name)} width={70} height={60} alt={new CardsUrls().getFullCardUrl(card.name)}></Image>
+                                                        <Image className={`card-animation w-16 max-w-16 rounded-md border border-transparent ${e.playedBy === user?._id ? ' group-hover:border-green-500' : ""} `} key={j} src={"/" + new CardsUrls().getFullCardUrl(card.name)} width={70} height={60} alt={new CardsUrls().getFullCardUrl(card.name) || ''}></Image>
                                                         {j === 0 && <div className="opacity-0 group-hover:opacity-100 absolute group-hover:bottom-[-3.6rem] bottom-0 text-zinc-300 left-0 w-16 z-[-1] duration-200 ">{lobby?.users.find(user => user._id === e.playedBy)?.firstName || e.playedBy}</div>}
                                                     </div>
                                                 )
@@ -246,11 +253,16 @@ export default function Game() {
                     </div>
                 </div>
 
-                <div className="flex gap-10  w-full absolute top-2 p-2 justify-center">
+                <div className="flex gap-16 w-full absolute top-2 p-2 justify-center items-start">
                     <div className="flex relative cursor-pointer">
-                        <div className="2xl:w-[5rem] lg:w-[4.7rem] md:w-[3.7rem] 2xl:h-[7.6rem] lg:h-[7rem] md:h-[6rem] border border-zinc-400 rounded-md"></div>
-                        <Image className="absolute top-1 left-1" draggable={false} src={"/assets/cards/rummy/gray_back.png"} width={140} height={100} alt="card"></Image>
-                        <Image onClick={drawingCard} draggable={false} className="absolute border-2 border-transparent hover:border-green-500 rounded-lg" src={"/assets/cards/rummy/gray_back.png"} width={140} height={110} alt="card"></Image>
+                        <div className="2xl:w-[5rem] lg:w-[4.7rem] md:w-[3.7rem] 2xl:h-[7.6rem] lg:h-[7rem] md:h-[6rem] border border-zinc-400 rounded-md z-10"></div>
+                        <Image className="absolute top-1 left-1 z-10" draggable={false} src={"/assets/cards/rummy/gray_back.png"} width={140} height={100} alt="card"></Image>
+                        <Image onClick={drawingCard} draggable={false} className="absolute border-2 border-transparent hover:border-green-500 rounded-lg z-10" src={"/assets/cards/rummy/gray_back.png"} width={140} height={110} alt="card"></Image>
+                        {
+                            gameState.lastAction.trump &&
+                            <Image onClick={drawingFromTrump} className="absolute left-8 top-0 rotate-90 hover:ring-2 hover:ring-green-500 rounded-lg" draggable={false} src={"/" + new CardsUrls().getFullCardUrl(gameState.lastAction.trump.card.name)} width={140} height={100} alt="card"></Image>
+
+                        }
                     </div>
 
                     <div className="flex relative" onDragOver={overDrag} onDrop={cardDropped} >
@@ -281,7 +293,7 @@ export default function Game() {
                     {
                         lobby?.bots.filter((u, i) => { return i % 2 === 1 }).map((bot, j) => {
                             return (
-                                <GameBot key={j} bot={bot} currentPlayer={gameState.currentPlayer.playerId} cardNumber={gameState.allCards[bot.customId.replace('-','')]}></GameBot>
+                                <GameBot key={j} bot={bot} currentPlayer={gameState.currentPlayer.playerId} cardNumber={gameState.allCards[bot.customId.replace('-', '')]}></GameBot>
 
                             )
                         })
@@ -303,7 +315,7 @@ export default function Game() {
                     {
                         lobby?.bots.filter((u, i) => { return i % 2 === 0 }).map((bot, j) => {
                             return (
-                                <GameBot key={j} bot={bot} currentPlayer={gameState.currentPlayer.playerId} cardNumber={gameState.allCards[bot.customId.replace('-','')]}></GameBot>
+                                <GameBot key={j} bot={bot} currentPlayer={gameState.currentPlayer.playerId} cardNumber={gameState.allCards[bot.customId.replace('-', '')]}></GameBot>
 
                             )
                         })
@@ -324,11 +336,11 @@ export default function Game() {
                                         `}>
                                         <Image onDragEnter={(e) => { onDragEnter(e, i) }} className={`border-2 border-transparent group-hover:border-green-400 rounded-lg
                                         ${gameState.currentPlayer.playerId === user?._id && gameState.droppedCards.length > 0 && gameState.droppedCards[gameState.droppedCards.length - 1].droppedBy != user?._id && drawedCard === card && gameState.drawedCard.lastDrawedBy === user?._id ? 'ring ring-sky-600' : ''}
-                                            `} style={{ width: "6rem", maxWidth: "6rem" }} loading="eager" onDragEnd={() => { setDraggedCard(null) }} onDragStart={() => { startDrag(card) }} onDrop={() => { dropDrag(i) }} onDragOver={overDrag} src={"/" + new CardsUrls().getFullCardUrl(card.name)} width={100} height={100} alt={new CardsUrls().getFullCardUrl(card.name)}></Image>
+                                            `} style={{ width: "6rem", maxWidth: "6rem" }} loading="eager" onDragEnd={() => { setDraggedCard(null) }} onDragStart={() => { startDrag(card) }} onDrop={() => { dropDrag(i) }} onDragOver={overDrag} src={"/" + new CardsUrls().getFullCardUrl(card.name)} width={100} height={100} alt={new CardsUrls().getFullCardUrl(card.name) || ''}></Image>
                                     </div>
                                     <div onDragOver={overDrag} className={`${draggedCard && JSON.stringify(draggedCard) !== JSON.stringify(card) && dragEnter === i ? "w-[5.8rem]" : "w-0"} bg-[#00000040] rounded-lg duration-100`}>
                                         {draggedCard &&
-                                            <Image className="opacity-75" loading="eager" onDrop={() => { dropDrag(i) }} onDragOver={overDrag} src={"/" + new CardsUrls().getFullCardUrl(draggedCard.name)} width={100} height={100} alt={new CardsUrls().getFullCardUrl(draggedCard.name)}></Image>
+                                            <Image className="opacity-75" loading="eager" onDrop={() => { dropDrag(i) }} onDragOver={overDrag} src={"/" + new CardsUrls().getFullCardUrl(draggedCard.name)} width={100} height={100} alt={new CardsUrls().getFullCardUrl(draggedCard.name) || ''}></Image>
                                         }
                                     </div>
                                 </React.Fragment>

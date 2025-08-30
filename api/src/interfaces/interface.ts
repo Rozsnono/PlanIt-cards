@@ -5,6 +5,7 @@ export interface Icard {
     isJoker?: boolean;
     pack: number;
     value: number;
+    showedBy?: string;
 }
 
 export interface Iplayer {

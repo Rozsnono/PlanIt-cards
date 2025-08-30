@@ -47,7 +47,6 @@ export default class SocketIO {
     private async wssConnectionStart() {
         this.websockets.gameSocket.on('connection', (ws: WebSocket) => {
 
-            // Handle WebSocket message received from client
             ws.on('message', async (id: string) => {
                 const identifier = JSON.parse(id);
                 const { _id, player_id } = JSON.parse(id) as { _id: string, player_id: string };
@@ -130,7 +129,6 @@ export default class SocketIO {
                                 }
                             },
                             {
-                                // optional: convert array back to object (from [ {k, v}, ... ] )
                                 $addFields: {
                                     allCards: { $arrayToObject: "$allCards" }
                                 }
@@ -199,12 +197,10 @@ export default class SocketIO {
     private async wssAdminConnectionStart() {
         this.websockets.adminSocket.on('connection', (ws: WebSocket) => {
 
-            // Send initial data to the connected client
             ws.on('connect', async () => {
                 ws.send(JSON.stringify(await this.getAdminDatas()));
             });
 
-            // Handle WebSocket message received from client
             ws.on('message', async () => {
                 ws.send(JSON.stringify(await this.getAdminDatas()));
             });
@@ -266,12 +262,10 @@ export default class SocketIO {
     private async wssAdminGameConntectionStart() {
         this.websockets.adminGameSocket.on('connection', (ws: WebSocket) => {
 
-            // Send initial data to the connected client
             ws.on('connect', async () => {
                 ws.send('');
             });
 
-            // Handle WebSocket message received from client
             ws.on('message', async (data: string) => {
                 const games = await this.game.findOne({ _id: JSON.parse(data).id });
                 const lobby = await this.lobby.findOne({ gameId: JSON.parse(data).id }).populate("users", 'firstName lastName email username customId rank settings').exec();
@@ -303,7 +297,6 @@ export default class SocketIO {
             ws.send(JSON.stringify(await this.getLobbies));
 
 
-            // Handle WebSocket message received from client
             ws.on('message', async (query: string) => {
                 ws.send(JSON.stringify(await this.getLobbies(JSON.parse(query))));
             });
@@ -438,7 +431,6 @@ export default class SocketIO {
                             break;
 
                         case "SOLITAIRE":
-                            // Handle solitaire bot logic if needed
                             break;
 
                         case "SCHNAPPS":
@@ -556,7 +548,6 @@ export default class SocketIO {
                     switch (type) {
                         case 'RUMMY':
                             if (time > 1000 * ((game.secretSettings?.timeLimit) || 180)) {
-                                //Time is up!
                                 this.logService.consoleLog(`Game ${game._id} is still active, forcing next turn. Time limit: ${game.secretSettings?.timeLimit || 180}. Time: ${time / 1000}`, 'SocketIOService');
                                 const force = await new GameChecker().forceNextTurn(game._id.toString());
                                 if (!force) {
@@ -578,7 +569,6 @@ export default class SocketIO {
                             break;
                         case 'UNO':
                             if (time > 1000 * ((game.secretSettings?.timeLimit) || 180)) {
-                                //Time is up!
                                 this.logService.consoleLog(`Game ${game._id} is still active, forcing next turn. Time limit: ${game.secretSettings?.timeLimit || 180}. Time: ${time / 1000}`, 'SocketIOService');
                                 if (!game.currentPlayer.playerId.includes('bot') && game.playerCards[game.currentPlayer.playerId].length > 25) {
                                     this.logService.consoleLog(`Player ${game.currentPlayer.playerId} has too many cards, forcing next turn.`, 'SocketIOService');

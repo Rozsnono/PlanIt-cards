@@ -18,7 +18,6 @@ import ColorPicker from "@/components/color.picker";
 import GameUser, { GameBot } from "@/components/user/game.user.component";
 import { IP } from "@/enums/ip.enum";
 import TurnDisplayComponent from "@/components/game/turn.display.component";
-import PingDisplayComponent from "@/components/game/ping.display.component";
 import Loading from "@/app/loading";
 
 const gameService = new UnoService();
@@ -30,8 +29,6 @@ export default function Game() {
     const game_id = useParams().game_id;
     const router = useRouter();
 
-    const { settings } = useContext(SettingsContext);
-    const [sortType, setSortType] = useState<"num" | "abc" | "">("");
     const [isGameOver, setIsGameOver] = useState(false);
 
     const [playerCards, setPlayerCards] = useState<Icard[]>([]);
@@ -307,11 +304,11 @@ export default function Game() {
                                          ${draggedCard && JSON.stringify(draggedCard) === JSON.stringify(card) ? 'opacity-10' : ''}
                                          
                                          `}>
-                                        <Image onDragEnter={(e) => { onDragEnter(e, i) }} className={`${drawedCard?.name === card.name && drawedCard?.pack === card.pack ? 'ring ring-sky-600' : ''} border-2 border-transparent group-hover:border-green-400 rounded-lg`} style={{ width: "6rem", maxWidth: "6rem" }} loading="eager" onDragEnd={() => { setDraggedCard(null) }} onDragStart={() => { startDrag(card) }} onDrop={() => { dropDrag(i) }} onDragOver={overDrag} src={"/" + new CardsUrls().getFullCardUrl(card.name)} width={100} height={100} alt={new CardsUrls().getFullCardUrl(card.name)}></Image>
+                                        <Image onDragEnter={(e) => { onDragEnter(e, i) }} className={`${drawedCard?.name === card.name && drawedCard?.pack === card.pack ? 'ring ring-sky-600' : ''} border-2 border-transparent group-hover:border-green-400 rounded-lg`} style={{ width: "6rem", maxWidth: "6rem" }} loading="eager" onDragEnd={() => { setDraggedCard(null) }} onDragStart={() => { startDrag(card) }} onDrop={() => { dropDrag(i) }} onDragOver={overDrag} src={"/" + new CardsUrls().getFullCardUrl(card.name)} width={100} height={100} alt={new CardsUrls().getFullCardUrl(card.name)||''}></Image>
                                     </div>
                                     <div onDragOver={overDrag} className={`${draggedCard && JSON.stringify(draggedCard) !== JSON.stringify(card) && dragEnter === i ? "w-[5.8rem]" : "w-0"} bg-[#00000040] rounded-lg duration-100`}>
                                         {draggedCard &&
-                                            <Image className="opacity-75" loading="eager" onDrop={() => { dropDrag(i) }} onDragOver={overDrag} src={"/" + new CardsUrls().getFullCardUrl(draggedCard.name)} width={100} height={100} alt={new CardsUrls().getFullCardUrl(draggedCard.name)}></Image>
+                                            <Image className="opacity-75" loading="eager" onDrop={() => { dropDrag(i) }} onDragOver={overDrag} src={"/" + new CardsUrls().getFullCardUrl(draggedCard.name)} width={100} height={100} alt={new CardsUrls().getFullCardUrl(draggedCard.name)||''}></Image>
                                         }
                                     </div>
                                 </React.Fragment>

@@ -465,14 +465,14 @@ export default function Game() {
                                 gameState.lastAction.isUno && gameState.lastAction.trumpWith !== user?._id ?
                                     <span>
                                         {
-                                            gameState.playedCards.filter((f) => f.playedBy === user?._id).map((f) => f.cards.map((card) => card.value).reduce((a, b) => a + b, 0)).reduce((a, b) => a + b, 0)!
+                                            gameState.playedCards.filter((f) => f.playedBy === user?._id).map((f) => f.cards.map((card) => card.value).reduce((a: any, b: any) => a + b, 0)).reduce((a: any, b: any ) => a + b, 0)!
                                             +
-                                            gameState.playedCards.filter((f) => f.playedBy === gameState.lastAction.trumpWith).map((f) => f.cards.map((card) => card.value).reduce((a, b) => a + b, 0)).reduce((a, b) => a + b, 0)!
+                                            gameState.playedCards.filter((f) => f.playedBy === gameState.lastAction.trumpWith).map((f) => f.cards.map((card) => card.value).reduce((a: any, b: any) => a + b, 0)).reduce((a: any, b: any) => a + b, 0)!
                                         }
 
                                     </span> :
                                     <span className="">
-                                        {gameState.playedCards.filter((f) => f.playedBy === user?._id).map((f) => f.cards.map((card) => card.value).reduce((a, b) => a + b, 0)).reduce((a, b) => a + b, 0)}
+                                        {gameState.playedCards.filter((f) => f.playedBy === user?._id).map((f) => f.cards.map((card) => card.value).reduce((a: any, b: any) => a + b, 0)).reduce((a: any, b: any) => a + b, 0)}
                                     </span>
                             }
                         </div>

@@ -7,7 +7,10 @@ import { UnoDealer } from "./dealer.services";
 const ThinkTimeByDifficulty = {
     'easy': { min: 5, max: 10 },
     'medium': { min: 10, max: 30 },
-    'hard': { min: 15, max: 60 }
+    'hard': { min: 15, max: 60 },
+    'EASY': { min: 5, max: 10 },
+    'MEDIUM': { min: 10, max: 30 },
+    'HARD': { min: 15, max: 60 }
 }
 export default class Bot {
     private rummyBotNames = {
@@ -279,7 +282,7 @@ export class RummyBot {
 
     private dropCard(): Icard {
 
-        switch (this.difficulty) {
+        switch (this.difficulty.toLowerCase()) {
             case 'easy':
                 return this.playerCards[Math.floor(Math.random() * this.playerCards.length)];
             case 'medium':
@@ -289,7 +292,7 @@ export class RummyBot {
                 const cardHard = this.playerCards.filter((card: Icard) => !card.isJoker)[Math.floor(Math.random() * this.playerCards.filter((card: Icard) => !card.isJoker).length)];
                 return cardHard ? cardHard : this.playerCards[Math.floor(Math.random() * this.playerCards.length)];
             default:
-                throw new Error('Invalid difficulty');
+                throw new Error('Invalid difficulty: ' + this.difficulty.toLowerCase());
         }
     }
 }

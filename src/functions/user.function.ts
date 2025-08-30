@@ -26,9 +26,13 @@ export function getUser() {
 
 
 export function getUserInitials(firstName?: string, lastName?: string) {
-    if (!firstName || !lastName) {
-        const user = getUser();
-        return user!.firstName[0] + user!.lastName[0];
+    try {
+        if (!firstName || !lastName) {
+            const user = getUser();
+            return user!.firstName[0] + user!.lastName[0];
+        }
+    } catch {
+        return "";
     }
 
     return firstName[0] + lastName[0];

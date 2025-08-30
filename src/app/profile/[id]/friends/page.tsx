@@ -151,7 +151,7 @@ function Players({ player, isFriend, isPending, onRefresh }: { player: Iplayer, 
                 {
                     isPending ?
                         <>
-                            <Icon name="check-empty" onClick={() => { new ProfileService().acceptFriendRequest(player.customId); onRefresh(); }} size={20} className="text-green-500 cursor-pointer hover:text-green-400 hover:scale-110 duration-200"></Icon>
+                            <Icon name="check-empty" onClick={() => { new ProfileService().acceptFriendRequest(player.customId); onRefresh!(); }} size={20} className="text-green-500 cursor-pointer hover:text-green-400 hover:scale-110 duration-200"></Icon>
                             <Icon name="close" size={20} className="text-red-500 cursor-pointer hover:text-red-400 hover:scale-110 duration-200"></Icon>
                         </>
                         : null

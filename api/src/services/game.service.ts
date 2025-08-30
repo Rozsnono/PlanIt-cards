@@ -67,6 +67,10 @@ export class GameChecker {
         const nextPlayer = this.nextPlayer(lobby.users.map(id => { return id.toString() }), game.currentPlayer.playerId.toString(), lobby.bots && lobby.bots.map((bot: any) => { return bot._id }));
 
         game.currentPlayer = { playerId: nextPlayer, time: new Date().getTime() };
+        game.secretSettings.gameTurn++;
+        if (game.secretSettings.gameTurn > game.secretSettings.maxGameTurns) {
+            return false;
+        }
 
         await this.game.updateOne({ _id: gameId }, game, { runValidators: true });
         return true;
@@ -232,7 +236,7 @@ export class GameChecker {
 
     public async robotPlayingSchnapps(game: Igame, lobby: Ilobby, currentPlayer: string) {
         const nextPlayer = currentPlayer;
-        const bot = new SchnappsBot(nextPlayer, game.secretSettings.robotDifficulty, game.playerCards[nextPlayer], game.droppedCards, game.playedCards, game.shuffledCards, game.drawedCard, game);
+        const bot = new SchnappsBot(nextPlayer, game.secretSettings.robotDifficulty.toLocaleLowerCase(), game.playerCards[nextPlayer], game.droppedCards, game.playedCards, game.shuffledCards, game.drawedCard, game);
         const { droppedCards, playerCards } = bot.play();
 
         game.playerCards[nextPlayer] = playerCards;

@@ -47,7 +47,6 @@ export default class GameHistoryController implements Controller {
         let maxPoints = 0;
         switch (gameHistory.type) {
             case "UNO":
-                // lobby.users.length * 20 + lobby.bots.length * 10 + 10
                 maxPoints = Object.keys(gameHistory.turns[1]).filter((key) => !key.includes("bot")).length * 20 + Object.keys(gameHistory.turns[1]).filter((key) => key.includes("bot")).length * 10 + 10;
                 break;
             case "RUMMY":

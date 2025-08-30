@@ -80,6 +80,18 @@ export class GameService {
         return await response.json();
     }
 
+    async drawFromTrump(lobbyId: string) {
+        const response = await fetch(`/api/draw/trump/${lobbyId}/${this.type}`, {
+            method: "PUT",
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${getCookie("token")}`
+            }
+        });
+
+        return await response.json();
+    }
+    
     async dropCard(lobbyId: string, body: { droppedCard: Icard }) {
         const response = await fetch(`/api/drop/${lobbyId}/${this.type}`, {
             method: "PUT",

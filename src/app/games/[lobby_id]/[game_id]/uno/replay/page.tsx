@@ -54,7 +54,7 @@ export default function Game() {
                                             e.cards.map((card: Icard, j: number) => {
                                                 return (
                                                     <div key={j} className="w-8 h-16 relative group cursor-pointer overflow-visible">
-                                                        <Image className={`card-animation w-16 max-w-16 rounded-md border border-transparent`} key={j} src={"/" + new CardsUrls().getFullCardUrl(card.name)} width={70} height={60} alt={new CardsUrls().getFullCardUrl(card.name)}></Image>
+                                                        <Image className={`card-animation w-16 max-w-16 rounded-md border border-transparent`} key={j} src={"/" + new CardsUrls().getFullCardUrl(card.name)} width={70} height={60} alt={new CardsUrls().getFullCardUrl(card.name)||''}></Image>
                                                     </div>
                                                 )
                                             })
@@ -120,7 +120,7 @@ export default function Game() {
                                 <React.Fragment key={i}>
                                     <div
                                         className={`w-16 overflow-visible group rounded-lg duration-200`}>
-                                        <Image draggable={false} className={`border-2 border-transparent rounded-lg`} style={{ width: "8rem", maxWidth: "8rem" }} loading="eager" src={"/" + new CardsUrls().getFullCardUrl(card.name)} width={300} height={300} alt={new CardsUrls().getFullCardUrl(card.name)}></Image>
+                                        <Image draggable={false} className={`border-2 border-transparent rounded-lg`} style={{ width: "8rem", maxWidth: "8rem" }} loading="eager" src={"/" + new CardsUrls().getFullCardUrl(card.name)} width={300} height={300} alt={new CardsUrls().getFullCardUrl(card.name)||''}></Image>
                                     </div>
                                 </React.Fragment>
                             )

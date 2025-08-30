@@ -28,6 +28,8 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         const cookie = document.cookie.split('; ').find(row => row.startsWith('planit_user='));
         if (!cookie) {
             saveUserToCookie(user, 'planit_user');
+        } else if (user == null) {
+            deleteUserFromCookie('planit_user');
         }
     }, [user]);
 

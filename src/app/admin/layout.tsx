@@ -4,7 +4,6 @@ import Loader from "@/components/loader.component";
 import { UserContext } from "@/contexts/user.context";
 import { useContext, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Sidebar from "./components/sidebar";
 import "./global.scss";
 
 export default function Layout({ children }: { children: React.ReactNode }) {

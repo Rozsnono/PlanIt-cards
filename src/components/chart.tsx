@@ -152,6 +152,6 @@ export function LineChart({ labels, wins, losses }: { labels: string[], wins: nu
     };
 
     return (
-        <Line ref={ref} data={data} options={options} />
+        <Line ref={ref} data={data as any} options={options} />
     )
 }

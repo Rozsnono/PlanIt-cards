@@ -32,6 +32,10 @@ export default class RummyController implements Controller {
         this.router.put("/draw/dropped/:lobbyId/rummy", hasAuth([Auth["RUMMY.PLAY"]]), (req, res, next) => {
             this.drawCardFromDropped(req, res).catch(next);
         });
+        // API route to draw a card from trump card
+        this.router.put("/draw/trump/:lobbyId/rummy", hasAuth([Auth["RUMMY.PLAY"]]), (req, res, next) => {
+            this.drawCardFromTrump(req, res).catch(next);
+        });
         // API route to get the next turn
         this.router.put("/next/:lobbyId/rummy", hasAuth([Auth["RUMMY.PLAY"]]), (req, res, next) => {
             this.nextTurn(req, res).catch(next);
@@ -84,10 +88,12 @@ export default class RummyController implements Controller {
         // set the game state
         body["shuffledCards"] = dealer.shuffleDeck();
         // deal the cards
-        body["playerCards"] = dealer.dealCards(lobby?.users.concat(lobby?.bots.map((bot: any) => { return bot._id }) as any), 14, true);
-        body["currentPlayer"] = { playerId: lobby?.users[0], time: new Date().getTime() };
-        body["drawedCard"] = { lastDrawedBy: lobby?.users[0] };
+        body["playerCards"] = dealer.dealCards(lobby?.users.sort(() => Math.random() - 0.5).concat(lobby?.bots.map((bot: any) => { return bot._id }) as any), 14, true);
+        body["currentPlayer"] = { playerId: Object.keys(body['playerCards'])[0], time: new Date().getTime() };
+        body["drawedCard"] = { lastDrawedBy: Object.keys(body['playerCards'])[0] };
         body['secretSettings'] = { timeLimit: body.timeLimit || 180, gameType: "RUMMY", robotDifficulty: lobby.settings?.robotsDifficulty || "EASY" };
+        body['lastAction'] = { trump: dealer.chooseTrumpCard() };
+        body["shuffleDeck"] = dealer.deck;
         body["_id"] = new mongoose.Types.ObjectId();
         const newGame = new this.game(body);
         await newGame.save();
@@ -277,6 +283,46 @@ export default class RummyController implements Controller {
         try {
             game.droppedCards[game.droppedCards.length - 1].droppedBy = "";
         } catch { }
+        game.drawedCard.lastDrawedBy = playerId;
+        await this.game.updateOne({ _id: gameId }, game, { runValidators: true });
+        res.send({ message: "Card drawn!" });
+
+    }
+
+    private drawCardFromTrump = async (req: Request, res: Response) => {
+        const lobbyId = req.params.lobbyId;
+        const playerId = await getIDfromToken(req);
+        const lobby = await this.lobby.findOne({ _id: lobbyId });
+
+        if (!lobby) {
+            res.status(404).send({ error: ERROR.LOBBY_NOT_FOUND });
+            return;
+        }
+
+        if (!lobby.users.find((player) => player.toString() == playerId)) {
+            res.status(403).send({ error: ERROR.NOT_IN_LOBBY });
+            return;
+        }
+
+        const gameId = lobby.game_id;
+        const game = await this.game.findOne({ _id: gameId });
+        if (!game) {
+            res.status(404).send({ error: ERROR.GAME_NOT_FOUND });
+            return;
+        }
+
+        if (playerId.toString() !== game.currentPlayer.playerId.toString()) {
+            res.status(403).send({ error: ERROR.NOT_YOUR_TURN });
+            return;
+        }
+
+        if (game.drawedCard.lastDrawedBy === playerId) {
+            res.status(403).send({ error: ERROR.ALREADY_DRAWN });
+            return;
+        }
+
+        game.playerCards[playerId] = game.playerCards[playerId].concat(game.lastAction.trump.card);
+        game.lastAction.trump = null;
         game.drawedCard.lastDrawedBy = playerId;
         await this.game.updateOne({ _id: gameId }, game, { runValidators: true });
         res.send({ message: "Card drawn!" });

@@ -19,7 +19,7 @@ const gameSchema = new Schema(
                 robotDifficulty: { type: String, required: true, default: "EASY" },
                 isGameOver: { type: Boolean, default: false },
                 gameTurn: { type: Number, default: 1 },
-                maxGameTurns: { type: Number, default: 1 },
+                maxGameTurns: { type: Number, default: 5 },
                 pointsByTurns: {
                     type: Object,
                     default: {}
@@ -32,7 +32,7 @@ const gameSchema = new Schema(
                 robotDifficulty: "EASY",
                 isGameOver: false,
                 gameTurn: 1,
-                maxGameTurns: 1,
+                maxGameTurns: 5,
                 currentTurn: 1,
                 pointsByTurns: {}
             }

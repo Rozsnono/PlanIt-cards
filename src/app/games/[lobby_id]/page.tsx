@@ -35,12 +35,12 @@ export default function LobbyId() {
     useEffect(() => {
         const socket = lobbyService.connectWebSocket(lobby_id as string, user!._id, (data: any) => {
             if (data.status) {
-                lobbyService.joinLobby(lobby_id as string).then((data2: any) => {
-                    if (data2.error) {
+                lobbyService.joinLobby(lobby_id as string).then((lobbyData: any) => {
+                    if (lobbyData.error) {
                         router.replace("/games");
                     }
-                    setLobby(data2);
-                    setForm(data2.settings);
+                    setLobby(lobbyData);
+                    setForm(lobbyData.settings);
                 }).catch((err) => {
                     console.error("Error joining lobby:", err);
                     router.replace("/games");

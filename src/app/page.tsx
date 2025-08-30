@@ -13,7 +13,7 @@ export default function Home() {
     }
 
     return (
-        <main className="gap-2 h-full overflow-y-scroll md:px-96 px-24">
+        <main className="gap-2 h-full overflow-y-scroll xl:px-96 px-24">
 
             <div className="flex flex-col items-center justify-center h-[70%]">
                 <Image
@@ -31,7 +31,7 @@ export default function Home() {
                 </Link>
             </div>
 
-            <div className="grid grid-cols-3 gap-6 ">
+            <div className="grid lg:grid-cols-3 md:grid-cols-2 grid-cols-1 gap-6 ">
                 <Cards
                     title="Strategic Gameplay"
                     desc="Master the art of card strategy and outsmart your opponents with tactical moves and calculated risks."
@@ -79,7 +79,7 @@ export default function Home() {
 
 function Cards({ title, desc, icon, color }: { title: string, desc: string, icon: React.ReactNode, color: { from: string, to: string } }) {
     return (
-        <div className="border-zinc-800/40 border bg-zinc-900/60 backdrop-blur-lg text-zinc-200 flex flex-col items-start gap-5 p-8 rounded-xl w-fit hover:scale-105 duration-200">
+        <div className="border-zinc-800/40 border bg-zinc-900/60 backdrop-blur-lg text-zinc-200 flex flex-col items-start gap-5 p-8 rounded-xl lg:w-fit w-full hover:scale-105 duration-200">
             <div className={`min-w-16 min-h-16 rounded-xl bg-gradient-to-br ${color.from} ${color.to} flex items-center justify-center`}>
                 {icon}
             </div>

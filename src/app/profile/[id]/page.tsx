@@ -196,11 +196,6 @@ function Friends({ settings }: { settings: any }) {
     return (
         <ProfileIcon settings={settings} size={3} className='p-0' />
     )
-    return (
-        <main style={{ backgroundColor: color }} className={"flex justify-center items-center w-16 h-16 rounded-full text-xl"}>
-            {name.toUpperCase()[0]}
-        </main>
-    )
 }
 
 export default function ProfilePage() {

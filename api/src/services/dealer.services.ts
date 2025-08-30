@@ -142,6 +142,16 @@ export class RummyDealer extends CardDealer {
         super(cards);
     }
 
+    public chooseTrumpCard(): { suit: string, card: { name: string, rank: number, suit: string, isJoker?: boolean, pack: number, value: number } } {
+        let trumpCard;
+        do {
+            trumpCard = this.deck[Math.floor(Math.random() * this.deck.length)];
+        } while (!trumpCard || trumpCard.isJoker);
+        this.deck = this.deck.filter(card => card !== trumpCard);
+        if (!trumpCard) throw new Error("No cards left in the deck");
+        return { suit: trumpCard.suit, card: trumpCard };
+    }
+
     public validatePlay(deck: Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number, value: number }>, playerCards: Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number, value: number }>, puttingCard?: boolean): string {
         if (typeof deck === "undefined") {
             return ERROR.CARD_NOT_FOUND;
