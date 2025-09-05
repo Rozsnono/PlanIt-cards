@@ -168,7 +168,6 @@ function UserHeader({ isLogged }: { isLogged: boolean }) {
     const modal = new ModalClass();
 
     function LogOut() {
-
         router.replace('/');
         router.refresh();
         Logout();
