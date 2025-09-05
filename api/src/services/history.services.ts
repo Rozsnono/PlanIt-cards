@@ -5,7 +5,7 @@ import mongoose from "mongoose";
 import { ERROR } from "../enums/error.enum";
 import lobbyModel from "../models/lobby.model";
 import achievementsModel from "../models/achievements.model";
-import { GameChecker } from "./game.service";
+import { GameChecker, SchnappsService } from "./game.service";
 import { checkAchievements } from "./achievements.service";
 import { LogService } from "./log.service";
 
@@ -454,7 +454,7 @@ export class GameHistorySchnapps extends GameHistoryService {
         const lobby = await this.lobby.findOne({ game_id });
         if (!lobby) return { error: ERROR.LOBBY_NOT_FOUND };
 
-        const gc = new GameChecker();
+        const gc = new SchnappsService();
         const pairs = { pairOne: [game.lastAction.playerId!, game.lastAction.trumpWith!]!.filter((p, i) => [game.lastAction.playerId!, game.lastAction.trumpWith!].indexOf(p) === i), pairTwo: Object.keys(game.playerCards).filter((p) => p !== game.lastAction.playerId && p !== game.lastAction.trumpWith) };
         const positions = gc.getPositionsSchnapps(game.playedCards, pairs);
         const rank = gc.calculatePoints(positions, maxPoints);

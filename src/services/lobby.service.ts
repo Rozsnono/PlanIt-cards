@@ -67,6 +67,10 @@ export default class LobbyService {
             body: JSON.stringify({ settings: lobbySettings }),
         });
 
+        if( !response.ok ) {
+            throw new Error("Failed to create lobby");
+        }
+
         return response.json();
     }
 

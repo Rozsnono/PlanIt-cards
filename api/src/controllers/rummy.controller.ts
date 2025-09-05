@@ -25,34 +25,34 @@ export default class RummyController implements Controller {
             this.startGame(req, res).catch(next);
         });
         // API route to draw a card
-        this.router.put("/draw/:lobbyId/rummy", hasAuth([Auth["RUMMY.PLAY"]]), (req, res, next) => {
+        this.router.put("/draw/:lobbyId/rummy", hasAuth([Auth["GAME.PLAY"]]), (req, res, next) => {
             this.drawCard(req, res).catch(next);
         });
         // API route to draw a card from dropped cards
-        this.router.put("/draw/dropped/:lobbyId/rummy", hasAuth([Auth["RUMMY.PLAY"]]), (req, res, next) => {
+        this.router.put("/draw/dropped/:lobbyId/rummy", hasAuth([Auth["GAME.PLAY"]]), (req, res, next) => {
             this.drawCardFromDropped(req, res).catch(next);
         });
         // API route to draw a card from trump card
-        this.router.put("/draw/trump/:lobbyId/rummy", hasAuth([Auth["RUMMY.PLAY"]]), (req, res, next) => {
+        this.router.put("/draw/trump/:lobbyId/rummy", hasAuth([Auth["GAME.PLAY"]]), (req, res, next) => {
             this.drawCardFromTrump(req, res).catch(next);
         });
         // API route to get the next turn
-        this.router.put("/next/:lobbyId/rummy", hasAuth([Auth["RUMMY.PLAY"]]), (req, res, next) => {
+        this.router.put("/next/:lobbyId/rummy", hasAuth([Auth["GAME.PLAY"]]), (req, res, next) => {
             this.nextTurn(req, res).catch(next);
         });
         // API route to drop a card
-        this.router.put("/drop/:lobbyId/rummy", hasAuth([Auth["RUMMY.PLAY"]]), (req, res, next) => {
+        this.router.put("/drop/:lobbyId/rummy", hasAuth([Auth["GAME.PLAY"]]), (req, res, next) => {
             this.dropCard(req, res).catch(next);
         });
         // API route to play a card
-        this.router.put("/play/:lobbyId/rummy", hasAuth([Auth["RUMMY.PLAY"]]), (req, res, next) => {
+        this.router.put("/play/:lobbyId/rummy", hasAuth([Auth["GAME.PLAY"]]), (req, res, next) => {
             this.playCard(req, res).catch(next);
         });
         // API route to put a card
-        this.router.put("/put/:lobbyId/rummy", hasAuth([Auth["RUMMY.PLAY"]]), (req, res, next) => {
+        this.router.put("/put/:lobbyId/rummy", hasAuth([Auth["GAME.PLAY"]]), (req, res, next) => {
             this.putCard(req, res).catch(next);
         });
-        this.router.put("/force-next/:lobbyId/rummy", hasAuth([Auth["RUMMY.PLAY"]]), (req, res, next) => {
+        this.router.put("/force-next/:lobbyId/rummy", hasAuth([Auth["GAME.PLAY"]]), (req, res, next) => {
             this.forcedNextTurn(req, res).catch(next);
         });
 

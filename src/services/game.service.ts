@@ -91,7 +91,7 @@ export class GameService {
 
         return await response.json();
     }
-    
+
     async dropCard(lobbyId: string, body: { droppedCard: Icard }) {
         const response = await fetch(`/api/drop/${lobbyId}/${this.type}`, {
             method: "PUT",
@@ -336,6 +336,19 @@ export class SchnappsService extends GameService {
 
     async selectTrump(lobbyId: string, body: { selectedTrump: { suit: string, cardName?: string, call?: string } }) {
         const response = await fetch(`/api/select/${lobbyId}/schnapps`, {
+            method: "PUT",
+            body: JSON.stringify(body),
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${getCookie("token")}`
+            }
+        });
+        const res = await response.json();
+        return res;
+    }
+
+    async callTwenty(lobbyId: string, body: { droppedCard: Icard, color?: string, isUno?: boolean }) {
+        const response = await fetch(`/api/call/${lobbyId}/schnapps`, {
             method: "PUT",
             body: JSON.stringify(body),
             headers: {

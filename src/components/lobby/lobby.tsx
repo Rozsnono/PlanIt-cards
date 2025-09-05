@@ -83,7 +83,7 @@ export default function LobbyCard({ lobbyDatas, lobbyNumber, isAdmin }: { lobbyD
                 null
             )
         }
-        else if (lobbyDatas.game_id) {
+        else if (lobbyDatas.game_id && lobbyDatas.type !== "SOLITAIRE" && lobbyDatas.type !== "SCHNAPPS") {
             return (
                 <Link href={"games/" + lobbyDatas._id + "/" + lobbyDatas.game_id + "/" + lobbyDatas.settings.cardType.toLowerCase() + "/watch"} className="bg-zinc-500 text-white p-2 px-2 rounded-md hover:bg-zinc-400 flex items-center gap-1 hover:scale-105 transition-transform duration-200">
                     <Icon name="watch"></Icon>

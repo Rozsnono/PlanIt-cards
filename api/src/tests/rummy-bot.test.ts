@@ -1,6 +1,6 @@
 
 import { describe, it, expect } from '@jest/globals';
-import { RummyBot } from '../services/rummy.bot.service';
+import { RummyBot } from '../services/bot.services';
 
 describe('RummyBot Tests', () => {
     it('Should NOT have a sequence', () => {
@@ -87,6 +87,33 @@ describe('RummyBot Tests', () => {
                 { "name": "9D", "rank": 9, "suit": "D", "pack": 2, "value": 9 },
                 { "name": "10D", "rank": 10, "suit": "D", "pack": 2, "value": 10 },
                 { "name": "JD", "rank": 11, "suit": "D", "pack": 2, "value": 10 }
+            ]
+        ]);
+    });
+
+    it('Should have two sequence', () => {
+        expect(new RummyBot(
+            'RummyBot',
+            'easy',
+            [
+                { "name": "4D", "rank": 4, "suit": "D", "pack": 2, "value": 4 },
+                { "name": "5D", "rank": 5, "suit": "D", "pack": 2, "value": 5 },
+                { "name": "6D", "rank": 6, "suit": "D", "pack": 2, "value": 6 },
+                { "name": "7D", "rank": 7, "suit": "D", "pack": 2, "value": 7 },
+                { "name": "5D", "rank": 5, "suit": "D", "pack": 1, "value": 5 },
+                { "name": "6D", "rank": 6, "suit": "D", "pack": 1, "value": 6 },
+                { "name": "7D", "rank": 7, "suit": "D", "pack": 1, "value": 7 },
+            ],
+            [],
+            [],
+            [],
+
+        ).hasSequenceGetter).toEqual([
+            [
+                { "name": "4D", "rank": 4, "suit": "D", "pack": 2, "value": 4 },
+                { "name": "5D", "rank": 5, "suit": "D", "pack": 2, "value": 5 },
+                { "name": "6D", "rank": 6, "suit": "D", "pack": 2, "value": 6 },
+                { "name": "7D", "rank": 7, "suit": "D", "pack": 2, "value": 7 },
             ]
         ]);
     });

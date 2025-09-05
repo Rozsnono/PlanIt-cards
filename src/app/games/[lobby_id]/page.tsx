@@ -27,6 +27,12 @@ export default function LobbyId() {
     const [friendInvite, setFriendInvite] = useState(false);
     const [friendSearch, setFriendSearch] = useState("");
 
+    useEffect(()=>{
+        setFriendInviteSent(false);
+    }, [friendInvite])
+
+    const [friendInviteSent, setFriendInviteSent] = useState(false);
+
     const friends = useQuery('friends', async () => {
         const res = await new ProfileService().getFriends(friendSearch);
         return res;
@@ -175,7 +181,7 @@ export default function LobbyId() {
                         {
                             friendInvite &&
                             <main className="fixed top-0 left-0 w-full h-full bg-black/50 z-[4000] flex items-center justify-center">
-                                <div className="w-full rounded-2xl border border border-purple-800/50 bg-black/40 shadow-lg p-6 flex flex-col gap-4 max-w-md relative">
+                                <div className="w-full rounded-2xl border border border-purple-800/50 bg-black/90 shadow-lg p-6 flex flex-col gap-4 max-w-md relative">
                                     <div className="absolute top-4 right-4">
                                         <button onClick={() => setFriendInvite(false)} className="text-purple-400 hover:text-purple-300">
                                             <Icon name="close" size={24}></Icon>
@@ -194,15 +200,25 @@ export default function LobbyId() {
                                     }} placeholder="Enter username" className="w-full p-2 rounded-md bg-purple-700/40 border border-purple-500/30 text-white" />
                                     <div className="border-b-[0.1rem] border-purple-800/50"></div>
 
+                                    {
+                                        friendInviteSent &&
+                                        <div className="flex items-center justify-center text-sm">
+                                            <div className="text-green-500">Friend invite sent!</div>
+                                        </div>
+
+                                    }
+
                                     <div className="flex flex-col gap-4 h-full overflow-auto">
                                         {
                                             friends.isLoading ? (
                                                 <div className="text-zinc-400">Loading friends...</div>
                                             ) : (
                                                 friends.data.map((friend: any) => (
-                                                    <PlayerCard key={friend._id} playerData={friend} onlyInvite invitePlayer={(id) => {
-                                                        new ProfileService().createGameInvite(lobby._id, friend.customId);
-                                                        console.log(`Inviting ${id}`)
+                                                    <PlayerCard key={friend._id} playerData={friend} onlyInvite invitePlayer={() => {
+                                                        setFriendInviteSent(false);
+                                                        new ProfileService().createGameInvite(lobby._id, friend.customId).then(() => {
+                                                            setFriendInviteSent(true);
+                                                        });
                                                     }}></PlayerCard>
                                                 ))
                                             )

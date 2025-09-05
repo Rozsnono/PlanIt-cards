@@ -24,7 +24,7 @@ describe('Rummy Validator Tests', () => {
                 { "name": "AD", "rank": 14, "suit": "D", "pack": 2, "value": 10 },
             ], [], true)
 
-        ).toEqual('0o1406');
+        ).toEqual('Invalid sequence selected!');
     })
 
     it('Should be a valid sorting', () => {

@@ -9,7 +9,7 @@ import { Cards } from "../cards/cards";
 import mongoose from "mongoose";
 import { ERROR } from "../enums/error.enum";
 import GameHistoryService from "../services/history.services";
-import { GameChecker } from "../services/game.service";
+import { GameChecker, SchnappsService } from "../services/game.service";
 
 
 export default class SchnappsController implements Controller {
@@ -18,7 +18,8 @@ export default class SchnappsController implements Controller {
     public game = gameModel.gameModel;
     public lobby = lobbyModel.lobbyModel;
     private gameHistoryService = new GameHistoryService();
-    private gameService = new GameChecker();
+    // private gameService = new GameChecker();
+    private schnappsService = new SchnappsService();
 
 
     constructor() {
@@ -27,16 +28,20 @@ export default class SchnappsController implements Controller {
             this.startGame(req, res).catch(next);
         });
         // API route to draw a card
-        this.router.put("/select/:lobbyId/schnapps", hasAuth([Auth["UNO.PLAY"]]), (req, res, next) => {
+        this.router.put("/select/:lobbyId/schnapps", hasAuth([Auth["GAME.PLAY"]]), (req, res, next) => {
             this.selectTrump(req, res).catch(next);
         });
         // API route to get the next turn
-        this.router.put("/next/:lobbyId/schnapps", hasAuth([Auth["UNO.PLAY"]]), (req, res, next) => {
+        this.router.put("/next/:lobbyId/schnapps", hasAuth([Auth["GAME.PLAY"]]), (req, res, next) => {
             this.nextTurn(req, res).catch(next);
         });
         // API route to drop a card
-        this.router.put("/drop/:lobbyId/schnapps", hasAuth([Auth["UNO.PLAY"]]), (req, res, next) => {
+        this.router.put("/drop/:lobbyId/schnapps", hasAuth([Auth["GAME.PLAY"]]), (req, res, next) => {
             this.dropCard(req, res).catch(next);
+        });
+        // API route to play 20 or 40
+        this.router.put("/call/:lobbyId/schnapps", hasAuth([Auth["GAME.PLAY"]]), (req, res, next) => {
+            this.callTwenty(req, res).catch(next);
         });
 
     }
@@ -96,7 +101,8 @@ export default class SchnappsController implements Controller {
         body["currentPlayer"] = { playerId: Object.keys(body.playerCards)[0], time: new Date().getTime() };
         body["drawedCard"] = { lastDrawedBy: null };
         body['secretSettings'] = { timeLimit: body.timeLimit || 60, gameType: "SCHNAPPS", robotDifficulty: lobby.settings?.robotsDifficulty || "EASY" };
-        body["lastAction"] = { playerId: "", actions: 0, isUno: false };
+        const points = Object.fromEntries(Object.keys(body.playerCards).map((playerId) => [playerId, 0]));
+        body['lastAction'] = { playerId: "", actions: 0, isUno: false, points: points };
         body["_id"] = new mongoose.Types.ObjectId();
         const newGame = new this.game(body);
         await newGame.save();
@@ -247,7 +253,69 @@ export default class SchnappsController implements Controller {
 
         await this.game.updateOne({ _id: gameId }, game, { runValidators: true });
 
-        this.gameService.nextTurnSchnapps(game._id.toString(), game.currentPlayer.playerId);
+        this.schnappsService.nextTurn(game._id.toString(), game.currentPlayer.playerId);
+        res.send({ message: "Card dropped!", game });
+
+    }
+
+    private callTwenty = async (req: Request, res: Response) => {
+        const lobbyId = req.params.lobbyId;
+        const playerId = await getIDfromToken(req);
+        const lobby = await this.lobby.findOne({ _id: lobbyId });
+
+        if (!lobby) {
+            res.status(404).send({ error: ERROR.LOBBY_NOT_FOUND });
+            return;
+        }
+
+        if (!lobby.users.find((player) => player.toString() == playerId)) {
+            res.status(403).send({ error: ERROR.NOT_IN_LOBBY });
+            return;
+        }
+
+        const gameId = lobby.game_id;
+        const game = await this.game.findOne({ _id: gameId });
+
+        if (!game) {
+            res.status(404).send({ error: ERROR.GAME_NOT_FOUND });
+            return;
+        }
+
+        // check if the player is the current player
+        if (playerId.toString() !== game.currentPlayer.playerId.toString()) {
+            res.status(403).send({ error: ERROR.NOT_YOUR_TURN });
+            return;
+        }
+
+        const body = req.body;
+        if (!body.droppedCard) {
+            res.status(400).send({ error: ERROR.NO_CARDS_DROPPED });
+            return;
+        }
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        if (!game.playerCards[playerId].find((card: any) => JSON.stringify(card) === JSON.stringify(body.droppedCard))) {
+            res.status(400).send({ error: ERROR.CARD_NOT_FOUND });
+            return;
+        }
+
+        const dealer = new SchnappsDealer(game.shuffledCards);
+
+        if (!dealer.validatePlaying(body.droppedCard, game.droppedCards.map((d: any) => d.card), game.playerCards[playerId], game.lastAction.trump.suit, game.lastAction.actions, game.secretSettings.currentTurn)) {
+            res.status(400).send({ error: ERROR.INVALID_CARD_SELECTED });
+            return;
+        }
+
+        game.playerCards[playerId] = game.playerCards[playerId].filter((card: any) => JSON.stringify(card) !== JSON.stringify(body.droppedCard));
+
+        body.droppedCard.showedBy = playerId;
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        game.droppedCards.push({ droppedBy: playerId, card: body.droppedCard });
+
+        await this.game.updateOne({ _id: gameId }, game, { runValidators: true });
+
+        this.schnappsService.nextTurn(game._id.toString(), game.currentPlayer.playerId);
         res.send({ message: "Card dropped!", game });
 
     }

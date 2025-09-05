@@ -9,7 +9,7 @@ import { Cards } from "../cards/cards";
 import mongoose from "mongoose";
 import { ERROR } from "../enums/error.enum";
 import GameHistoryService from "../services/history.services";
-import { GameChecker } from "../services/game.service";
+import { UnoService } from "../services/game.service";
 
 
 export default class UnoController implements Controller {
@@ -18,7 +18,7 @@ export default class UnoController implements Controller {
     public game = gameModel.gameModel;
     public lobby = lobbyModel.lobbyModel;
     private gameHistoryService = new GameHistoryService();
-    private gameService = new GameChecker();
+    private unoService = new UnoService();
 
 
     constructor() {
@@ -27,15 +27,15 @@ export default class UnoController implements Controller {
             this.startGame(req, res).catch(next);
         });
         // API route to draw a card
-        this.router.put("/draw/:lobbyId/uno", hasAuth([Auth["UNO.PLAY"]]), (req, res, next) => {
+        this.router.put("/draw/:lobbyId/uno", hasAuth([Auth["GAME.PLAY"]]), (req, res, next) => {
             this.drawCard(req, res).catch(next);
         });
         // API route to get the next turn
-        this.router.put("/next/:lobbyId/uno", hasAuth([Auth["UNO.PLAY"]]), (req, res, next) => {
+        this.router.put("/next/:lobbyId/uno", hasAuth([Auth["GAME.PLAY"]]), (req, res, next) => {
             this.nextTurn(req, res).catch(next);
         });
         // API route to drop a card
-        this.router.put("/drop/:lobbyId/uno", hasAuth([Auth["UNO.PLAY"]]), (req, res, next) => {
+        this.router.put("/drop/:lobbyId/uno", hasAuth([Auth["GAME.PLAY"]]), (req, res, next) => {
             this.dropCard(req, res).catch(next);
         });
 
@@ -97,7 +97,7 @@ export default class UnoController implements Controller {
         }
         const gameId = lobby.game_id;
         const playerId = await getIDfromToken(req);
-        await this.gameService.nextTurnUno(gameId, playerId);
+        await this.unoService.nextTurn(gameId, playerId);
         res.send({ message: "Next turn!" });
     }
 
@@ -209,7 +209,7 @@ export default class UnoController implements Controller {
         game.droppedCards.push({ droppedBy: playerId, card: body.droppedCard });
 
         const lastDroppedCard = game.droppedCards[game.droppedCards.length - 1].card.rank;
-        game.lastAction = { playerId: playerId, actions: lastDroppedCard > 24 && lastDroppedCard < 30 ? lastDroppedCard : 0, isUno: body.isUno || false, trump: {}, trumpWith: "" };
+        game.lastAction = { playerId: playerId, actions: lastDroppedCard > 24 && lastDroppedCard < 30 ? lastDroppedCard : 0, isUno: body.isUno || false, trump: {}, trumpWith: "", points: {} };
 
         await this.game.updateOne({ _id: gameId }, game, { runValidators: true });
         this.nextTurn(req, res);

@@ -1,36 +1,15 @@
-Redesign replay ✅
-Do replay on UNO ✅
-UNO bugs ( +2 +4) ✅
-Friends 
-New admin panel ✅
-Quality of life 
-Error display ✅
-Refreshing not working ✅
-RUMMY bots fixes
- EASY -> Place after less than 4 cards ✅
- MEDIUM -> Place from the start but only 1 at once ✅
- HARD -> Place from start and place any, checking cards to drop, draw from dropped
-Profile ✅
-Redesign end ✅
-Replay not working ✅
-JOKER bug RUMMY (JOKER PLAYING) ✅
-ACE problem (value 1 in set) ✅
-ACE problem (in sequale wrong place) ✅
-Validator error with ACE, (KING, ACE, TWO) ✅
-Pick up card ✅
-Tutorial ✅
-Solitaire bugs ✅
-
 Rummy:
-    - bot placing algorithm check
+    - bot placing algorithm check ✅
 Uno:
-    - bot placing algorithm check (action cards)
+    - bot placing algorithm check (action cards) ✅
 Solitaire: ✅
 Schnapps: 
-    - 20/40 placing implementation
+    - 20/40 placing implementation ✅
+    - counting points fixes ✅
     - force play
 Friends:
     - add friend
     - remove friend
     - accept/decline friend request
     - friends list
+    - invite friends

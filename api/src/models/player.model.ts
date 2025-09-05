@@ -38,8 +38,8 @@ export const userSchema = new Schema(
                 Auth["PLAYER.DELETE.YOURSELF"],
                 Auth["PLAYER.GET.INFO"],
 
-                Auth["RUMMY.PLAY"],
-                Auth["UNO.PLAY"],
+                Auth["GAME.PLAY"],
+                Auth["GAME.PLAY"],
                 Auth["CREATE.LOBBY"],
                 Auth["JOIN.LOBBY"],
                 Auth["DELETE.LOBBY"],

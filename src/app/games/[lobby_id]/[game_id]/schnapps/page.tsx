@@ -148,7 +148,6 @@ export default function Game() {
 
     async function cardDropped() {
         const card = draggedCard || choosedCard;
-        console.log("Card dropped", card);
         if (!card) return;
         if (!user) return;
         setCPshow(false);
@@ -164,6 +163,14 @@ export default function Game() {
         cardDropped();
     }
 
+    async function callTwenty(card?: Icard) {
+        if (!card) return;
+        if (!lobbyState) return;
+        const res = await gameService.callTwenty(lobbyState._id, { droppedCard: card });
+        setError(res.error);
+        setCPshow(false);
+        setDraggedCard(null);
+    }
 
     const [timer, setTimer] = useState(60);
 
@@ -386,9 +393,9 @@ export default function Game() {
                                         <Image onDragEnter={(e) => { onDragEnter(e, i) }} className={`${drawedCard?.name === card.name && drawedCard?.pack === card.pack ? 'ring ring-sky-600' : ''} border-2 border-transparent group-hover:border-green-400 rounded-lg`} style={{ width: "8rem", maxWidth: "8rem" }} loading="eager" onDragEnd={() => { setDraggedCard(null) }} onDragStart={() => { startDrag(card) }} onDrop={() => { dropDrag(i) }} onDragOver={overDrag} src={"/" + new CardsUrls().getFullCardUrl(card.name)} width={100} height={100} alt={card.name}></Image>
                                         {
                                             card.isJoker && card.rank == 4 &&
-                                            <div className="absolute -top-14 rounded-full bg-gradient-to-br from-orange-600/60 to-yellow-600/40 w-12 h-12 flex justify-center items-center text-zinc-100 text-xl cursor-pointer hover:scale-105 hover:shadow-lg hover:shadow-white/30">
+                                            <button onClick={() => { callTwenty(card) }} className="absolute -top-14 rounded-full bg-gradient-to-br from-orange-600/60 to-yellow-600/40 w-12 h-12 flex justify-center items-center text-zinc-100 text-xl cursor-pointer hover:scale-105 hover:shadow-lg hover:shadow-white/30">
                                                 {gameState.lastAction.trump!.suit === card.suit ? 40 : 20}
-                                            </div>
+                                            </button>
                                         }
                                     </div>
                                     <div onDragOver={overDrag} className={`${draggedCard && JSON.stringify(draggedCard) !== JSON.stringify(card) && dragEnter === i ? "w-[5.8rem]" : "w-0"} bg-[#00000040] rounded-lg duration-100`}>
@@ -437,45 +444,60 @@ export default function Game() {
                 </div>
 
                 {
-                    gameState.playedCards.find((f) => f.playedBy === user?._id) &&
-                    <main className="fixed bottom-4 right-4 z-[100] bg-zinc-900/50 backdrop-blur-md p-2 rounded-lg flex flex-col gap-2 items-center group cursor-zoom-in">
-                        <Image loading="eager" src={"/assets/cards/schnapps/back.png"} width={100} height={100} alt={"Back"}></Image>
-                        <div className="absolute bottom-[105%] -left-44 flex flex-col bg-black/30 rounded-lg group-hover:opacity-100 opacity-0 duration-200 pointer-events-none p-2 gap-2">
+                    gameState.playedCards.length > 0 && gameState.lastAction.points && 
+                    <main className="fixed bottom-4 right-4 z-[10] ">
 
-                            {
-                                gameState.playedCards.filter((f) => f.playedBy === user?._id).map((cards, i) => {
-                                    return (
-                                        <div key={i} className="w-full flex gap-2">
+                        {
+                            gameState.lastAction.points![user!._id] > 0 &&
+                            <React.Fragment>
+                                <main className="bg-zinc-900/50 backdrop-blur-md p-2 rounded-lg flex flex-col gap-2 items-center group cursor-zoom-in">
+                                    <Image loading="eager" src={"/assets/cards/schnapps/back.png"} width={100} height={100} alt={"Back"}></Image>
+                                    <div className="absolute bottom-[105%] -left-44 flex flex-col bg-black/30 rounded-lg group-hover:opacity-100 opacity-0 duration-200 pointer-events-none p-2 gap-2">
 
-                                            {
-                                                cards.cards.map((card, j) => {
-                                                    return (
-                                                        <Image key={j} loading="eager" className="w-16 h-fit" src={"/" + new CardsUrls().getFullCardUrl(card.name)} width={50} height={50} alt={card.name}></Image>
-                                                    )
-                                                })
-                                            }
-                                        </div>
-                                    )
-                                })
-                            }
-                        </div>
+                                        {
+                                            gameState.playedCards.filter((f) => f.playedBy === user?._id).map((cards, i) => {
+                                                return (
+                                                    <div key={i} className="w-full flex gap-2">
 
-                        <div className="text-zinc-200 font-bold text-3xl absolute right-[105%] bottom-2">
+                                                        {
+                                                            cards.cards.map((card, j) => {
+                                                                return (
+                                                                    <Image key={j} loading="eager" className="w-16 h-fit" src={"/" + new CardsUrls().getFullCardUrl(card.name)} width={50} height={50} alt={card.name}></Image>
+                                                                )
+                                                            })
+                                                        }
+                                                    </div>
+                                                )
+                                            })
+                                        }
+                                    </div>
+                                </main>
+
+                            </React.Fragment>
+                        }
+
+
+                        <div className="text-zinc-200 font-bold text-3xl absolute right-[105%] bottom-2 right-2">
                             {
                                 gameState.lastAction.isUno && gameState.lastAction.trumpWith !== user?._id ?
                                     <span>
+
                                         {
-                                            gameState.playedCards.filter((f) => f.playedBy === user?._id).map((f) => f.cards.map((card) => card.value).reduce((a: any, b: any) => a + b, 0)).reduce((a: any, b: any ) => a + b, 0)!
+                                            gameState.lastAction.points![gameState.lastAction.trumpWith!] || 0
                                             +
-                                            gameState.playedCards.filter((f) => f.playedBy === gameState.lastAction.trumpWith).map((f) => f.cards.map((card) => card.value).reduce((a: any, b: any) => a + b, 0)).reduce((a: any, b: any) => a + b, 0)!
+                                            gameState.lastAction.points![user!._id] || 0
                                         }
 
                                     </span> :
                                     <span className="">
-                                        {gameState.playedCards.filter((f) => f.playedBy === user?._id).map((f) => f.cards.map((card) => card.value).reduce((a: any, b: any) => a + b, 0)).reduce((a: any, b: any) => a + b, 0)}
+                                        {
+                                            gameState.lastAction.points![user!._id] || 0
+                                        }
                                     </span>
                             }
                         </div>
+
+
                     </main>
                 }
 

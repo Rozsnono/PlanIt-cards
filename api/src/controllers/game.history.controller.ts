@@ -16,11 +16,11 @@ export default class GameHistoryController implements Controller {
 
     constructor() {
 
-        this.router.get("/game_history/:id/:game_id", hasAuth([Auth["RUMMY.PLAY"]]), (req, res, next) => {
+        this.router.get("/game_history/:id/:game_id", hasAuth([Auth["GAME.PLAY"]]), (req, res, next) => {
             this.getHistory(req, res).catch(next);
         });
 
-        this.router.get("/game_history/:id", hasAuth([Auth["RUMMY.PLAY"]]), (req, res, next) => {
+        this.router.get("/game_history/:id", hasAuth([Auth["GAME.PLAY"]]), (req, res, next) => {
             this.getHistoryByUser(req, res).catch(next);
         });
 
@@ -28,7 +28,7 @@ export default class GameHistoryController implements Controller {
             this.removeAllHistory(req, res).catch(next);
         });
 
-        this.router.get("/recalibrate/:id/:game_id", hasAuth([Auth["RUMMY.PLAY"]]), (req, res, next) => {
+        this.router.get("/recalibrate/:id/:game_id", hasAuth([Auth["GAME.PLAY"]]), (req, res, next) => {
             this.recalibrateHistory(req, res).catch(next);
         });
 

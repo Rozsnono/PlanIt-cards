@@ -89,6 +89,7 @@ export interface Igame {
         isUno?: boolean;
         trump?: { suit: string, card: string } | null;
         trumpWith?: string | null;
+        points?: { [playerId: string]: number };
     },
     secretSettings: {
         timeLimit: number;

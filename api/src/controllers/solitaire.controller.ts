@@ -32,26 +32,26 @@ export default class SolitaireController implements Controller {
             this.startGame(req, res).catch(next);
         });
         // API route to draw a card
-        this.router.put("/draw/:lobbyId/solitaire", hasAuth([Auth["UNO.PLAY"]]), (req, res, next) => {
+        this.router.put("/draw/:lobbyId/solitaire", hasAuth([Auth["GAME.PLAY"]]), (req, res, next) => {
             this.drawCard(req, res).catch(next);
         });
-        this.router.put("/put/:lobbyId/solitaire", hasAuth([Auth["UNO.PLAY"]]), (req, res, next) => {
+        this.router.put("/put/:lobbyId/solitaire", hasAuth([Auth["GAME.PLAY"]]), (req, res, next) => {
             this.putCards(req, res).catch(next);
         });
         // API route to drop a card
-        this.router.put("/play/:lobbyId/solitaire", hasAuth([Auth["UNO.PLAY"]]), (req, res, next) => {
+        this.router.put("/play/:lobbyId/solitaire", hasAuth([Auth["GAME.PLAY"]]), (req, res, next) => {
             this.playCard(req, res).catch(next);
         });
 
-        this.router.post("/restart/:lobbyId/:gameId/solitaire", hasAuth([Auth["UNO.PLAY"]]), (req, res, next) => {
+        this.router.post("/restart/:lobbyId/:gameId/solitaire", hasAuth([Auth["GAME.PLAY"]]), (req, res, next) => {
             this.reStartGame(req, res).catch(next);
         });
 
-        this.router.post("/prevSteps/:lobbyId/:gameId/solitaire", hasAuth([Auth["UNO.PLAY"]]), (req, res, next) => {
+        this.router.post("/prevSteps/:lobbyId/:gameId/solitaire", hasAuth([Auth["GAME.PLAY"]]), (req, res, next) => {
             this.prevSteps(req, res).catch(next);
         });
 
-        this.router.post("/done/:lobbyId/solitaire", hasAuth([Auth["UNO.PLAY"]]), (req, res, next) => {
+        this.router.post("/done/:lobbyId/solitaire", hasAuth([Auth["GAME.PLAY"]]), (req, res, next) => {
             this.doneCards(req, res).catch(next);
         });
 

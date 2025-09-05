@@ -77,7 +77,8 @@ const gameSchema = new Schema(
                 actions: { type: Number },
                 isUno: { type: Boolean, default: false },
                 trump: { type: Object, default: { suit: "", card: "" }, nullable: true },
-                trumpWith: { type: String, default: null, nullable: true }
+                trumpWith: { type: String, default: null, nullable: true },
+                points: { type: Object, default: {}, nullable: true }
             },
             default: null,
             nullable: true

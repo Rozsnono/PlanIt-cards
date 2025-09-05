@@ -4,7 +4,7 @@ import gameModel from '../models/game.model';
 import jwt from 'jsonwebtoken';
 import mongoose from 'mongoose';
 import { ERROR } from '../enums/error.enum';
-import { GameChecker } from '../services/game.service';
+import { GameChecker, RummyService, SchnappsService, SolitaireService, UnoService } from '../services/game.service';
 import GameHistoryService, { GameHistorySchnapps, GameHistorySolitaire } from '../services/history.services';
 import { Igame, Ilobby } from '../interfaces/interface';
 import userModel from '../models/player.model';
@@ -339,6 +339,12 @@ export default class SocketIO {
     }
 
     private gameChecker = new GameChecker();
+    private services = {
+        rummy: new RummyService(),
+        uno: new UnoService(),
+        schnapps: new SchnappsService(),
+        solitaire: new SolitaireService()
+    }
     private gameHistory = new GameHistoryService();
     private gameHistoryS = new GameHistorySolitaire();
 
@@ -423,11 +429,11 @@ export default class SocketIO {
                     const currentPlayer = change.fullDocument.currentPlayer.playerId;
                     switch (lobby?.settings?.cardType) {
                         case "RUMMY":
-                            new GameChecker().playWithBots(change.fullDocument, lobby as any, currentPlayer);
+                            this.services.rummy.robotPlaying(change.fullDocument, lobby as any, currentPlayer);
                             break;
 
                         case "UNO":
-                            new GameChecker().robotPlayingUno(change.fullDocument, lobby as any, currentPlayer);
+                            this.services.uno.robotPlaying(change.fullDocument, lobby as any, currentPlayer);
                             break;
 
                         case "SOLITAIRE":
@@ -435,9 +441,9 @@ export default class SocketIO {
 
                         case "SCHNAPPS":
                             if (change.fullDocument.secretSettings?.currentTurn === 1) {
-                                new GameChecker().robotPlayingSchnappsSelecting(change.fullDocument, lobby as any, currentPlayer);
+                                this.services.schnapps.robotSelecting(change.fullDocument, lobby as any, currentPlayer);
                             } else {
-                                new GameChecker().robotPlayingSchnapps(change.fullDocument, lobby as any, currentPlayer);
+                                this.services.schnapps.robotPlaying(change.fullDocument, lobby as any, currentPlayer);
                             }
                             break;
                         default:
@@ -447,7 +453,7 @@ export default class SocketIO {
                     const lastAction = game.lastAction;
                     if (lastAction.playerId != game.currentPlayer.playerId && lastAction.actions && lastAction.actions > 25) {
                         await this.wait(1000); // Wait for 1 second before sending the next turn
-                        new GameChecker().nextTurnUno(game._id.toString(), game.currentPlayer.playerId.toString());
+                        this.services.uno.nextTurn(game._id.toString(), game.currentPlayer.playerId.toString());
                     }
                 } else if (game && game.secretSettings?.gameType == 'RUMMY') {
                     await new GameHistoryService().savingHistory(game.currentPlayer.playerId, game._id.toString());
@@ -549,7 +555,7 @@ export default class SocketIO {
                         case 'RUMMY':
                             if (time > 1000 * ((game.secretSettings?.timeLimit) || 180)) {
                                 this.logService.consoleLog(`Game ${game._id} is still active, forcing next turn. Time limit: ${game.secretSettings?.timeLimit || 180}. Time: ${time / 1000}`, 'SocketIOService');
-                                const force = await new GameChecker().forceNextTurn(game._id.toString());
+                                const force = await this.services.rummy.forcedNextTurn(game._id.toString());
                                 if (!force) {
                                     this.game.deleteOne({ _id: game._id }).then(() => {
                                         const lobby = lobbies.find(lobby => lobby.game_id.toString() === game._id.toString());
@@ -575,7 +581,7 @@ export default class SocketIO {
                                     await new GameChecker().playerRemove(game._id.toString(), game.currentPlayer.playerId.toString());
                                     return;
                                 }
-                                const force = await new GameChecker().forceNextTurnUno(game._id.toString(), game.currentPlayer.playerId.toString());
+                                const force = await this.services.uno.forcedNextTurn(game._id.toString(), game.currentPlayer.playerId.toString());
                                 if (!force) {
                                     this.game.deleteOne({ _id: game._id }).then(() => {
                                         const lobby = lobbies.find(lobby => lobby.game_id.toString() === game._id.toString());
@@ -596,6 +602,25 @@ export default class SocketIO {
                         case 'SOLITAIRE':
                             break;
                         case 'SCHNAPPS':
+                            if (time > 1000 * ((game.secretSettings?.timeLimit) || 60)) {
+                                this.logService.consoleLog(`Game ${game._id} is still active, forcing next turn. Time limit: ${game.secretSettings?.timeLimit || 60}. Time: ${time / 1000}`, 'SocketIOService');
+                                const force = await this.services.schnapps.forcedNextTurn(game._id.toString(), game.currentPlayer.playerId.toString());
+                                if (!force) {
+                                    this.game.deleteOne({ _id: game._id }).then(() => {
+                                        const lobby = lobbies.find(lobby => lobby.game_id.toString() === game._id.toString());
+                                        if (lobby) {
+                                            this.lobby.deleteOne({ _id: lobby._id }).then(() => {
+                                                this.logService.consoleLog(`Lobby ${lobby._id} deleted due to inactivity`, 'SocketIOService');
+                                            }).catch((err) => {
+                                                this.logService.consoleLog(`Error deleting lobby ${lobby._id}: ${err}`, 'SocketIOService');
+                                            });
+                                        }
+                                        this.logService.consoleLog(`Game ${game._id} deleted due to inactivity`, 'SocketIOService');
+                                    }).catch((err) => {
+                                        this.logService.consoleLog(`Error deleting game ${game._id}: ${err}`, 'SocketIOService');
+                                    });
+                                }
+                            }
                             break;
                     }
                 })
