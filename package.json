@@ -43,7 +43,6 @@
     "react": "^19.0.0",
     "react-chartjs-2": "^5.3.0",
     "react-dom": "^19.0.0",
-    "react-query": "^3.39.3",
     "socket.io": "^4.7.2",
     "socket.io-client": "^4.7.2",
     "swagger-ui-express": "^4.6.2",
