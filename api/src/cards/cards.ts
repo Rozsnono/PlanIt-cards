@@ -1,562 +1,3 @@
-export const rummy = [
-    {
-        name: "2S",
-        rank: 2,
-        suit: "S"
-    },
-    {
-        name: "3S",
-        rank: 3,
-        suit: "S"
-    },
-    {
-        name: "4S",
-        rank: 4,
-        suit: "S"
-    },
-    {
-        name: "5S",
-        rank: 5,
-        suit: "S"
-    },
-    {
-        name: "6S",
-        rank: 6,
-        suit: "S"
-    },
-    {
-        name: "7S",
-        rank: 7,
-        suit: "S"
-    },
-    {
-        name: "8S",
-        rank: 8,
-        suit: "S"
-    },
-    {
-        name: "9S",
-        rank: 9,
-        suit: "S"
-    },
-    {
-        name: "10S",
-        rank: 10,
-        suit: "S"
-    },
-    {
-        name: "JS",
-        rank: 11,
-        suit: "S"
-    },
-    {
-        name: "QS",
-        rank: 12,
-        suit: "S"
-    },
-    {
-        name: "KS",
-        rank: 13,
-        suit: "S"
-    },
-    {
-        name: "AS",
-        rank: 14,
-        suit: "S"
-    },
-    {
-        name: "2H",
-        rank: 2,
-        suit: "H"
-    },
-    {
-        name: "3H",
-        rank: 3,
-        suit: "H"
-    },
-    {
-        name: "4H",
-        rank: 4,
-        suit: "H"
-    },
-    {
-        name: "5H",
-        rank: 5,
-        suit: "H"
-    },
-    {
-        name: "6H",
-        rank: 6,
-        suit: "H"
-    },
-    {
-        name: "7H",
-        rank: 7,
-        suit: "H"
-    },
-    {
-        name: "8H",
-        rank: 8,
-        suit: "H"
-    },
-    {
-        name: "9H",
-        rank: 9,
-        suit: "H"
-    },
-    {
-        name: "10H",
-        rank: 10,
-        suit: "H"
-    },
-    {
-        name: "JH",
-        rank: 11,
-        suit: "H"
-    },
-    {
-        name: "QH",
-        rank: 12,
-        suit: "H"
-    },
-    {
-        name: "KH",
-        rank: 13,
-        suit: "H"
-    },
-    {
-        name: "AH",
-        rank: 14,
-        suit: "H"
-    },
-    {
-        name: "2D",
-        rank: 2,
-        suit: "D"
-    },
-    {
-        name: "3D",
-        rank: 3,
-        suit: "D"
-    },
-    {
-        name: "4D",
-        rank: 4,
-        suit: "D"
-    },
-    {
-        name: "5D",
-        rank: 5,
-        suit: "D"
-    },
-    {
-        name: "6D",
-        rank: 6,
-        suit: "D"
-    },
-    {
-        name: "7D",
-        rank: 7,
-        suit: "D"
-    },
-    {
-        name: "8D",
-        rank: 8,
-        suit: "D"
-    },
-    {
-        name: "9D",
-        rank: 9,
-        suit: "D"
-    },
-    {
-        name: "10D",
-        rank: 10,
-        suit: "D"
-    },
-    {
-        name: "JD",
-        rank: 11,
-        suit: "D"
-    },
-    {
-        name: "QD",
-        rank: 12,
-        suit: "D"
-    },
-    {
-        name: "KD",
-        rank: 13,
-        suit: "D"
-    },
-    {
-        name: "AD",
-        rank: 14,
-        suit: "D"
-    },
-    {
-        name: "2C",
-        rank: 2,
-        suit: "C"
-    },
-    {
-        name: "3C",
-        rank: 3,
-        suit: "C"
-    },
-    {
-        name: "4C",
-        rank: 4,
-        suit: "C"
-    },
-    {
-        name: "5C",
-        rank: 5,
-        suit: "C"
-    },
-    {
-        name: "6C",
-        rank: 6,
-        suit: "C"
-    },
-    {
-        name: "7C",
-        rank: 7,
-        suit: "C"
-    },
-    {
-        name: "8C",
-        rank: 8,
-        suit: "C"
-    },
-    {
-        name: "9C",
-        rank: 9,
-        suit: "C"
-    },
-    {
-        name: "10C",
-        rank: 10,
-        suit: "C"
-    },
-    {
-        name: "JC",
-        rank: 11,
-        suit: "C"
-    },
-    {
-        name: "QC",
-        rank: 12,
-        suit: "C"
-    },
-    {
-        name: "KC",
-        rank: 13,
-        suit: "C"
-    },
-    {
-        name: "AC",
-        rank: 14,
-        suit: "C"
-    },
-    {
-        name: "BJ",
-        rank: 50,
-        suit: "J",
-        isJoker: true
-    },
-    {
-        name: "RJ",
-        rank: 50,
-        suit: "J",
-        isJoker: true
-    },
-    {
-        name: "2S",
-        rank: 2,
-        suit: "S"
-    },
-    {
-        name: "3S",
-        rank: 3,
-        suit: "S"
-    },
-    {
-        name: "4S",
-        rank: 4,
-        suit: "S"
-    },
-    {
-        name: "5S",
-        rank: 5,
-        suit: "S"
-    },
-    {
-        name: "6S",
-        rank: 6,
-        suit: "S"
-    },
-    {
-        name: "7S",
-        rank: 7,
-        suit: "S"
-    },
-    {
-        name: "8S",
-        rank: 8,
-        suit: "S"
-    },
-    {
-        name: "9S",
-        rank: 9,
-        suit: "S"
-    },
-    {
-        name: "10S",
-        rank: 10,
-        suit: "S"
-    },
-    {
-        name: "JS",
-        rank: 11,
-        suit: "S"
-    },
-    {
-        name: "QS",
-        rank: 12,
-        suit: "S"
-    },
-    {
-        name: "KS",
-        rank: 13,
-        suit: "S"
-    },
-    {
-        name: "AS",
-        rank: 14,
-        suit: "S"
-    },
-    {
-        name: "2H",
-        rank: 2,
-        suit: "H"
-    },
-    {
-        name: "3H",
-        rank: 3,
-        suit: "H"
-    },
-    {
-        name: "4H",
-        rank: 4,
-        suit: "H"
-    },
-    {
-        name: "5H",
-        rank: 5,
-        suit: "H"
-    },
-    {
-        name: "6H",
-        rank: 6,
-        suit: "H"
-    },
-    {
-        name: "7H",
-        rank: 7,
-        suit: "H"
-    },
-    {
-        name: "8H",
-        rank: 8,
-        suit: "H"
-    },
-    {
-        name: "9H",
-        rank: 9,
-        suit: "H"
-    },
-    {
-        name: "10H",
-        rank: 10,
-        suit: "H"
-    },
-    {
-        name: "JH",
-        rank: 11,
-        suit: "H"
-    },
-    {
-        name: "QH",
-        rank: 12,
-        suit: "H"
-    },
-    {
-        name: "KH",
-        rank: 13,
-        suit: "H"
-    },
-    {
-        name: "AH",
-        rank: 14,
-        suit: "H"
-    },
-    {
-        name: "2D",
-        rank: 2,
-        suit: "D"
-    },
-    {
-        name: "3D",
-        rank: 3,
-        suit: "D"
-    },
-    {
-        name: "4D",
-        rank: 4,
-        suit: "D"
-    },
-    {
-        name: "5D",
-        rank: 5,
-        suit: "D"
-    },
-    {
-        name: "6D",
-        rank: 6,
-        suit: "D"
-    },
-    {
-        name: "7D",
-        rank: 7,
-        suit: "D"
-    },
-    {
-        name: "8D",
-        rank: 8,
-        suit: "D"
-    },
-    {
-        name: "9D",
-        rank: 9,
-        suit: "D"
-    },
-    {
-        name: "10D",
-        rank: 10,
-        suit: "D"
-    },
-    {
-        name: "JD",
-        rank: 11,
-        suit: "D"
-    },
-    {
-        name: "QD",
-        rank: 12,
-        suit: "D"
-    },
-    {
-        name: "KD",
-        rank: 13,
-        suit: "D"
-    },
-    {
-        name: "AD",
-        rank: 14,
-        suit: "D"
-    },
-    {
-        name: "2C",
-        rank: 2,
-        suit: "C"
-    },
-    {
-        name: "3C",
-        rank: 3,
-        suit: "C"
-    },
-    {
-        name: "4C",
-        rank: 4,
-        suit: "C"
-    },
-    {
-        name: "5C",
-        rank: 5,
-        suit: "C"
-    },
-    {
-        name: "6C",
-        rank: 6,
-        suit: "C"
-    },
-    {
-        name: "7C",
-        rank: 7,
-        suit: "C"
-    },
-    {
-        name: "8C",
-        rank: 8,
-        suit: "C"
-    },
-    {
-        name: "9C",
-        rank: 9,
-        suit: "C"
-    },
-    {
-        name: "10C",
-        rank: 10,
-        suit: "C"
-    },
-    {
-        name: "JC",
-        rank: 11,
-        suit: "C"
-    },
-    {
-        name: "QC",
-        rank: 12,
-        suit: "C"
-    },
-    {
-        name: "KC",
-        rank: 13,
-        suit: "C"
-    },
-    {
-        name: "AC",
-        rank: 14,
-        suit: "C"
-    },
-    {
-        name: "BJ",
-        rank: 50,
-        suit: "J",
-        isJoker: true
-    },
-    {
-        name: "RJ",
-        rank: 50,
-        suit: "J",
-        isJoker: true
-    },
-    {
-        name: "BJ",
-        rank: 50,
-        suit: "J",
-        isJoker: true
-    },
-    {
-        name: "RJ",
-        rank: 50,
-        suit: "J",
-        isJoker: true
-    }
-]
-
 export const uno = [
     {
         name: "0R",
@@ -868,4 +309,156 @@ export const uno = [
     }
 ];
 
-export const schnapsen = [];
+export const schnapsen = [
+
+];
+
+export class Cards {
+    constructor() { }
+
+    public get rummy(): Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number, value: number }> {
+        return this.getRummyCards();
+    }
+
+    public get uno(): Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number, value: number }> {
+        return this.getUnoCards();
+    }
+
+    public get solitaire(): Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number, value: number }> {
+        return this.getSolitaireCards();
+    }
+
+    public get schnapps(): Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number, value: number }> {
+        return this.getSchnappsCards();
+    }
+
+    private getUnoCards(): Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number, value: number }> {
+        const uno = [];
+        const suits = ["R", "G", "B", "Y"];
+        const ranks = [
+            { name: "0", rank: 0, value: 0 },
+            { name: "1", rank: 1, value: 1 },
+            { name: "2", rank: 2, value: 2 },
+            { name: "3", rank: 3, value: 3 },
+            { name: "4", rank: 4, value: 4 },
+            { name: "5", rank: 5, value: 5 },
+            { name: "6", rank: 6, value: 6 },
+            { name: "7", rank: 7, value: 7 },
+            { name: "8", rank: 8, value: 8 },
+            { name: "9", rank: 9, value: 9 },
+            { name: "R", rank: 25, value: 10 },
+            { name: "S", rank: 26, value: 10 },
+            { name: "D2", rank: 27, value: 20 }
+        ];
+
+        for (let pack = 0; pack < 2; pack++) {
+            for (const suit of suits) {
+                for (const { name, rank, value } of ranks) {
+                    uno.push({ name: `U_${suit}${name}`, rank, suit, pack, value });
+                }
+            }
+
+            uno.push({ name: "U_W4", rank: 28, isJoker: true, pack, value: 50 });
+            uno.push({ name: "U_W4", rank: 28, isJoker: true, pack, value: 50 });
+            uno.push({ name: "U_WC", rank: 30, isJoker: true, pack, value: 50 });
+            uno.push({ name: "U_WC", rank: 30, isJoker: true, pack, value: 50 });
+        }
+
+        return uno as any;
+
+    }
+
+    private getSchnappsCards(): Array<{ name: string, rank: number, suit: string, isJoker?: boolean, pack: number, value: number }> {
+        const schnapps = [];
+        const suits = ['A', 'B', 'H', 'L'];
+        const ranks = [
+            { name: "9", rank: 1, value: 0 },
+            { name: 'U', rank: 2, value: 2 },
+            { name: 'O', rank: 3, value: 3 },
+            { name: 'K', rank: 4, value: 4 },
+            { name: 'T', rank: 10, value: 10 },
+            { name: 'A', rank: 11, value: 11 },
+        ];
+
+        for (let pack = 0; pack < 1; pack++) {
+            for (const suit of suits) {
+                for (const { name, rank, value } of ranks) {
+                    schnapps.push({ name: `S_${name}${suit}`, rank, suit, pack, value });
+                }
+            }
+        }
+
+        return schnapps as any;
+    }
+
+
+    private getRummyCards() {
+        const rummy = [];
+        const suits = ["S", "H", "D", "C"];
+        const ranks = [
+            { name: "2", rank: 2, value: 2 },
+            { name: "3", rank: 3, value: 3 },
+            { name: "4", rank: 4, value: 4 },
+            { name: "5", rank: 5, value: 5 },
+            { name: "6", rank: 6, value: 6 },
+            { name: "7", rank: 7, value: 7 },
+            { name: "8", rank: 8, value: 8 },
+            { name: "9", rank: 9, value: 9 },
+            { name: "10", rank: 10, value: 10 },
+            { name: "J", rank: 11, value: 10 },
+            { name: "Q", rank: 12, value: 10 },
+            { name: "K", rank: 13, value: 10 },
+            { name: "A", rank: 14, value: 10 }
+        ];
+
+        for (let pack = 1; pack <= 2; pack++) {
+            for (const suit of suits) {
+                for (const { name, rank, value } of ranks) {
+                    rummy.push({ name: `R_${name}${suit}`, rank, suit, pack: pack, value });
+                }
+            }
+            rummy.push({ name: "R_BJ", rank: 50, suit: "J", isJoker: true, pack: pack, value: 10 });
+            rummy.push({ name: "R_RJ", rank: 50, suit: "J", isJoker: true, pack: pack, value: 10 });
+        }
+
+        return rummy;
+    }
+
+    public getCardValueByName(name: string) {
+        return this.getRummyCards().find((card) => card.name === name.toUpperCase());
+    }
+
+    public getCardValueByNameUno(name: string) {
+        return this.getUnoCards().find((card) => card.name === name.toUpperCase());
+    }
+
+    public getSolitaireCards() {
+        const cards = [];
+        const suits = ["S", "H", "D", "C"];
+        const ranks = [
+            { name: "2", rank: 2, value: 2 },
+            { name: "3", rank: 3, value: 3 },
+            { name: "4", rank: 4, value: 4 },
+            { name: "5", rank: 5, value: 5 },
+            { name: "6", rank: 6, value: 6 },
+            { name: "7", rank: 7, value: 7 },
+            { name: "8", rank: 8, value: 8 },
+            { name: "9", rank: 9, value: 9 },
+            { name: "10", rank: 10, value: 10 },
+            { name: "J", rank: 11, value: 10 },
+            { name: "Q", rank: 12, value: 10 },
+            { name: "K", rank: 13, value: 10 },
+            { name: "A", rank: 1, value: 10 }
+        ];
+
+        for (let pack = 1; pack <= 1; pack++) {
+            for (const suit of suits) {
+                for (const { name, rank, value } of ranks) {
+                    cards.push({ name: `R_${name}${suit}`, rank, suit, pack: pack, value });
+                }
+            }
+        }
+
+        return cards;
+    }
+}

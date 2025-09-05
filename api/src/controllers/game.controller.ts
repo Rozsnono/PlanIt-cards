@@ -3,10 +3,9 @@ import Controller from "../interfaces/controller_interface";
 import { getIDfromToken, hasAuth } from "../middleware/middleware";
 import { Auth } from "../enums/auth.enum";
 import gameModel from "../models/game.model";
-import CardDealer from "../services/dealer.services";
 import lobbyModel from "../models/lobby.model";
-import { rummy, uno } from "../cards/cards";
-import mongoose from "mongoose";
+import { ERROR } from "../enums/error.enum";
+import { Cards } from "../cards/cards";
 
 
 export default class GameController implements Controller {
@@ -16,261 +15,115 @@ export default class GameController implements Controller {
     public lobby = lobbyModel.lobbyModel;
 
     constructor() {
-        // API route to start a game
-        this.router.post("/start/:lobbyId", hasAuth([Auth["START.GAME"]]), (req, res, next) => {
-            this.startGame(req, res).catch(next);
-        });
 
         // API route to end a game
         this.router.post("/end/:lobbyId", hasAuth([Auth["END.GAME"]]), (req, res, next) => {
             this.endGame(req, res).catch(next);
         });
 
-        this.router.put("/draw/:lobbyId", hasAuth([Auth["RUMMY.PLAY"]]), (req, res, next) => {
-            this.drawCard(req, res).catch(next);
-        });
-
         // API route to get a game
-        this.router.get("/get/:id", hasAuth([Auth["WATCH.GAME"]]), (req, res, next) => {
+        this.router.get("/game/get/:lobby_id/:id", hasAuth([Auth["WATCH.GAME"]]), (req, res, next) => {
             this.getGame(req, res).catch(next);
         });
 
-        // API route to get the next turn
-        this.router.put("/next/:lobbyId", hasAuth([Auth["RUMMY.PLAY"]]), (req, res, next) => {
-            this.nextTurn(req, res).catch(next);
+        // API route to get the value of a card
+        this.router.get("/card/value/:name/rummy", hasAuth([Auth["ADMIN"]]), (req, res, next) => {
+            this.getCardValue(req, res).catch(next);
+        });
+        
+        // API route to get the value of a card
+        this.router.get("/card/value/:name/uno", hasAuth([Auth["ADMIN"]]), (req, res, next) => {
+            this.getCardValueUno(req, res).catch(next);
         });
 
-        // API route to get the next turn in an UNO game
-        this.router.put("/next/uno/:lobbyId", hasAuth([Auth["UNO.PLAY"]]), (req, res, next) => {
-            this.unoNextTurn(req, res).catch(next);
+        // API route to modify a game
+        this.router.put("/modify/:id", hasAuth([Auth["ADMIN"]]), (req, res, next) => {
+            this.modifyGame(req, res).catch(next);
+        });
+
+        // API route to delete game
+        this.router.delete("/delete/game/:id", hasAuth([Auth["ADMIN"]]), (req, res, next) => {
+            this.deleteGame(req, res).catch(next);
+        });
+
+        this.router.put("/next/game/:id", hasAuth([Auth["ADMIN"]]), (req, res, next) => {
+            this.nextAdminGame(req, res).catch(next);
+        });
+
+        this.router.get("/games/all", hasAuth([Auth["ADMIN"]]), (req, res, next) => {
+            this.getAllGames(req, res).catch(next);
         });
 
     }
 
-    private startGame = async (req: Request, res: Response) => {
-        const body = req.body;
-        const lobbyId = req.params.lobbyId;
-
-        const lobby = await this.lobby.findOne({ _id: lobbyId });
-        // check if the lobby exists
-        if (!lobby) {
-            res.status(404).send({ message: "Lobby not found!" });
-            return;
-        }
-        // check if the lobby has a game
-        if (lobby.game_id) {
-            res.status(400).send({ message: "Game already started!" });
-            return;
-        }
-        // check if user in lobby
-        const playerId = await getIDfromToken(req);
-        if (!lobby.players.find((player) => player.toString() == playerId)) {
-            res.status(403).send({ message: "Not in the lobby!" });
-            return;
-        }
-
-        // check card type of the lobby
-        let cards;
-        if (lobby.settings!.cardType == "RUMMY") {
-            cards = rummy;
-        } else {
-            cards = uno;
-        }
-        // create a new card dealer
-        const cardDealer = new CardDealer(cards);
-        // set the game state
-        body["shuffledCards"] = cardDealer.shuffleDeck();
-        // deal the cards
-        body["playerCards"] = cardDealer.dealCards(lobby?.players);
-        body["currentPlayer"] = lobby?.players[0];
-        body["_id"] = new mongoose.Types.ObjectId();
-        const newGame = new this.game(body);
-        await newGame.save();
-        lobby.game_id = newGame._id;
-        await lobby.save();
-        res.send({ message: "Game started!" });
+    private getAllGames = async (req: Request, res: Response) => {
+        const games = await this.game.find({});
+        res.send(games);
     };
 
-    private nextTurn = async (req: Request, res: Response) => {
+    private nextAdminGame = async (req: Request, res: Response) => {
+        const id = req.params.id;
         const body = req.body;
-        const lobbyId = req.params.lobbyId;
-        const playerId = await getIDfromToken(req);
-        const lobby = await this.lobby.findOne({ _id: lobbyId });
-        if (!lobby) {
-            res.status(404).send({ message: "Lobby not found!" });
-            return;
-        }
-        const gameId = lobby.game_id;
-        const game = await this.game.findOne({ _id: gameId });
+        const game = await this.game.findOne({ _id: id });
         if (!game) {
-            res.status(404).send({ message: "Game not found!" });
+            res.status(404).send({ error: ERROR.GAME_NOT_FOUND });
             return;
         }
-        // check if the player is the current player
-        if (playerId.toString() !== game.currentPlayer.toString()) {
-            res.status(403).send({ message: "Not your turn!" });
-            return;
+        game.currentPlayer = {
+            playerId: body.playerId,
+            time: new Date().getTime()
         }
-
-        if (!body.droppedCard) {
-            res.status(400).send({ message: "No card dropped!" });
-            return;
-        }
-
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        if (!game.playerCards[playerId].find((card: any) => JSON.stringify(card) === JSON.stringify(body.droppedCard))) {
-            res.status(400).send({ message: "Card not in hand!" });
-            return;
-        }
-
-        const cardDealer = new CardDealer(game.shuffledCards);
-
-
-        // get the next player
-        const currentPlayerIndex = lobby.players.indexOf(game.currentPlayer);
-        const nextPlayerIndex = currentPlayerIndex === lobby.players.length - 1 ? 0 : currentPlayerIndex + 1;
-
-        game.currentPlayer = lobby.players[nextPlayerIndex];
-
-        if (body.playedCards) {
-
-            //Check if the player has played a valid card
-            if (!cardDealer.validatePlay(body.playedCards, game.playerCards[playerId])) {
-                res.status(400).send({ message: "Invalid play!" });
-                return;
-            }
-
-            // update the game state
-            game.playedCards.push(body.playedCards);
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            game.playerCards[game.currentPlayer.toString()] = game.playerCards[game.currentPlayer.toString()].filter((card: any) => !body.playedCards.includes(card));
-        }
-
-        game.droppedCards.push(body.droppedCard);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        game.playerCards[game.currentPlayer.toString()] = game.playerCards[game.currentPlayer.toString()].filter((card: any) => body.droppedCard != card);
-
-        await this.game.replaceOne({ _id: gameId }, game, { runValidators: true });
-
-        res.send({ message: "Next turn!" });
+        await this.game.updateOne({
+            _id: id
+        }, game, { runValidators: true });
+        res.send({ message: "Next player set!" });
     };
 
-    private drawCard = async (req: Request, res: Response) => {
-        const lobbyId = req.params.lobbyId;
-        const playerId = await getIDfromToken(req);
-        const lobby = await this.lobby.findOne({ _id: lobbyId });
-        if (!lobby) {
-            res.status(404).send({ message: "Lobby not found!" });
+    private deleteGame = async (req: Request, res: Response) => {
+        const id = req.params.id;
+        const lobbies = await this.lobby.findOne({ _id: id });
+        if (!lobbies) {
+            res.status(404).send({ error: ERROR.GAME_NOT_FOUND });
             return;
         }
-        if (!lobby.players.find((player) => player.toString() == playerId)) {
-            res.status(403).send({ message: "Not in the lobby!" });
-            return;
-        }
-        const gameId = lobby.game_id;
-        const game = await this.game.findOne({ _id: gameId });
-        if (!game) {
-            res.status(404).send({ message: "Game not found!" });
-            return;
-        }
-        // check if the player is the current player
-        if (playerId.toString() !== game.currentPlayer.toString()) {
-            res.status(403).send({ message: "Not your turn!" });
-            return;
-        }
-        const cardDealer = new CardDealer(game.shuffledCards);
-        game.playerCards[playerId] = game.playerCards[playerId].concat(cardDealer.drawCard(1));
-        game.shuffledCards = cardDealer.deck;
+        delete lobbies.game_id;
+        await this.lobby.updateOne({ _id: id }, lobbies, { runValidators: false });
+        await this.game.deleteOne({ _id: lobbies.game_id });
+        res.send({ message: "Game deleted!" });
+    }
 
-        await this.game.replaceOne({ _id: gameId }, game, { runValidators: true });
-        res.send({ message: "Card drawn!" });
+    private modifyGame = async (req: Request, res: Response) => {
+        const id = req.params.id;
+        const body = req.body;
+        const game = await this.game.findOne({ _id: id });
+        if (!game) {
+            res.status(404).send({ error: ERROR.GAME_NOT_FOUND });
+            return;
+        }
+        await this.game.updateOne({ _id: id }, body, { runValidators: true });
+        res.send({ message: "Game modified!" });
+    }
+
+    private getCardValue = async (req: Request, res: Response) => {
+        const name = req.params.name;
+
+        const card = new Cards().getCardValueByName(name);
+        if (!card) {
+            res.status(404).send({ error: ERROR.CARD_NOT_FOUND });
+            return;
+        }
+        res.send({ value: card });
     };
 
-    private unoNextTurn = async (req: Request, res: Response) => {
-        const body = req.body;
-        const lobbyId = req.params.lobbyId;
-        const gameId = body.gameId;
-        const playerId = await getIDfromToken(req);
-        const lobby = await this.lobby.findOne({ _id: lobbyId });
-        if (!lobby) {
-            res.status(404).send({ message: "Lobby not found!" });
+    private getCardValueUno = async (req: Request, res: Response) => {
+        const name = req.params.name;
+
+        const card = new Cards().getCardValueByNameUno(name);
+        if (!card) {
+            res.status(404).send({ error: ERROR.CARD_NOT_FOUND });
             return;
         }
-        if (!lobby.players.find((player) => player.toString() == playerId)) {
-            res.status(403).send({ message: "Not in the lobby!" });
-            return;
-        }
-        if (!lobby.game_id || lobby.game_id!.toString() !== gameId.toString()) {
-            res.status(404).send({ message: "Game not found!" });
-            return;
-        }
-        if (lobby.settings!.cardType !== "UNO") {
-            res.status(400).send({ message: "Not an UNO game!" });
-            return;
-        }
-
-        const game = await this.game.findOne({ _id: gameId });
-        if (!game) {
-            res.status(404).send({ message: "Game not found!" });
-            return;
-        }
-        if (playerId.toString() !== game.currentPlayer.toString()) {
-            res.status(403).send({ message: "Not your turn!" });
-            return;
-        }
-
-        const cardDealer = new CardDealer(game.shuffledCards);
-
-        //Check if the player has played a valid card
-        if (!cardDealer.validateDrop(game.droppedCards, body.droppedCard)) {
-            res.status(400).send({ message: "Invalid play!" });
-            return;
-        }
-
-
-        // get the next player
-        const nextPlayerIndex = this.nextPlayer(lobby.players.indexOf(game.currentPlayer), lobby.players.length - 1);
-
-        game.currentPlayer = lobby.players[nextPlayerIndex];
-
-        // check card status
-        switch (cardDealer.getUnoStatus(body.droppedCard)) {
-            case "Double":
-                game.playerCards[lobby.players[nextPlayerIndex].toString()] = game.playerCards[lobby.players[nextPlayerIndex].toString()].concat(cardDealer.drawCard(2));
-                game.shuffledCards = cardDealer.deck;
-                break;
-
-            case "Skip":
-                const newNextPlayerIndex = this.nextPlayer(nextPlayerIndex, lobby.players.length - 1);
-                game.currentPlayer = lobby.players[newNextPlayerIndex];
-                break;
-
-            case "Reverse":
-                lobby.players.reverse();
-                const newReversePlayerIndex = this.nextPlayer(this.nextPlayer(nextPlayerIndex, lobby.players.length - 1), lobby.players.length - 1);
-                game.currentPlayer = lobby.players[newReversePlayerIndex];
-                break;
-
-            case "Wild":
-                break;
-
-            case "Wild Draw Four":
-                game.playerCards[lobby.players[nextPlayerIndex].toString()] = game.playerCards[lobby.players[nextPlayerIndex].toString()].concat(cardDealer.drawCard(4));
-                game.shuffledCards = cardDealer.deck;
-                break;
-        }
-
-
-
-
-        // update the game state
-        game.droppedCards.push(body.droppedCard);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        game.playerCards[playerId] = game.playerCards[playerId].filter((card: any) => body.droppedCard != card);
-
-        await this.game.replaceOne({ _id: gameId }, game, { runValidators: true });
-
-        res.send({ message: "Next turn!" });
+        res.send({ value: card });
     };
 
     private endGame = async (req: Request, res: Response) => {
@@ -278,11 +131,11 @@ export default class GameController implements Controller {
         const playerId = await getIDfromToken(req);
         const lobby = await this.lobby.findOne({ _id: lobbyId });
         if (!lobby) {
-            res.status(404).send({ message: "Lobby not found!" });
+            res.status(404).send({ error: ERROR.LOBBY_NOT_FOUND });
             return;
         }
-        if (!lobby.players.find((player) => player.toString() == playerId)) {
-            res.status(403).send({ message: "Not in the lobby!" });
+        if (!lobby.users.find((player) => player.toString() == playerId)) {
+            res.status(403).send({ error: ERROR.NOT_IN_LOBBY });
             return;
         }
         await this.game.deleteOne({ _id: lobby.game_id });
@@ -294,19 +147,18 @@ export default class GameController implements Controller {
 
     private getGame = async (req: Request, res: Response) => {
         const id = req.params.id;
-        const game = await this.game.findOne({ _id: id });
-        if (!game) {
-            res.status(404).send({ message: "Game not found!" });
+        const lobby_id = req.params.lobby_id;
+        const lobby = await this.lobby.findOne({ _id: lobby_id }).populate("users", "firstName lastName rank customId _id settings");
+        if (!lobby) {
+            res.status(404).send({ error: ERROR.LOBBY_NOT_FOUND });
             return;
         }
-        res.send(game);
+        const game = await this.game.findOne({ _id: id });
+        if (!game) {
+            res.status(404).send({ error: ERROR.GAME_NOT_FOUND });
+            return;
+        }
+        res.send({ lobby, game });
     };
 
-
-
-    private nextPlayer(current: number, max: number): number {
-        return current === max ? 0 : current + 1;
-    }
-
 }
-

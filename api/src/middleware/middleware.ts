@@ -10,22 +10,19 @@ interface Iuser {
     email: string;
     rank: number;
     numberOfGames: {
-        [date: string]: {wins: number, losses: number};
+        [date: string]: { wins: number, losses: number };
     };
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function isLoggedIn(req: any, res: any, next: any, auth?: Array<string>, hasAllAuth?: boolean) {
     try {
-        // check if auth header exists
         if (req.headers.authorization) {
-            // parse token from header
-            const token = req.headers.authorization.split(" ")[1]; //split the header and get the token
+            const token = req.headers.authorization.split(" ")[1];
             if (token) {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const payload: Iuser | string | any = await jwt.verify(token, ACCESS_TOKEN_SECRET);
                 if (payload) {
-                    // store user data in request object
                     req.user = payload;
                     if (auth && hasAllAuth && auth.every((a) => payload.auth.includes(a))) {
                         next();
@@ -59,13 +56,11 @@ function hasAuth(role: Array<string>, hasAllAuth = false) {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function getIDfromToken(req: any) {
     if (req.headers.authorization) {
-        // parse token from header
-        const token = req.headers.authorization.split(" ")[1]; //split the header and get the token
+        const token = req.headers.authorization.split(" ")[1];
         if (token) {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const payload: Iuser | string | any = jwt.verify(token, ACCESS_TOKEN_SECRET);
             if (payload) {
-                // store user data in request object
                 return payload._id;
             }
         }
@@ -73,4 +68,18 @@ async function getIDfromToken(req: any) {
     return null;
 }
 
-export { isLoggedIn, hasAuth, getIDfromToken };
+async function getCustomIdFromToken(req: any) {
+    if (req.headers.authorization) {
+        const token = req.headers.authorization.split(" ")[1];
+        if (token) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const payload: Iuser | string | any = jwt.verify(token, ACCESS_TOKEN_SECRET);
+            if (payload) {
+                return payload.customId;
+            }
+        }
+    }
+    return null;
+}
+
+export { isLoggedIn, hasAuth, getIDfromToken, getCustomIdFromToken };

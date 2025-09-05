@@ -157,14 +157,14 @@
 .saturn {
     width: 330px;
     height: 330px;
-    background: radial-gradient(circle at 35% 35%, #939177, #837454, #574e3a, #444d52, #27272a);
+    background: radial-gradient(circle at 35% 35%, #939177, #837454, #574e3a, #444d52, #18181b);
     border-radius: 50%;
     position: absolute;
     perspective: 1000px;
     right: 50%;
     bottom: 10%;
     transform-style: preserve-3d;
-    box-shadow: inset #27272a -50px -50px 40px;
+    box-shadow: inset #18181b -50px -50px 40px;
 
     .ring1 {
         width: 200%;
@@ -232,14 +232,14 @@
 .uranus {
     width: 70px;
     height: 70px;
-    background: radial-gradient(circle at 35% 55%, #00b1d1, #008fad, #444d52, #27272a);
+    background: radial-gradient(circle at 35% 55%, #00b1d1, #008fad, #444d52, #18181b);
     border-radius: 50%;
     position: absolute;
     perspective: 1000px;
     left: 30%;
     top: 15%;
     transform-style: preserve-3d;
-    box-shadow: inset #27272a -30px -30px 40px;
+    box-shadow: inset #18181b -30px -30px 40px;
 
     .ring1 {
         width: 170%;
@@ -284,33 +284,33 @@
 .neptun {
     width: 200px;
     height: 200px;
-    background: radial-gradient(circle at 35% 35%, #4772fe, #385bcb, #3446b4, #444d52, #27272a);
+    background: radial-gradient(circle at 35% 35%, #4772fe, #385bcb, #3446b4, #444d52, #18181b);
     border-radius: 50%;
     position: absolute;
     perspective: 1000px;
     left: 20%;
     top: 55%;
     transform-style: preserve-3d;
-    box-shadow: inset #27272a -30px -30px 40px;
+    box-shadow: inset #18181b -30px -30px 40px;
 
 }
 
 .mars {
     width: 60px;
     height: 60px;
-    background: radial-gradient(circle at 35% 45%, #ba1010, #830a0a, #7b0808, #1c0202, #27272a);
+    background: radial-gradient(circle at 35% 45%, #ba1010, #830a0a, #7b0808, #1c0202, #18181b);
     border-radius: 50%;
     position: absolute;
     perspective: 1000px;
     right: 20%;
     top: 30%;
     transform-style: preserve-3d;
-    box-shadow: inset #27272a -25px -25px 40px;
+    box-shadow: inset #18181b -25px -25px 40px;
 
     .moon {
         width: 12px;
         height: 12px;
-        background: radial-gradient(circle at 35% 45%, #808080, #545454, #27272a);
+        background: radial-gradient(circle at 35% 45%, #808080, #545454, #18181b);
         border-radius: 50%;
         position: absolute;
         right: -50%;
@@ -325,7 +325,7 @@
     width: 700px;
     height: 500px;
     top: 45%;
-    left: 60%;
+    left: 60%; 
 
 
     .star1 {

@@ -9,20 +9,55 @@ const gameSchema = new Schema(
             readonly: true
         },
         currentPlayer: {
-            type: Schema.Types.ObjectId,
+            type: { playerId: { type: String, required: true }, time: { type: Number, required: true } },
             default: null,
+        },
+        secretSettings: {
+            type: {
+                timeLimit: { type: Number, required: true, default: 180 },
+                gameType: { type: String, required: true, default: "RUMMY" },
+                robotDifficulty: { type: String, required: true, default: "EASY" },
+                isGameOver: { type: Boolean, default: false },
+                gameTurn: { type: Number, default: 1 },
+                maxGameTurns: { type: Number, default: 5 },
+                pointsByTurns: {
+                    type: Object,
+                    default: {}
+                },
+                currentTurn: { type: Number, default: 1 },
+            },
+            default: {
+                timeLimit: 180,
+                gameType: "RUMMY",
+                robotDifficulty: "EASY",
+                isGameOver: false,
+                gameTurn: 1,
+                maxGameTurns: 5,
+                currentTurn: 1,
+                pointsByTurns: {}
+            }
         },
         playerCards: {
             type: Object,
             readonly: true
         },
         playedCards: {
-            type: Array,
+            type: [
+                {
+                    playedBy: { type: String, required: true },
+                    cards: { type: Array, required: true },
+                }
+            ],
             default: [],
             readonly: true
         },
         droppedCards: {
-            type: Array,
+            type: [
+                {
+                    droppedBy: { type: String },
+                    card: { type: Object },
+                }
+            ],
             default: [],
             readonly: true
         },
@@ -30,6 +65,23 @@ const gameSchema = new Schema(
             type: Array,
             default: [],
             readonly: true
+        },
+        drawedCard: {
+            type: { lastDrawedBy: { type: String } },
+            default: { lastDrawedBy: null },
+            nullable: true
+        },
+        lastAction: {
+            type: {
+                playerId: { type: String },
+                actions: { type: Number },
+                isUno: { type: Boolean, default: false },
+                trump: { type: Object, default: { suit: "", card: "" }, nullable: true },
+                trumpWith: { type: String, default: null, nullable: true },
+                points: { type: Object, default: {}, nullable: true }
+            },
+            default: null,
+            nullable: true
         },
         createdAt: {
             type: Date,
@@ -53,4 +105,4 @@ const validate = (message: object): Joi.ValidationResult => {
 const gameModel = model("game", gameSchema, "Game");
 
 
-export default {gameModel, validate};
+export default { gameModel, validate };

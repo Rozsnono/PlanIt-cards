@@ -1,17 +1,29 @@
 
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Genos, Inter, Orbitron } from "next/font/google";
 import "./globals.scss";
 import "./tailwind.css";
 import "./stars.scss";
-import { MenuProvider } from "@/contexts/menu.context";
-import { UserProvider } from "@/contexts/user.context";
+
+import { Providers } from "@/contexts/providers";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
   title: 'PlanIt - Play your cards right',
 };
+
+const orbitron = Orbitron({
+  variable: "--font-orbitron-sans",
+  subsets: ["latin"],
+});
+
+const genos = Genos({
+  variable: "--font-genos-sans",
+  subsets: ["latin"],
+  weight: ["400", "700"],
+  style: ["normal", "italic"],
+});
 
 export default function RootLayout({
   children,
@@ -22,11 +34,9 @@ export default function RootLayout({
 
   return (
     <html lang="en">
-      <MenuProvider>
-        <UserProvider>
-          {children}
-        </UserProvider>
-      </MenuProvider>
+      <Providers className={`${orbitron.variable} ${genos.variable}`}>
+        {children}
+      </Providers>
     </html>
   );
 }

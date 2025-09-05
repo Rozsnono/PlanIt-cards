@@ -1,0 +1,15 @@
+Rummy:
+    - bot placing algorithm check ✅
+Uno:
+    - bot placing algorithm check (action cards) ✅
+Solitaire: ✅
+Schnapps: 
+    - 20/40 placing implementation ✅
+    - counting points fixes ✅
+    - force play
+Friends:
+    - add friend
+    - remove friend
+    - accept/decline friend request
+    - friends list
+    - invite friends

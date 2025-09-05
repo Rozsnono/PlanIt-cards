@@ -1,33 +1,84 @@
+"use client";
 import Icon from "@/assets/icons"
+import { UserContext } from "@/contexts/user.context";
+import { getUser } from "@/functions/user.function";
+import { AuthService } from "@/services/auth.service";
 import Image from "next/image"
 import Link from "next/link"
+import { useRouter } from "next/navigation";
+import { useContext, useState } from "react";
 
 export default function LogIn() {
+
+    const router = useRouter();
+    const { setUser } = useContext(UserContext);
+
+    const [error, setError] = useState<string | null>(null);
+    const [loading, setLoading] = useState<boolean>(false);
+
+    const authService = new AuthService();
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    function handleSubmit(e: any) {
+        e.preventDefault();
+        setLoading(true);
+
+        const username = e.target.username.value;
+        const password = e.target.password.value;
+        const remember = e.target.remember.checked;
+
+        authService.Login(username, password, remember).then((data) => {
+            if (data.error) {
+                setError(data.error);
+                setLoading(false);
+                return;
+            }
+            setUser(getUser());
+            router.replace('/');
+            router.refresh();
+        })
+
+    }
+
     return (
         <main className="top-0 left-0 w-screen h-screen fixed flex lg:items-center md:items-center justify-center">
 
-            <div className="bg-[#3f3f46f0] rounded-lg py-10 flex flex-col gap-6 justify-center w-[30rem] relative">
+            <div className="border-purple-800/50 bg-gradient-to-br from-black/50 via-zinc-950/50 to-purple-950/50 border-2 rounded-lg py-10 flex flex-col gap-6 justify-center w-[30rem] relative">
 
-                <div className="absolute right-8 top-8 opacity-30">
+                <div className="absolute right-8 top-8 opacity-60">
                     <Image src="/assets/icon.png" width={80} height={80} alt="Icon"></Image>
                 </div>
 
-                <div className="flex items-center border-b border-zinc-500 gap-4 px-10 text-lg my-4 text-zinc-400 ">
-                    <div className={`pb-4 border-b border-transparent border-zinc-300 text-zinc-100 duration-200 cursor-pointer`}>Log in</div>
+                <div className="flex items-center border-b border-purple-800/50 gap-4 px-10 text-lg my-4 text-zinc-400 ">
+                    <div className={`pb-4 border-b border-transparent border-purple-600 text-zinc-100 duration-200 cursor-pointer`}>Log in</div>
                     <Link href={'/register'}>
-                        <div className={`pb-4 border-b border-transparent hover:border-zinc-300 hover:text-zinc-100 duration-200 cursor-pointer`}>Register</div>
+                        <div className={`pb-4 border-b border-transparent hover:border-purple-600 hover:text-zinc-100 duration-200 cursor-pointer`}>Register</div>
                     </Link>
                 </div>
+                <form action="submit" onSubmit={handleSubmit} method="POST" className="flex flex-col gap-6">
+                    <div className="flex flex-col gap-4 px-10 py-4">
+                        <input type="text" id="username" placeholder="Username" className="bg-purple-800/30 text-zinc-200 rounded-lg p-2" />
+                        <input type="password" id="password" placeholder="Password" className="bg-purple-800/30 text-zinc-200 rounded-lg p-2" />
 
-                <div className="flex flex-col gap-4 px-10 py-4">
-                    <input type="email" id="email" placeholder="Email" className="bg-zinc-600 text-zinc-200 rounded-lg p-2" />
-                    <input type="password" id="password" placeholder="Password" className="bg-zinc-600 text-zinc-200 rounded-lg p-2" />
+                        <div className="flex text-zinc-300 gap-2 items-center">
+                            <label className={`inline-flex items-center cursor-pointer`}>
+                                <input type="checkbox" className="sr-only peer disabled:cursor-default " id="remember" />
+                                <div className="relative w-11 h-6 bg-purple-900 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-600/75 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                            </label>
+                            <label htmlFor="remember">Remember me</label>
+                        </div>
+                    </div>
 
-                </div>
+                    {error && <div className="text-red-500 text-center">{error}</div>}
 
-                <div className="flex items-center justify-center">
-                    <button className="bg-blue-600 text-zinc-200 rounded-lg p-2 w-1/2">Log in</button>
-                </div>
+                    <div className="flex items-center justify-center">
+                        <button type="submit" disabled={loading} className="flex justify-center items-center gap-2 bg-gradient-to-tl from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-zinc-200 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 w-1/2 disabled:bg-blue-900 disabled:text-zinc-400">
+                            {loading && <span className="animate-spin"><Icon name="loader" size={18}></Icon></span>}
+                            Log in
+                        </button>
+                    </div>
+                </form>
+
 
 
                 <div className="flex gap-2 items-center justify-center w-full opacity-50">

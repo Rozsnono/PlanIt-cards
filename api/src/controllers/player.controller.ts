@@ -1,0 +1,418 @@
+import { Request, Response, Router } from "express";
+import Controller from "../interfaces/controller_interface";
+import { getIDfromToken, hasAuth, getCustomIdFromToken } from "../middleware/middleware";
+import { Auth } from "../enums/auth.enum";
+import userModel from "../models/player.model";
+import { ERROR } from "../enums/error.enum";
+import bcrypt from 'bcryptjs';
+import mongoose from "mongoose";
+import { UserSettings } from "../cards/user";
+import lobbyModel from "../models/lobby.model";
+
+
+export default class PlayerController implements Controller {
+    public router = Router();
+    public user = userModel.userModel
+    public lobby = lobbyModel.lobbyModel;
+
+    constructor() {
+
+        this.router.get("/player/:id", hasAuth([Auth["PLAYER.GET.INFO"], Auth.ADMIN]), (req, res, next) => {
+            this.getPlayerById(req, res).catch(next);
+        });
+
+        this.router.get("/player/:id/home", hasAuth([Auth["PLAYER.GET.INFO"]]), (req, res, next) => {
+            this.getPlayerHome(req, res).catch(next);
+        });
+
+        this.router.get("/players", hasAuth([Auth["PLAYER.GET.INFO"], Auth.ADMIN]), (req, res, next) => {
+            this.getPlayers(req, res).catch(next);
+        })
+
+        this.router.delete("/players/:id", hasAuth([Auth["ADMIN"]]), (req, res, next) => {
+            this.deletePlayer(req, res).catch(next);
+        })
+
+        this.router.put("/player/edit/:id", hasAuth([Auth["PLAYER.UPDATE.YOURSELF"]]), (req, res, next) => {
+            this.editPlayer(req, res).catch(next);
+        });
+
+        this.router.put("/players/:id", hasAuth([Auth["ADMIN"]]), (req, res, next) => {
+            this.putPlayer(req, res).catch(next);
+        });
+
+        this.router.post("/players", hasAuth([Auth["ADMIN"]]), (req, res, next) => {
+            this.createPlayer(req, res).catch(next);
+        });
+
+        this.router.post("/players/friend", hasAuth([Auth["PLAYER.GET.INFO"]]), (req, res, next) => {
+            this.createFriendRequest(req, res).catch(next);
+        })
+
+        this.router.post("/players/friend/accept", hasAuth([Auth["PLAYER.GET.INFO"]]), (req, res, next) => {
+            this.acceptFriendRequest(req, res).catch(next);
+        });
+
+        this.router.post("/players/game/invite/:id/:playerId", hasAuth([Auth["PLAYER.GET.INFO"]]), (req, res, next) => {
+            this.createGameInvite(req, res).catch(next);
+        });
+
+        this.router.delete("/players/game/invite/:id", hasAuth([Auth["PLAYER.GET.INFO"]]), (req, res, next) => {
+            this.deleteGameInvite(req, res).catch(next);
+        });
+
+        this.router.get("/get/player/friends", hasAuth([Auth["PLAYER.GET.INFO"]]), (req, res, next) => {
+            this.getPlayerFriends(req, res).catch(next);
+        });
+    }
+
+    private getPlayerFriends = async (req: Request, res: Response) => {
+        const username = req.query.username as string;
+        const id = await getIDfromToken(req);
+        let players;
+        if (username && username !== "") {
+            players = await this.user.find({ username: { $regex: username, $options: 'i' } });
+        } else {
+            const player = await this.user.findOne({ _id: id }).populate("friends", "customId firstName lastName username rank settings");
+            players = player?.friends || [];
+        }
+
+        res.send(players);
+    }
+
+    private createFriendRequest = async (req: Request, res: Response) => {
+        const body = req.body;
+        const id = await getIDfromToken(req);
+
+        if (!body.customId) {
+            res.status(400).send({ error: ERROR.AN_ERROR_OCCURRED });
+            return;
+        }
+
+        const player = await this.user.findOne({ _id: id });
+
+        if (!player) {
+            res.status(404).send({ error: ERROR.USER_NOT_FOUND });
+            return;
+        }
+
+        const friend = await this.user.findOne({ customId: body.customId });
+
+        if (!friend) {
+            res.status(404).send({ error: ERROR.USER_NOT_FOUND });
+            return;
+        }
+
+        if (player.friends.includes(new mongoose.Types.ObjectId(friend._id))) {
+            res.status(409).send({ error: ERROR.AN_ERROR_OCCURRED });
+            return;
+        }
+        friend.pendingFriends.push(new mongoose.Types.ObjectId(player._id));
+        await friend.save();
+        res.send({ message: "Friend request sent successfully!" });
+    }
+
+    private createGameInvite = async (req: Request, res: Response) => {
+
+        const lobbyId = req.params.id;
+        const playerId = req.params.playerId;
+        const id = await getIDfromToken(req);
+
+        if (!lobbyId || !playerId) {
+            res.status(400).send({ error: ERROR.AN_ERROR_OCCURRED });
+            return;
+        }
+
+        const player = await this.user.findOne({ customId: playerId });
+        if (!player) {
+            res.status(404).send({ error: ERROR.USER_NOT_FOUND });
+            return;
+        }
+
+        const lobby = await this.lobby.findById(lobbyId);
+        if (!lobby) {
+            res.status(404).send({ error: ERROR.LOBBY_NOT_FOUND });
+            return;
+        }
+
+
+        if (player.gameInvites.filter((invite: any) => invite.invitedBy === id).length > 3) {
+            res.status(409).send({ error: ERROR.AN_ERROR_OCCURRED });
+            return;
+        }
+
+        const inviter = await this.user.findOne({ _id: id });
+        if (!inviter) {
+            res.status(404).send({ error: ERROR.USER_NOT_FOUND });
+            return;
+        }
+
+        player.gameInvites.push(
+            {
+                invitedBy: {
+                    customId: inviter.customId,
+                    firstName: inviter.firstName,
+                    lastName: inviter.lastName,
+                    username: inviter.username,
+                    rank: inviter.rank,
+                    settings: inviter.settings,
+                },
+                gameType: lobby!.settings!.cardType,
+                gameId: lobby!._id,
+                code: lobby!.settings!.lobbyCode,
+                createdAt: new Date(),
+            }
+        );
+        await player.save();
+
+        res.send({ message: "Game invite sent successfully!" });
+    }
+
+    private deleteGameInvite = async (req: Request, res: Response) => {
+        const id = await getIDfromToken(req);
+        const inviteId = req.params.id;
+
+        const player = await this.user.findOne({ _id: id });
+
+        if (!player) {
+            res.status(404).send({ error: ERROR.USER_NOT_FOUND });
+            return;
+        }
+
+        player.gameInvites = player.gameInvites.filter((invite: any) => invite.gameId.toString() !== inviteId);
+        await player.save();
+
+        res.send({ message: "Game invite deleted successfully!" });
+    }
+
+    private acceptFriendRequest = async (req: Request, res: Response) => {
+        const body = req.body;
+        const id = await getIDfromToken(req);
+
+        if (!body.customId) {
+            res.status(400).send({ error: ERROR.AN_ERROR_OCCURRED });
+            return;
+        }
+
+        const player = await this.user.findOne({ _id: id });
+
+        if (!player) {
+            res.status(404).send({ error: ERROR.USER_NOT_FOUND });
+            return;
+        }
+
+        const friend = await this.user.findOne({ customId: body.customId });
+
+        if (!friend) {
+            res.status(404).send({ error: ERROR.USER_NOT_FOUND });
+            return;
+        }
+
+        if (player.friends.includes(new mongoose.Types.ObjectId(friend._id))) {
+            res.status(409).send({ error: ERROR.AN_ERROR_OCCURRED });
+            return;
+        }
+
+        player.friends.push(new mongoose.Types.ObjectId(friend._id));
+        friend.friends.push(new mongoose.Types.ObjectId(player._id));
+        player.pendingFriends = player.pendingFriends.filter((f) => f.toString() !== friend._id.toString());
+        await player.save();
+        await friend.save();
+
+        res.send({ message: "Friend request accepted successfully!" });
+    }
+
+    private createPlayer = async (req: Request, res: Response) => {
+        const body = req.body;
+
+        if (!body.username || !body.firstName || !body.lastName || !body.email) {
+            res.status(400).send({ error: ERROR.AN_ERROR_OCCURRED });
+            return;
+        }
+
+        const existingUser = await this.user.findOne({ username: body.username });
+
+        if (existingUser) {
+            res.status(409).send({ error: ERROR.AN_ERROR_OCCURRED });
+            return;
+        }
+
+        const hex = Array.from((body.firstName + body.lastName)).map((char: any) => char.charCodeAt(0).toString(16)).join('').slice(0, 10);
+        body["customId"] = hex + new mongoose.Types.ObjectId().toString().slice(0, 6);
+        const userS = new UserSettings();
+        body["settings"] = {
+            backgroundColor: userS.getColorByInitials(body.firstName + body.lastName).background,
+            textColor: userS.getColorByInitials(body.firstName + body.lastName).text,
+        }
+        body["password"] = await bcrypt.hash(body["password"], 10);
+        body["achievements"] = null;
+
+        console.log(body);
+
+        const newPlayer = new this.user({
+            _id: new mongoose.Types.ObjectId(),
+            customId: body.customId,
+            firstName: body.firstName,
+            lastName: body.lastName,
+            email: body.email,
+            username: body.username,
+            settings: body.settings,
+            password: body.password,
+            achievements: body.achievements,
+        });
+
+        await newPlayer.save();
+
+        res.status(201).send({ message: "Player created successfully!" });
+    }
+
+
+    private getPlayers = async (req: Request, res: Response) => {
+
+        const query = req.query;
+        const paging: { page: number, limit: number } = { page: 1, limit: 14 };
+        const _id = await getIDfromToken(req);
+
+        if (query.page) {
+            paging.page = parseInt(query.page.toString()) || 1;
+        }
+        if (query.limit) {
+            paging.limit = parseInt(query.limit.toString()) || 14;
+        }
+
+        const players = await this.user.find({
+            $and: [
+                { _id: { $ne: _id } },
+                { username: { $regex: query.username, $options: "i" } },
+                { friends: { $nin: [new mongoose.Types.ObjectId(_id)] } }
+            ]
+        }).skip((paging.page - 1) * paging.limit).limit(paging.limit).sort({ created_at: -1 });
+
+        const playerData = players.map(player => ({
+            customId: player.customId,
+            firstName: player.firstName,
+            lastName: player.lastName,
+            email: player.email,
+            auth: player.auth,
+            username: player.username,
+            rank: player.rank,
+            settings: player.settings,
+            gamesStats: player.gamesStats,
+            createdAt: player.createdAt,
+        }));
+
+        res.send({
+            total: Math.round(await this.user.countDocuments(query) / paging.limit) || 0,
+            data: playerData
+        });
+    }
+
+    private editPlayer = async (req: Request, res: Response) => {
+        const id = req.params.id;
+        const body = req.body;
+
+        const tokenId = await getIDfromToken(req);
+
+        const player = await this.user.findOne({ customId: id });
+
+        if (!player) {
+            res.status(404).send({ error: ERROR.USER_NOT_FOUND });
+            return;
+        }
+
+        if (tokenId !== player._id.toString()) {
+            res.status(403).send({ error: ERROR.INVALID_AUTH });
+            return;
+        }
+
+        player.settings = {
+            ...player.settings,
+            ...body.settings,
+        }
+
+        await this.user.updateOne({ customId: id }, player, { runValidators: true });
+
+        res.send({ message: "Player updated successfully!" });
+    }
+
+    private putPlayer = async (req: Request, res: Response) => {
+        const id = req.params.id;
+        const body = req.body;
+
+        const player = await this.user.findOne({ customId: id });
+
+        if (!player) {
+            res.status(404).send({ error: ERROR.USER_NOT_FOUND });
+            return;
+        }
+
+        await this.user.updateOne({ customId: id }, body, { runValidators: true });
+
+        res.send({ message: "Player updated successfully!" });
+    }
+
+    private deletePlayer = async (req: Request, res: Response) => {
+        const id = req.params.id;
+
+        const player = await this.user.findOne({ customId: id });
+
+        if (!player) {
+            res.status(404).send({ error: ERROR.USER_NOT_FOUND });
+            return;
+        }
+
+        await this.user.deleteOne({ customId: id });
+
+        res.send({ message: "Player deleted successfully!" });
+    };
+
+
+    private getPlayerById = async (req: Request, res: Response) => {
+        const id = req.params.id;
+        const player = await this.user.findOne({ customId: id }).populate("friends", "customId firstName lastName username rank settings").populate("achievements", "name description imageUrl").populate("pendingFriends", "customId firstName lastName username rank settings");
+
+        if (!player) {
+            res.status(404).send({ error: ERROR.USER_NOT_FOUND });
+            return;
+        }
+
+        // const achs = achievements.filter((ach) => player.achievements.includes(ach._id));
+
+        res.send({
+            customId: player.customId,
+            firstName: player.firstName,
+            lastName: player.lastName,
+            email: player.email,
+            auth: player.auth,
+            username: player.username,
+            rank: player.rank,
+            gameHistory: player.gameHistory,
+            pendingFriends: player.pendingFriends,
+            friends: player.friends,
+            gamesStats: player.gamesStats,
+            achievements: player.achievements,
+            settings: player.settings,
+            gameInvites: player.gameInvites,
+        });
+    };
+
+    private getPlayerHome = async (req: Request, res: Response) => {
+        const id = req.params.id;
+        const players = await this.user.findOne({ customId: id });
+
+        if (!players) {
+            res.status(404).send({ error: ERROR.USER_NOT_FOUND });
+            return;
+        }
+
+        res.send({
+            firstName: players.firstName,
+            lastName: players.lastName,
+            username: players.username,
+            rank: players.rank,
+            friends: players.friends,
+            gamesStats: players.gamesStats.gamesStats,
+        });
+
+    };
+}
