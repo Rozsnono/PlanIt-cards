@@ -36,6 +36,7 @@ export default function Games() {
 
     useEffect(() => {
         socket.current = new WebSocket(IP.LOBBYSOCKET);
+        console.log(socket.current);
         setState({ ...state, isLoading: true });
 
 
