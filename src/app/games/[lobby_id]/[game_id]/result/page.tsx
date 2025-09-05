@@ -4,7 +4,7 @@ import { getCurrentRank, getRankName } from "@/interfaces/rank.enum";
 import Link from "next/link";
 import Icon from "@/assets/icons";
 import { useParams, useRouter } from "next/navigation";
-import { useQuery } from "react-query";
+import { useQuery } from "@tanstack/react-query";
 import { GameService } from "@/services/game.service";
 import { useContext, useEffect, useState } from "react";
 import { UserContext } from "@/contexts/user.context";
@@ -23,7 +23,12 @@ export default function End() {
     const router = useRouter();
 
     const gameSerivce = new GameService('');
-    const data = useQuery('game-history', async () => { return gameSerivce.getGameHistory(user!.customId, game_id!.toString()) });
+    const data = useQuery({
+        queryKey: ['game-history', user!.customId, game_id!.toString()],
+        queryFn: async () => {
+            return await gameSerivce.getGameHistory(user!.customId, game_id!.toString());
+        }
+    });
 
     function getPosition(position: number) {
         switch (position) {

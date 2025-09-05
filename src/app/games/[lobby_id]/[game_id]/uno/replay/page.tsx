@@ -9,7 +9,7 @@ import Image from "next/image"
 import { useParams } from "next/navigation";
 import React from "react";
 import { useContext, useState } from "react";
-import { useQuery } from "react-query";
+import { useQuery } from "@tanstack/react-query";
 import CardsUrls from "@/contexts/cards.context";
 import GameUser, { GameBot } from "@/components/user/game.user.component";
 import Loading from "@/app/loading";
@@ -23,7 +23,12 @@ export default function Game() {
 
     const gameHistoryService = new GameHistoryService();
 
-    const gameHistory = useQuery('game', async () => { return gameHistoryService.getGameHistory(user!.customId, game_id) });
+    const gameHistory = useQuery({
+        queryKey: ['game', user!.customId, game_id],
+        queryFn: async () => {
+            return await gameHistoryService.getGameHistory(user!.customId, game_id);
+        }
+    });
 
     if (gameHistory.isLoading) return <Loading />;
     if (gameHistory.isError) return null;

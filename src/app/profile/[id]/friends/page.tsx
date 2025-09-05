@@ -2,7 +2,7 @@
 import Icon from "@/assets/icons";
 import { getColorByInitials, getUserInitials, getUserInitialsByName } from "@/functions/user.function";
 import { useParams } from "next/navigation";
-import { useQuery } from "react-query";
+import { useQuery } from "@tanstack/react-query";
 import { getRankName } from "@/interfaces/rank.enum";
 import Pagination from "@/components/pagination";
 import React from "react";
@@ -31,8 +31,21 @@ export default function ProfilePage() {
         return profileService.getPlayers(search).then(res => res.json());
     }
 
-    const player = useQuery("player", getPlayer, { enabled: !!player_id, refetchOnWindowFocus: false });
-    const players = useQuery("players", getPlayers, { enabled: !!player_id, refetchOnWindowFocus: false });
+    const player = useQuery(
+        {
+            queryKey: ['player', player_id],
+            queryFn: getPlayer,
+            enabled: !!player_id, refetchOnWindowFocus: false
+        }
+    );
+
+    const players = useQuery(
+        {
+            queryKey: ['players', search],
+            queryFn: getPlayers,
+            enabled: !!player_id, refetchOnWindowFocus: false
+        }
+    );
 
 
     if (player.isLoading || player!.data.length == 0 || players.isLoading) return <Loading />

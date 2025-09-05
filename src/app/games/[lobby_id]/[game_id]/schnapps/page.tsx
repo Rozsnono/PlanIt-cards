@@ -17,7 +17,6 @@ import CardsUrls from "@/contexts/cards.context";
 import ColorPicker from "@/components/color.picker";
 import GameUser, { GameBot } from "@/components/user/game.user.component";
 import { IP } from "@/enums/ip.enum";
-import TurnDisplayComponent from "@/components/game/turn.display.component";
 import PingDisplayComponent from "@/components/game/ping.display.component";
 import Loading from "@/app/loading";
 

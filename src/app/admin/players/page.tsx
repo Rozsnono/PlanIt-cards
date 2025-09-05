@@ -1,6 +1,6 @@
 "use client";
 import Icon from "@/assets/icons";
-import { useQuery } from "react-query";
+import { useQuery } from "@tanstack/react-query";
 import { AdminService } from "@/services/admin.service";
 import Pagination from "@/components/pagination";
 import { useRef, useState } from "react";
@@ -11,7 +11,12 @@ import { getRankName } from "@/interfaces/rank.enum";
 export default function AdminPlayerPage() {
 
 
-    const data = useQuery('admin-players', () => { return new AdminService().getPlayers(`page=${page.current}&limit=${6}`) }, {});
+    const data = useQuery({
+        queryKey: ['admin-players'],
+        queryFn: async () => {
+            return new AdminService().getPlayers(`page=${page.current}&limit=${6}`);
+        }
+    });
 
     const [isNew, setIsNew] = useState(false);
 

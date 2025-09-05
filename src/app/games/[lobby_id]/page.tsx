@@ -12,7 +12,7 @@ import LobbyService from "@/services/lobby.service";
 import LobbySettings from "@/components/lobby/lobby.settings.component";
 import ProfileService from "@/services/profile.service";
 import Loading from "@/app/loading";
-import { useQuery } from "react-query";
+import { useQuery } from "@tanstack/react-query";
 const lobbyService = new LobbyService();
 
 export default function LobbyId() {
@@ -33,9 +33,12 @@ export default function LobbyId() {
 
     const [friendInviteSent, setFriendInviteSent] = useState(false);
 
-    const friends = useQuery('friends', async () => {
-        const res = await new ProfileService().getFriends(friendSearch);
-        return res;
+    const friends = useQuery({
+        queryKey: ['friends', friendSearch],
+        queryFn: async () => {
+            const res = await new ProfileService().getFriends(friendSearch);
+            return res;
+        }
     });
 
     useEffect(() => {

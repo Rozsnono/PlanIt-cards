@@ -5,7 +5,7 @@ import { UserContext } from "@/contexts/user.context";
 import { AdminService } from "@/services/admin.service";
 import { useRouter } from "next/navigation";
 import React, { useContext, useState } from "react";
-import { useQuery } from "react-query";
+import { useQuery } from "@tanstack/react-query";
 
 export default function AdminGamesPage() {
 
@@ -16,7 +16,12 @@ export default function AdminGamesPage() {
 
     // if(!user?.auth.includes('ADMIN')) {router.back(); return <></>}
 
-    const data = useQuery('users', async () => { return adminService.getAllGames() });
+    const data = useQuery({
+        queryKey: ['admin-games'],
+        queryFn: async () => {
+            return await adminService.getAllGames();
+        }
+    });
 
     return (
         <main className="w-full rounded-md p-5 min-h-screen text-zinc-200 relative gap-2">

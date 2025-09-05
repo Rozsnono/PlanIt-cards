@@ -1,7 +1,7 @@
 "use client";
 import { usePathname } from "next/navigation";
 import { CSSProperties, useEffect, useState } from "react";
-import { QueryClient, QueryClientProvider } from "react-query";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MenuContext, MenuProvider } from "./menu.context";
 import StarBackground from "@/components/star-background";
 import Navbar from "@/components/navbar";
