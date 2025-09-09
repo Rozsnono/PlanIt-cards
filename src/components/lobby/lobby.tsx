@@ -93,7 +93,7 @@ export default function LobbyCard({ lobbyDatas, lobbyNumber, isAdmin }: { lobbyD
         } else {
             return (
 
-                <Link href={"games/" + lobbyDatas._id} className="bg-green-700 text-white p-2 px-2 rounded-md hover:bg-green-600 flex items-center gap-1 hover:scale-105 transition-transform duration-200">
+                <Link href={"games/" + lobbyDatas._id} className="bg-green-700 text-white p-2 px-5 rounded-md hover:bg-green-600 flex items-center gap-1 hover:scale-105 transition-transform duration-200">
                     <Icon name="join"></Icon>
                     Join
                 </Link>

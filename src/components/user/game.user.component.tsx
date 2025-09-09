@@ -5,15 +5,14 @@ import { Iplayer } from "@/interfaces/interface";
 
 export default function GameUser({ user, currentPlayer, cardNumber, isOnTop, isCaller }: { user?: Iplayer, currentPlayer: string, cardNumber?: number, isOnTop?: boolean, isCaller?: boolean }) {
     return (
-        <div className="w-16 h-16 relative group cursor-pointer">
+        <div className="w-16 h-16 relative group cursor-pointer ">
 
             {
                 user &&
                 <ProfileIcon settings={user?.settings} size={4} initials={getUserInitials(user?.firstName, user?.lastName)} />
             }
-
             {currentPlayer === user?._id &&
-                <div className={`absolute ${isOnTop ? 'top-[7.5rem]' : '-top-10'} flex`}>
+                <div className={`absolute ${isOnTop ? 'top-[7.5rem]' : '-top-10'} flex text-zinc-300 left-1/2 -translate-x-1/2`}>
                     <div className="-rotate-[90deg] animate-bounce">
                         <Icon name="card-d" size={44}></Icon>
                     </div>

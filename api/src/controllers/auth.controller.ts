@@ -69,6 +69,7 @@ export default class AuthController implements Controller {
                     textColor: userS.getColorByInitials(body.firstName + body.lastName).text,
                 }
                 body["achievements"] = [];
+                body['gamesStats']['gamesPerDate'] = {};
 
                 await this.user.updateOne({ _id: user._id }, user, { runValidators: true });
                 user = await this.user.findOne({ username: body.username });
@@ -115,7 +116,6 @@ export default class AuthController implements Controller {
         }
         body["_id"] = new mongoose.Types.ObjectId();
         body["password"] = await bcrypt.hash(body["password"], 10);
-
         const userS = new UserSettings();
         const code = userS.getRandomCode(1);
         body["registraionCode"] = await bcrypt.hash(code, 10);
@@ -123,10 +123,10 @@ export default class AuthController implements Controller {
             backgroundColor: userS.getColorByInitials(body.firstName + body.lastName).background,
             textColor: userS.getColorByInitials(body.firstName + body.lastName).text,
         }
-        this.mail.sendMail(body.email, body.username, 'Welcome to PlanIt!', code);
-
+        body["achievements"] = [];
         const newUser = new this.user(body);
         await newUser.save();
+        this.mail.sendMail(body.email, body.username, 'Welcome to PlanIt!', code);
         res.send({ message: "OK" });
     };
 

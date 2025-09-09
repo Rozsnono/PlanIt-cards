@@ -138,7 +138,7 @@ export default class RummyController implements Controller {
             game.playerCards[playerId] = game.playerCards[playerId].concat(cardsToReturn);
             game.playerCards[playerId].push(game.droppedCards[game.droppedCards.length - 1].card);
             game.playedCards = playedCardsToReturn;
-            game.droppedCards.shift();
+            game.droppedCards = game.droppedCards.slice(0, game.droppedCards.length - 1);
             await this.game.updateOne({ _id: gameId }, game, { runValidators: true });
             res.status(403).send({ error: ERROR.MIN_51_VALUE });
             return;

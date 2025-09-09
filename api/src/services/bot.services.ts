@@ -338,7 +338,7 @@ export class UnoBot {
 
         if (selectedCard.isJoker) {
             selectedCard.suit = ['R', 'G', 'B', 'Y'][Math.random() * 4 | 0];
-            selectedCard.name = selectedCard.suit + selectedCard.name;
+            selectedCard.name = selectedCard.name.replace('U_', 'U_' + selectedCard.suit);
         }
 
         this.droppedCards.push({ droppedBy: this.name, card: selectedCard });

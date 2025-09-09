@@ -50,7 +50,7 @@ export default function ProfilePage() {
 
     if (player.isLoading || player!.data.length == 0 || players.isLoading) return <Loading />
     return (
-        <main className="flex flex-col md:flex-row gap-6 justify-center w-full md:w-3/4 mx-auto h-full">
+        <main className="flex flex-col md:flex-row gap-6 justify-center w-full mx-auto h-full">
             <main className="w-full rounded-2xl flex flex-col p-6 gap-2">
                 <div className="w-full rounded-2xl border border border-purple-800/50 bg-black/40 p-3 gap-2 flex flex-col">
                     <div className="text-purple-600 text-lg font-bold flex items-center gap-2 p-2">
@@ -60,30 +60,23 @@ export default function ProfilePage() {
 
                     <div className="border-b-[0.1rem] border-purple-800/50"></div>
 
-                    <div className="flex flex-col gap-2 p-2 w-full">
+                    <div className="flex flex-col p-2 gap-4 w-full">
 
-                        {/* <div className="flex items-center w-full relative">
-                            <div className="flex gap-2 flex-wrap font-thin relative w-full">
-                                <div className="rounded-full h-2 w-full bg-gray-500 absolute"></div>
-
-                                {
-                                    getRankName(player.rank + data.data.rank.find((p: any) => p.player == player._id).rank).title !== getRankName(player.rank).title ?
-                                        <React.Fragment>
-                                            <div style={{ width: `${getCurrentRank(player.rank + data.data.rank.find((p: any) => p.player == player._id).rank)}%` }} className="rounded-full h-2 bg-orange-400 z-50 animate-pulse duration-300"></div>
-                                        </React.Fragment> :
-                                        <React.Fragment>
-                                            <div style={{ width: `${getCurrentRank(player.rank + data.data.rank.find((p: any) => p.player == player._id).rank)}%` }} className="rounded-full h-2 bg-orange-400 z-50 animate-pulse duration-300"></div>
-                                            <div style={{ width: `${getCurrentRank(player.rank)}%` }} className="rounded-full h-2 bg-gradient-to-r from-purple-500/70 to-orange-600 z-50 absolute"></div>
-                                        </React.Fragment>
-                                }
-                            </div>
-                        </div> */}
+                        {
+                            player.data.friends.map((player: Iplayer) => (
+                                <Players key={player.customId} player={player} isFriend></Players>
+                            ))
+                        }
                     </div>
                 </div>
 
             </main>
 
-            <main className="w-1/2 h-full rounded-2xl flex flex-col p-6 gap-6">
+
+
+
+
+            <main className="w-full h-full rounded-2xl flex flex-col p-6 gap-6">
                 <div className="w-full rounded-2xl border border border-purple-800/50 bg-black/40 p-3 gap-2 flex flex-col">
                     <div className="text-purple-600 text-lg font-bold flex items-center gap-2 p-2">
                         <Icon name="users" size={32}></Icon>
@@ -111,8 +104,9 @@ export default function ProfilePage() {
                         }
                     </div>
                 </div>
+            </main>
 
-
+            <main className="w-full h-full rounded-2xl flex flex-col p-6 gap-6">
                 <div className="w-full rounded-2xl border border border-purple-800/50 bg-black/40 p-3 gap-2 flex flex-col">
                     <div className="text-purple-600 text-lg font-bold flex items-center gap-2 p-2">
                         <Icon name="pedding" size={32}></Icon>
@@ -129,7 +123,6 @@ export default function ProfilePage() {
                         }
                     </div>
                 </div>
-
             </main>
 
         </main>

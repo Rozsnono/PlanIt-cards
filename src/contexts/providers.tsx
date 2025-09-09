@@ -1,5 +1,5 @@
 "use client";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { CSSProperties, useEffect, useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MenuContext, MenuProvider } from "./menu.context";
@@ -14,22 +14,26 @@ import Help from "@/components/help/help.component";
 
 export function Providers({ children, className }: { children: React.ReactNode, className?: string }) {
     const [isOpen, setOpen] = useState(true);
+    const path = usePathname();
+    const route = useRouter();
     const [user, setUser] = useState<Iplayer | null>(getUser());
 
-    const notAllowedURLs = ['rummy', 'uno', 'solitaire', 'observatory', 'login', 'register'];
+    const notAllowedURLs = ['rummy', 'uno', 'solitaire', 'observatory', 'login', 'register', 'verify'];
 
     const gameUrls = ['rummy', 'uno', 'solitaire', 'schnapps'];
-
 
     function setUserData(user: Iplayer | null) {
         setUser(user);
     }
 
-    const path = usePathname();
+    if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) && !path.includes("/mobile")) {
+        route.replace("/mobile");
+    }
+
     const queryClient = new QueryClient();
 
     function getStyle(): CSSProperties | undefined {
-        if (path.includes('observatory') || path.includes('login') || path.includes('register')) {
+        if (path.includes('observatory') || path.includes('login') || path.includes('register') || path.includes('verify')) {
             return {}
         }
         if (path.includes('end')) {

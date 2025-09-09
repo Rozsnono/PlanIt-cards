@@ -347,6 +347,18 @@ export class SchnappsService extends GameService {
         return res;
     }
 
+    async skipTrump(lobbyId: string) {
+        const response = await fetch(`/api/select/${lobbyId}/schnapps`, {
+            method: "PUT",
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${getCookie("token")}`
+            }
+        });
+        const res = await response.json();
+        return res;
+    }
+
     async callTwenty(lobbyId: string, body: { droppedCard: Icard, color?: string, isUno?: boolean }) {
         const response = await fetch(`/api/call/${lobbyId}/schnapps`, {
             method: "PUT",

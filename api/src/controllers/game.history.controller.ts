@@ -37,7 +37,6 @@ export default class GameHistoryController implements Controller {
     private recalibrateHistory = async (req: Request, res: Response) => {
         const game_id = req.params.game_id;
         const id = req.params.id;
-
         const gameHistory = await this.gameHistory.findOne({ $and: [{ gameId: game_id }, { _id: id }] }).lean();
         if (!gameHistory) {
             res.status(404).send({ error: "Game history not found!" });
@@ -45,6 +44,7 @@ export default class GameHistoryController implements Controller {
         }
 
         let maxPoints = 0;
+
         switch (gameHistory.type) {
             case "UNO":
                 maxPoints = Object.keys(gameHistory.turns[1]).filter((key) => !key.includes("bot")).length * 20 + Object.keys(gameHistory.turns[1]).filter((key) => key.includes("bot")).length * 10 + 10;
@@ -52,7 +52,7 @@ export default class GameHistoryController implements Controller {
             case "RUMMY":
                 maxPoints = Object.keys(gameHistory.turns[1]).filter((key) => !key.includes("bot")).length * 20 + Object.keys(gameHistory.turns[1]).filter((key) => key.includes("bot")).length * 10 + 10;
                 break;
-            case "Schnapps":
+            case "SCHNAPPS":
                 maxPoints = Object.keys(gameHistory.turns[1]).filter((key) => !key.includes("bot")).length * 20 + Object.keys(gameHistory.turns[1]).filter((key) => key.includes("bot")).length * 10 + 10;
                 break;
             default:
@@ -64,7 +64,7 @@ export default class GameHistoryController implements Controller {
             res.status(404).send({ error: "Last turn not found!" });
             return;
         }
-        if (gameHistory.type !== "Schnapps") {
+        if (gameHistory.type !== "SCHNAPPS") {
             await new GameHistoryService().reCalibrateStatsForHistory(game_id, maxPoints, { ...lastTurn, createdAt: gameHistory.createdAt });
         } else {
             await new GameHistorySchnapps().reCalibrateStatsForHistory(game_id, maxPoints, { ...lastTurn, createdAt: gameHistory.createdAt });

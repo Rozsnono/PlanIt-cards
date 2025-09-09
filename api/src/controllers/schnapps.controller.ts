@@ -171,16 +171,20 @@ export default class SchnappsController implements Controller {
             return;
         }
 
-        const { suit, cardName, call } = req.body.selectedTrump;
-        if (!suit || !cardName || !call || game.secretSettings.currentTurn > 1) {
-            res.status(400).send({ error: ERROR.AN_ERROR_OCCURRED });
-            return;
+        if (req.body.selectedTrump) {
+            const { suit, cardName, call } = req.body.selectedTrump;
+            if (!suit || !cardName || !call || game.secretSettings.currentTurn > 1) {
+                res.status(400).send({ error: ERROR.AN_ERROR_OCCURRED });
+                return;
+            }
+
+            game.lastAction.trump = { suit, card: cardName };
+            game.lastAction.playerId = playerId;
+            game.lastAction.actions = ({ 'CALL': 1, 'BETTLI': 6, 'SCHNAPPS': 7, 'GANGLI': 8 } as any)[call.toUpperCase()] || 0;
+            game.lastAction.isUno = false;
         }
 
-        game.lastAction.trump = { suit, card: cardName };
-        game.lastAction.playerId = playerId;
-        game.lastAction.actions = ({ 'CALL': 1, 'BETTLI': 6, 'SCHNAPPS': 7, 'GANGLI': 8 } as any)[call.toUpperCase()] || 0;
-        game.lastAction.isUno = false;
+
 
         game.currentPlayer = { playerId: this.nextPlayer(Object.keys(game.playerCards), playerId), time: new Date().getTime() };
 

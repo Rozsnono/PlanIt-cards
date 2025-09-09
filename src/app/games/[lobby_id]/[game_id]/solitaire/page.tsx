@@ -152,7 +152,7 @@ export default function Game() {
                 setIsLoading(false);
             }
         }).catch(err => {
-            setError(err);
+            setError('An error occurred');
             setIsLoading(false);
         });
     }

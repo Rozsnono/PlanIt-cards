@@ -27,6 +27,8 @@ export default function LobbyId() {
     const [friendInvite, setFriendInvite] = useState(false);
     const [friendSearch, setFriendSearch] = useState("");
 
+    const [isLoading, setIsLoading] = useState(false);
+
     useEffect(()=>{
         setFriendInviteSent(false);
     }, [friendInvite])
@@ -87,10 +89,13 @@ export default function LobbyId() {
     }
 
     async function startLobbyGame() {
+        setIsLoading(true);
         const type: 'rummy' | 'uno' = lobby!.settings.cardType.toLowerCase() as 'rummy' | 'uno';
         const res = await new GameService(type).startGame(lobby_id as string, form.timeLimit);
         if (res.error) {
             console.error(res.error);
+            setIsLoading(false);
+            return;
         }
         router.push(`/games/${lobby_id}/${res.game_id}/${lobby!.settings.cardType.toLocaleLowerCase()}`);
     }
@@ -134,7 +139,7 @@ export default function LobbyId() {
 
     return (
         <main className="flex flex-col md:flex-row gap-2 justify-center w-full md:w-3/4 mx-auto h-full">
-            <main className="w-1/2 border border-purple-800/50 bg-black/40 h-full rounded-2xl flex flex-col p-6 gap-2">
+            <main className="w-full 3xl:w-1/2 border border-purple-800/50 bg-black/40 h-full rounded-2xl flex flex-col p-6 gap-2">
                 <div className="w-full rounded-2xl border border border-purple-800/50 bg-black/40 p-3 gap-2 flex flex-col">
                     <div className="text-purple-600 text-lg font-bold flex items-center gap-2 p-2">
                         <Icon name="users" size={32}></Icon>
@@ -298,7 +303,7 @@ export default function LobbyId() {
                     </div>
                 </div>
             </main>
-            <main className="w-1/2 border border-purple-800/50 bg-black/40 h-full rounded-2xl flex flex-col p-6 gap-2">
+            <main className="w-full 3xl:w-1/2 border border-purple-800/50 bg-black/40 h-full rounded-2xl flex flex-col p-6 gap-2">
                 <div className="w-full rounded-2xl border border border-purple-800/50 bg-black/40 p-3 gap-2 flex flex-col">
                     <div className="text-purple-600 text-lg font-bold flex items-center gap-2 p-2">
                         <Icon name="users" size={32}></Icon>
@@ -351,7 +356,7 @@ export default function LobbyId() {
                     {
                         lobby.createdBy === user!._id &&
                         <div className="flex flex-col w-full justify-end mx-auto mt-8 3xl:mt-0">
-                            <button disabled={lobby.users.length + lobby.bots.length < lobby.settings.numberOfPlayers || isChanged} onClick={startLobbyGame} className="bg-gradient-to-l from-purple-500 to-purple-700 hover:from-purple-600 hover:to-purple-400 disabled:from-purple-500/50 disabled:to-purple-700/50 w-full rounded-lg p-2 px-5 text-zinc-200 font-bold duration-200 focus:ring-2 disabled:text-zinc-400 disabled:cursor-not-allowed">Start</button>
+                            <button disabled={lobby.users.length + lobby.bots.length < lobby.settings.numberOfPlayers || isChanged || isLoading} onClick={startLobbyGame} className="bg-gradient-to-l from-purple-500 to-purple-700 hover:from-purple-600 hover:to-purple-400 disabled:from-purple-500/50 disabled:to-purple-700/50 w-full rounded-lg p-2 px-5 text-zinc-200 font-bold duration-200 focus:ring-2 disabled:text-zinc-400 disabled:cursor-not-allowed">Start</button>
                         </div>
                     }
                 </div>

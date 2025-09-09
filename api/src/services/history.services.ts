@@ -149,6 +149,7 @@ export default class GameHistoryService {
                 type: lobby.settings?.cardType,
                 users: users,
                 date: new Date(),
+                createdAt: new Date(game.createdAt),
                 _id: new mongoose.Types.ObjectId(),
                 position: lobby.users.concat(lobby.bots as any).map((user: any) => { return { player: user._id, pos: 0 } }),
                 rank: lobby.users.concat(lobby.bots as any).map((user: any) => { return { player: user._id, rank: 0 } }),
@@ -218,15 +219,15 @@ export default class GameHistoryService {
                 player.gamesStats.numberOfGames += 1;
                 if (position.pos === 1) {
                     player.gamesStats.totalWins += 1;
-                    player.gamesStats.gamesPerDate[`${game.createdAt.getMonth()}-${game.createdAt.getDate()}`] = {
-                        wins: player.gamesStats.gamesPerDate[`${game.createdAt.getMonth()}-${game.createdAt.getDate()}`]?.wins + 1 || 0,
-                        losses: player.gamesStats.gamesPerDate[`${game.createdAt.getMonth()}-${game.createdAt.getDate()}`]?.losses || 0,
+                    player.gamesStats.gamesPerDate[`${game.createdAt.getMonth() + 1}-${game.createdAt.getDate()}`] = {
+                        wins: player.gamesStats.gamesPerDate[`${game.createdAt.getMonth() + 1}-${game.createdAt.getDate()}`]?.wins + 1 || 0,
+                        losses: player.gamesStats.gamesPerDate[`${game.createdAt.getMonth() + 1}-${game.createdAt.getDate()}`]?.losses || 0,
                     };
                 } else {
                     player.gamesStats.totalLosses += 1;
-                    player.gamesStats.gamesPerDate[`${game.createdAt.getMonth()}-${game.createdAt.getDate()}`] = {
-                        wins: player.gamesStats.gamesPerDate[`${game.createdAt.getMonth()}-${game.createdAt.getDate()}`]?.wins || 0,
-                        losses: player.gamesStats.gamesPerDate[`${game.createdAt.getMonth()}-${game.createdAt.getDate()}`]?.losses + 1 || 0,
+                    player.gamesStats.gamesPerDate[`${game.createdAt.getMonth() + 1}-${game.createdAt.getDate()}`] = {
+                        wins: player.gamesStats.gamesPerDate[`${game.createdAt.getMonth() + 1}-${game.createdAt.getDate()}`]?.wins || 0,
+                        losses: player.gamesStats.gamesPerDate[`${game.createdAt.getMonth() + 1}-${game.createdAt.getDate()}`]?.losses + 1 || 0,
                     };
                 }
                 player.gamesStats.winRate = Math.round((player.gamesStats.totalWins / player.gamesStats.numberOfGames) * 100);
@@ -285,15 +286,15 @@ export default class GameHistoryService {
                 player.gamesStats.numberOfGames += 1;
                 if (position.pos === 1) {
                     player.gamesStats.totalWins += 1;
-                    player.gamesStats.gamesPerDate[`${game.createdAt.getMonth()}-${game.createdAt.getDate()}`] = {
-                        wins: player.gamesStats.gamesPerDate[`${game.createdAt.getMonth()}-${game.createdAt.getDate()}`]?.wins + 1 || 0,
-                        losses: player.gamesStats.gamesPerDate[`${game.createdAt.getMonth()}-${game.createdAt.getDate()}`]?.losses || 0,
+                    player.gamesStats.gamesPerDate[`${game.createdAt.getMonth() + 1}-${game.createdAt.getDate()}`] = {
+                        wins: player.gamesStats.gamesPerDate[`${game.createdAt.getMonth() + 1}-${game.createdAt.getDate()}`]?.wins + 1 || 0,
+                        losses: player.gamesStats.gamesPerDate[`${game.createdAt.getMonth() + 1}-${game.createdAt.getDate()}`]?.losses || 0,
                     };
                 } else {
                     player.gamesStats.totalLosses += 1;
-                    player.gamesStats.gamesPerDate[`${game.createdAt.getMonth()}-${game.createdAt.getDate()}`] = {
-                        wins: player.gamesStats.gamesPerDate[`${game.createdAt.getMonth()}-${game.createdAt.getDate()}`]?.wins || 0,
-                        losses: player.gamesStats.gamesPerDate[`${game.createdAt.getMonth()}-${game.createdAt.getDate()}`]?.losses + 1 || 0,
+                    player.gamesStats.gamesPerDate[`${game.createdAt.getMonth() + 1}-${game.createdAt.getDate()}`] = {
+                        wins: player.gamesStats.gamesPerDate[`${game.createdAt.getMonth() + 1}-${game.createdAt.getDate()}`]?.wins || 0,
+                        losses: player.gamesStats.gamesPerDate[`${game.createdAt.getMonth() + 1}-${game.createdAt.getDate()}`]?.losses + 1 || 0,
                     };
                 }
                 player.gamesStats.winRate = Math.round((player.gamesStats.totalWins / player.gamesStats.numberOfGames) * 100);
@@ -420,15 +421,15 @@ export class GameHistorySolitaire extends GameHistoryService {
                 player.gamesStats.numberOfGames += 1;
                 if (position.pos === 1) {
                     player.gamesStats.totalWins += 1;
-                    player.gamesStats.gamesPerDate[`${game.createdAt.getMonth()}-${game.createdAt.getDate()}`] = {
-                        wins: player.gamesStats.gamesPerDate[`${game.createdAt.getMonth()}-${game.createdAt.getDate()}`]?.wins + 1 || 0,
-                        losses: player.gamesStats.gamesPerDate[`${game.createdAt.getMonth()}-${game.createdAt.getDate()}`]?.losses || 0,
+                    player.gamesStats.gamesPerDate[`${game.createdAt.getMonth() + 1}-${game.createdAt.getDate()}`] = {
+                        wins: player.gamesStats.gamesPerDate[`${game.createdAt.getMonth() + 1}-${game.createdAt.getDate()}`]?.wins + 1 || 0,
+                        losses: player.gamesStats.gamesPerDate[`${game.createdAt.getMonth() + 1}-${game.createdAt.getDate()}`]?.losses || 0,
                     };
                 } else {
                     player.gamesStats.totalLosses += 1;
-                    player.gamesStats.gamesPerDate[`${game.createdAt.getMonth()}-${game.createdAt.getDate()}`] = {
-                        wins: player.gamesStats.gamesPerDate[`${game.createdAt.getMonth()}-${game.createdAt.getDate()}`]?.wins || 0,
-                        losses: player.gamesStats.gamesPerDate[`${game.createdAt.getMonth()}-${game.createdAt.getDate()}`]?.losses + 1 || 0,
+                    player.gamesStats.gamesPerDate[`${game.createdAt.getMonth() + 1}-${game.createdAt.getDate()}`] = {
+                        wins: player.gamesStats.gamesPerDate[`${game.createdAt.getMonth() + 1}-${game.createdAt.getDate()}`]?.wins || 0,
+                        losses: player.gamesStats.gamesPerDate[`${game.createdAt.getMonth() + 1}-${game.createdAt.getDate()}`]?.losses + 1 || 0,
                     };
                 }
                 player.gamesStats.winRate = Math.round((player.gamesStats.totalWins / player.gamesStats.numberOfGames) * 100);
@@ -494,15 +495,15 @@ export class GameHistorySchnapps extends GameHistoryService {
                 player.gamesStats.numberOfGames += 1;
                 if (position.pos === 1) {
                     player.gamesStats.totalWins += 1;
-                    player.gamesStats.gamesPerDate[`${game.createdAt.getMonth()}-${game.createdAt.getDate()}`] = {
-                        wins: player.gamesStats.gamesPerDate[`${game.createdAt.getMonth()}-${game.createdAt.getDate()}`]?.wins + 1 || 0,
-                        losses: player.gamesStats.gamesPerDate[`${game.createdAt.getMonth()}-${game.createdAt.getDate()}`]?.losses || 0,
+                    player.gamesStats.gamesPerDate[`${game.createdAt.getMonth() + 1}-${game.createdAt.getDate()}`] = {
+                        wins: player.gamesStats.gamesPerDate[`${game.createdAt.getMonth() + 1}-${game.createdAt.getDate()}`]?.wins + 1 || 0,
+                        losses: player.gamesStats.gamesPerDate[`${game.createdAt.getMonth() + 1}-${game.createdAt.getDate()}`]?.losses || 0,
                     };
                 } else {
                     player.gamesStats.totalLosses += 1;
-                    player.gamesStats.gamesPerDate[`${game.createdAt.getMonth()}-${game.createdAt.getDate()}`] = {
-                        wins: player.gamesStats.gamesPerDate[`${game.createdAt.getMonth()}-${game.createdAt.getDate()}`]?.wins || 0,
-                        losses: player.gamesStats.gamesPerDate[`${game.createdAt.getMonth()}-${game.createdAt.getDate()}`]?.losses + 1 || 0,
+                    player.gamesStats.gamesPerDate[`${game.createdAt.getMonth() + 1}-${game.createdAt.getDate()}`] = {
+                        wins: player.gamesStats.gamesPerDate[`${game.createdAt.getMonth() + 1}-${game.createdAt.getDate()}`]?.wins || 0,
+                        losses: player.gamesStats.gamesPerDate[`${game.createdAt.getMonth() + 1}-${game.createdAt.getDate()}`]?.losses + 1 || 0,
                     };
                 }
                 player.gamesStats.winRate = Math.round((player.gamesStats.totalWins / player.gamesStats.numberOfGames) * 100);
@@ -524,7 +525,6 @@ export class GameHistorySchnapps extends GameHistoryService {
     public async reCalibrateStatsForHistory(game_id: string, maxPoints: number, game: any) {
         const histories = await this.gameHistory.find({ gameId: game_id }).populate("users", "customId username settings firstName lastName");
         if (!histories) return { error: ERROR.GAME_HISTORY_NOT_FOUND };
-
         const gc = new GameChecker();
         const positions = gc.getPositions(game.playerCards);
         // const rank = gc.calculatePoints(positions, maxPoints);
@@ -561,15 +561,15 @@ export class GameHistorySchnapps extends GameHistoryService {
                 player.gamesStats.numberOfGames += 1;
                 if (position.pos === 1) {
                     player.gamesStats.totalWins += 1;
-                    player.gamesStats.gamesPerDate[`${game.createdAt.getMonth()}-${game.createdAt.getDate()}`] = {
-                        wins: player.gamesStats.gamesPerDate[`${game.createdAt.getMonth()}-${game.createdAt.getDate()}`]?.wins + 1 || 0,
-                        losses: player.gamesStats.gamesPerDate[`${game.createdAt.getMonth()}-${game.createdAt.getDate()}`]?.losses || 0,
+                    player.gamesStats.gamesPerDate[`${game.createdAt.getMonth() + 1}-${game.createdAt.getDate()}`] = {
+                        wins: player.gamesStats.gamesPerDate[`${game.createdAt.getMonth() + 1}-${game.createdAt.getDate()}`]?.wins + 1 || 0,
+                        losses: player.gamesStats.gamesPerDate[`${game.createdAt.getMonth() + 1}-${game.createdAt.getDate()}`]?.losses || 0,
                     };
                 } else {
                     player.gamesStats.totalLosses += 1;
-                    player.gamesStats.gamesPerDate[`${game.createdAt.getMonth()}-${game.createdAt.getDate()}`] = {
-                        wins: player.gamesStats.gamesPerDate[`${game.createdAt.getMonth()}-${game.createdAt.getDate()}`]?.wins || 0,
-                        losses: player.gamesStats.gamesPerDate[`${game.createdAt.getMonth()}-${game.createdAt.getDate()}`]?.losses + 1 || 0,
+                    player.gamesStats.gamesPerDate[`${game.createdAt.getMonth() + 1}-${game.createdAt.getDate()}`] = {
+                        wins: player.gamesStats.gamesPerDate[`${game.createdAt.getMonth() + 1}-${game.createdAt.getDate()}`]?.wins || 0,
+                        losses: player.gamesStats.gamesPerDate[`${game.createdAt.getMonth() + 1}-${game.createdAt.getDate()}`]?.losses + 1 || 0,
                     };
                 }
                 player.gamesStats.winRate = Math.round((player.gamesStats.totalWins / player.gamesStats.numberOfGames) * 100);
@@ -578,7 +578,6 @@ export class GameHistorySchnapps extends GameHistoryService {
                 await this.user.updateOne({ _id: player._id }, player, { runValidators: true });
             }
         })
-
         return { message: "Stats updated!", code: 200 };
 
     }

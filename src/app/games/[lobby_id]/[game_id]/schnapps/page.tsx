@@ -6,7 +6,7 @@ import { SettingsContext } from "@/contexts/settings.context";
 import { UserContext } from "@/contexts/user.context";
 import { dropCard, placeCardToIndex, playCard, sortSchnapsenCards, sortUnoCards } from "@/functions/card.function";
 import { getColorByInitials, getUserInitials } from "@/functions/user.function";
-import { Icard, Igame, Ilobby } from "@/interfaces/interface";
+import { Icard, Igame, Ilobby, Iplayer } from "@/interfaces/interface";
 import { GameService, SchnappsService, UnoService } from "@/services/game.service";
 import { Timer } from "@/services/timer.service";
 import Image from "next/image"
@@ -203,7 +203,7 @@ export default function Game() {
         if (!gameState) return;
         if (gameState.secretSettings.currentTurn > 1 && gameState.playedCards.length > 0 && gameState.currentPlayer.playerId !== user?._id && gameState.droppedCards.length == 0 && !isGameOver) {
             setEndOfTurn(true);
-            switch (Object.keys(gameState.allCards).indexOf(gameState.playedCards[gameState.playedCards.length - 1].playedBy)) {
+            switch (getSpaceByPlayerId(gameState.playedCards[gameState.playedCards.length - 1].playedBy)) {
                 case 0:
                     setWinner('animate-group-and-leave-b');
                     break;
@@ -251,6 +251,32 @@ export default function Game() {
         });
     }
 
+    function skipTrumpSelection() {
+        if (!lobbyState) return;
+        gameService.skipTrump(lobbyState._id).then((res) => {
+            setError(res.error);
+            setSelectedCards([]);
+        });
+    }
+
+    function getPlayerBySpace(space: number, needCard?: boolean, isBot?: boolean): Icard | Iplayer | { _id: string, name: string, customId: string } | null | any {
+        if (!lobbyState) return null;
+        if (!gameState) return null;
+        const index = (Object.keys(gameState.allCards).indexOf(user!._id) + space) % Object.keys(gameState.allCards).length;
+        if (needCard) {
+            return gameState.droppedCards.find((c: any) => c.droppedBy === Object.keys(gameState.allCards)[index])?.card;
+        }
+        if (isBot) {
+            return lobbyState.bots.find((b) => b._id === Object.keys(gameState.allCards)[index]) || null;
+        }
+        return lobbyState.users.find((u) => u._id === Object.keys(gameState.allCards)[index]) || null;
+    }
+    function getSpaceByPlayerId(playerId: string) {
+        if (!lobbyState) return null;
+        if (!gameState) return null;
+        return (Object.keys(gameState.allCards).indexOf(playerId) - Object.keys(gameState.allCards).indexOf(user!._id) + Object.keys(gameState.allCards).length) % Object.keys(gameState.allCards).length;
+    }
+
     if (!gameState) return <Loading />
 
     return (
@@ -277,8 +303,6 @@ export default function Game() {
                 {
                     error && <ErrorModal errorCode={error} closeError={() => { setError(null) }}></ErrorModal>
                 }
-                {/* <TurnDisplayComponent playerName={lobby!.users.find((u) => u._id === game.currentPlayer.playerId)?.username || null} />
-                <TurnDisplayComponent playerName={lobby!.bots.find((u) => u._id === game.currentPlayer.playerId)?.name || null} /> */}
 
                 <PingDisplayComponent />
                 <div className="flex justify-center items-center w-full h-full absolute gap-7">
@@ -286,33 +310,13 @@ export default function Game() {
                     {
                         !endOfTurn &&
                         <div className="flex relative z-50 w-[20rem] h-[20rem]" onDragOver={overDrag} onDrop={checkCard} >
-                            {
-                                gameState.droppedCards.find((c: any) => c.droppedBy === Object.keys(gameState.allCards).filter((c) => c !== user?._id)[1]) &&
-                                <div className="absolute w-[8rem] -top-16 left-[50%] translate-x-[-50%]">
-                                    <Image className="" draggable={false} src={"/" + new CardsUrls().getFullCardUrl(gameState.droppedCards.find((c: any) => c.droppedBy === Object.keys(gameState.allCards).filter((c) => c !== user?._id)[1])!.card.name)} width={150} height={180} alt="card"></Image>
-                                </div>
-                            }
+                            <DroppedCardComponent card={getPlayerBySpace(2, true)} className="absolute w-[8rem] -top-16 left-[50%] translate-x-[-50%]" trumpSuit={gameState.lastAction.trump?.suit}></DroppedCardComponent>
 
-                            {
-                                gameState.droppedCards.find((c: any) => c.droppedBy === user!._id) &&
-                                <div className="absolute w-[8rem] -bottom-16 left-[50%] translate-x-[-50%]">
-                                    <Image className="" draggable={false} src={"/" + new CardsUrls().getFullCardUrl(gameState.droppedCards.find((c: any) => c.droppedBy === user!._id)!.card.name)} width={150} height={180} alt="card"></Image>
-                                </div>
-                            }
+                            <DroppedCardComponent card={getPlayerBySpace(0, true)} className="absolute w-[8rem] -bottom-16 left-[50%] translate-x-[-50%]" trumpSuit={gameState.lastAction.trump?.suit}></DroppedCardComponent>
 
-                            {
-                                gameState.droppedCards.find((c: any) => c.droppedBy === Object.keys(gameState.allCards).filter((c) => c !== user?._id)[0]) &&
-                                <div className="absolute w-[8rem] top-[50%] translate-y-[-50%] -left-16">
-                                    <Image className="" draggable={false} src={"/" + new CardsUrls().getFullCardUrl(gameState.droppedCards.find((c: any) => c.droppedBy === Object.keys(gameState.allCards).filter((c) => c !== user?._id)[0])!.card.name)} width={150} height={180} alt="card"></Image>
-                                </div>
-                            }
+                            <DroppedCardComponent card={getPlayerBySpace(1, true)} className="absolute w-[8rem] top-[50%] translate-y-[-50%] -left-16" trumpSuit={gameState.lastAction.trump?.suit}></DroppedCardComponent>
 
-                            {
-                                gameState.droppedCards.find((c: any) => c.droppedBy === Object.keys(gameState.allCards).filter((c) => c !== user?._id)[2]) &&
-                                <div className="absolute w-[8rem] bottom-[50%] translate-y-[50%] -right-16">
-                                    <Image className="" draggable={false} src={"/" + new CardsUrls().getFullCardUrl(gameState.droppedCards.find((c: any) => c.droppedBy === Object.keys(gameState.allCards).filter((c) => c !== user?._id)[2])!.card.name)} width={150} height={180} alt="card"></Image>
-                                </div>
-                            }
+                            <DroppedCardComponent card={getPlayerBySpace(3, true)} className="absolute w-[8rem] bottom-[50%] translate-y-[50%] -right-16" trumpSuit={gameState.lastAction.trump?.suit}></DroppedCardComponent>
                         </div>
                     }
 
@@ -342,12 +346,12 @@ export default function Game() {
                     <div></div>
 
                     {
-                        lobbyState?.users.find((u) => { return u._id === Object.keys(gameState.allCards).filter((c) => c !== user?._id)[0] }) &&
-                        <GameUser isCaller={gameState.lastAction.playerId === lobbyState?.users.find((u) => { return u._id === Object.keys(gameState.allCards).filter((c) => c !== user?._id)[0] })!._id} user={lobbyState?.users.find((u) => { return u._id === Object.keys(gameState.allCards).filter((c) => c !== user?._id)[0] })} currentPlayer={gameState.currentPlayer.playerId} cardNumber={gameState.allCards[Object.keys(gameState.allCards).filter((c) => c !== user?._id)[0]]}></GameUser>
+                        getPlayerBySpace(1, false, false) &&
+                        <GameUser isCaller={gameState.lastAction.playerId === getPlayerBySpace(1, false, false)._id} user={getPlayerBySpace(1, false, false)} currentPlayer={gameState.currentPlayer.playerId} cardNumber={gameState.allCards[getPlayerBySpace(1, false, false)._id]}></GameUser>
                     }
                     {
-                        lobbyState?.bots.find((u) => { return u._id === Object.keys(gameState.allCards).filter((c) => c !== user?._id)[0] }) &&
-                        <GameBot isCaller={gameState.lastAction.playerId === lobbyState?.bots.find((u) => { return u._id === Object.keys(gameState.allCards).filter((c) => c !== user?._id)[0] })!._id} bot={lobbyState?.bots.find((u) => { return u._id === Object.keys(gameState.allCards).filter((c) => c !== user?._id)[0] })} currentPlayer={gameState.currentPlayer.playerId} cardNumber={gameState.allCards[Object.keys(gameState.allCards).filter((c) => c !== user?._id)[0]]}></GameBot>
+                        getPlayerBySpace(1, false, true) &&
+                        <GameBot isCaller={gameState.lastAction.playerId === getPlayerBySpace(1, false, true)._id} bot={getPlayerBySpace(1, false, true)} currentPlayer={gameState.currentPlayer.playerId} cardNumber={gameState.allCards[getPlayerBySpace(1, false, true)._id]}></GameBot>
                     }
                     <div></div>
                 </div>
@@ -355,12 +359,12 @@ export default function Game() {
                 <div className="absolute top-2 right-2 w-full flex flex-col justify-between items-center">
                     <div></div>
                     {
-                        lobbyState?.users.find((u) => { return u._id === Object.keys(gameState.allCards).filter((c) => c !== user?._id)[1] }) &&
-                        <GameUser isCaller={gameState.lastAction.playerId === lobbyState?.users.find((u) => { return u._id === Object.keys(gameState.allCards).filter((c) => c !== user?._id)[1] })!._id} isOnTop user={lobbyState?.users.find((u) => { return u._id === Object.keys(gameState.allCards).filter((c) => c !== user?._id)[1] })} currentPlayer={gameState.currentPlayer.playerId} cardNumber={gameState.allCards[Object.keys(gameState.allCards).filter((c) => c !== user?._id)[1]]}></GameUser>
+                        getPlayerBySpace(2, false, false) &&
+                        <GameUser isCaller={gameState.lastAction.playerId === getPlayerBySpace(2, false, false)._id} isOnTop user={getPlayerBySpace(2, false, false)} currentPlayer={gameState.currentPlayer.playerId} cardNumber={gameState.allCards[getPlayerBySpace(2, false, false)._id]}></GameUser>
                     }
                     {
-                        lobbyState?.bots.find((u) => { return u._id === Object.keys(gameState.allCards).filter((c) => c !== user?._id)[1] }) &&
-                        <GameBot isCaller={gameState.lastAction.playerId === lobbyState?.bots.find((u) => { return u._id === Object.keys(gameState.allCards).filter((c) => c !== user?._id)[1] })!._id} isOnTop bot={lobbyState?.bots.find((u) => { return u._id === Object.keys(gameState.allCards).filter((c) => c !== user?._id)[1] })} currentPlayer={gameState.currentPlayer.playerId} cardNumber={gameState.allCards[Object.keys(gameState.allCards).filter((c) => c !== user?._id)[1]]}></GameBot>
+                        getPlayerBySpace(2, false, true) &&
+                        <GameBot isCaller={gameState.lastAction.playerId === getPlayerBySpace(2, false, true)._id} isOnTop bot={getPlayerBySpace(2, false, true)} currentPlayer={gameState.currentPlayer.playerId} cardNumber={gameState.allCards[getPlayerBySpace(2, false, true)._id]}></GameBot>
                     }
                     <div></div>
                 </div>
@@ -368,12 +372,12 @@ export default function Game() {
                 <div className="absolute top-0 right-2 h-full flex flex-col justify-between items-center">
                     <div></div>
                     {
-                        lobbyState?.users.find((u) => { return u._id === Object.keys(gameState.allCards).filter((c) => c !== user?._id)[2] }) &&
-                        <GameUser isCaller={gameState.lastAction.playerId === lobbyState?.users.find((u) => { return u._id === Object.keys(gameState.allCards).filter((c) => c !== user?._id)[2] })!._id} user={lobbyState?.users.find((u) => { return u._id === Object.keys(gameState.allCards).filter((c) => c !== user?._id)[2] })} currentPlayer={gameState.currentPlayer.playerId} cardNumber={gameState.allCards[Object.keys(gameState.allCards).filter((c) => c !== user?._id)[2]]}></GameUser>
+                        getPlayerBySpace(3, false, false) &&
+                        <GameUser isCaller={gameState.lastAction.playerId === getPlayerBySpace(3, false, false)._id} user={getPlayerBySpace(3, false, false)} currentPlayer={gameState.currentPlayer.playerId} cardNumber={gameState.allCards[getPlayerBySpace(3, false, false)._id]}></GameUser>
                     }
                     {
-                        lobbyState?.bots.find((u) => { return u._id === Object.keys(gameState.allCards).filter((c) => c !== user?._id)[2] }) &&
-                        <GameBot isCaller={gameState.lastAction.playerId === lobbyState?.bots.find((u) => { return u._id === Object.keys(gameState.allCards).filter((c) => c !== user?._id)[2] })!._id} bot={lobbyState?.bots.find((u) => { return u._id === Object.keys(gameState.allCards).filter((c) => c !== user?._id)[2] })} currentPlayer={gameState.currentPlayer.playerId} cardNumber={gameState.allCards[Object.keys(gameState.allCards).filter((c) => c !== user?._id)[2]]}></GameBot>
+                        getPlayerBySpace(3, false, true) &&
+                        <GameBot isCaller={gameState.lastAction.playerId === getPlayerBySpace(3, false, true)._id} bot={getPlayerBySpace(3, false, true)} currentPlayer={gameState.currentPlayer.playerId} cardNumber={gameState.allCards[getPlayerBySpace(3, false, true)._id]}></GameBot>
                     }
                     <div></div>
                 </div>
@@ -391,7 +395,7 @@ export default function Game() {
                                          `}>
                                         <Image onDragEnter={(e) => { onDragEnter(e, i) }} className={`${drawedCard?.name === card.name && drawedCard?.pack === card.pack ? 'ring ring-sky-600' : ''} border-2 border-transparent group-hover:border-green-400 rounded-lg`} style={{ width: "8rem", maxWidth: "8rem" }} loading="eager" onDragEnd={() => { setDraggedCard(null) }} onDragStart={() => { startDrag(card) }} onDrop={() => { dropDrag(i) }} onDragOver={overDrag} src={"/" + new CardsUrls().getFullCardUrl(card.name)} width={100} height={100} alt={card.name}></Image>
                                         {
-                                            card.isJoker && card.rank == 4 &&
+                                            card.isJoker && card.rank == 4 && gameState.droppedCards.length === 0 && gameState.currentPlayer.playerId === user?._id &&
                                             <button onClick={() => { callTwenty(card) }} className="absolute -top-14 rounded-full bg-gradient-to-br from-orange-600/60 to-yellow-600/40 w-12 h-12 flex justify-center items-center text-zinc-100 text-xl cursor-pointer hover:scale-105 hover:shadow-lg hover:shadow-white/30">
                                                 {gameState.lastAction.trump!.suit === card.suit ? 40 : 20}
                                             </button>
@@ -443,7 +447,7 @@ export default function Game() {
                 </div>
 
                 {
-                    gameState.playedCards.length > 0 && gameState.lastAction.points && 
+                    gameState.playedCards.length > 0 && gameState.lastAction.points &&
                     <main className="fixed bottom-4 right-4 z-[10] ">
 
                         {
@@ -477,22 +481,21 @@ export default function Game() {
 
 
                         <div className="text-zinc-200 font-bold text-3xl absolute right-[105%] bottom-2 right-2">
+
+
                             {
-                                gameState.lastAction.isUno && gameState.lastAction.trumpWith !== user?._id ?
-                                    <span>
-
-                                        {
-                                            gameState.lastAction.points![gameState.lastAction.trumpWith!] || 0
-                                            +
-                                            gameState.lastAction.points![user!._id] || 0
-                                        }
-
-                                    </span> :
-                                    <span className="">
-                                        {
-                                            gameState.lastAction.points![user!._id] || 0
-                                        }
-                                    </span>
+                                (gameState.lastAction.points![user!._id] || 0) + (
+                                    gameState.lastAction.isUno ?
+                                        (
+                                            gameState.lastAction.trumpWith === user!._id && gameState.lastAction.playerId === user!._id ?
+                                                0 :
+                                                gameState.lastAction.trumpWith !== user!._id && gameState.lastAction.playerId === user!._id ?
+                                                    (gameState.lastAction.points![gameState.lastAction.trumpWith!] || 0) :
+                                                    gameState.lastAction.trumpWith === user!._id && gameState.lastAction.playerId !== user!._id ?
+                                                        (gameState.lastAction.points![gameState.lastAction.playerId!] || 0) :
+                                                        0
+                                        ) : 0
+                                )
                             }
                         </div>
 
@@ -559,6 +562,11 @@ export default function Game() {
 
 
                                 <div className="flex gap-1 h-full">
+                                    <button onClick={skipTrumpSelection} className="bg-gradient-to-br p-2 from-emerald-600/80 to-green-400/60 rounded-lg text-zinc-200 font-bold text-lg hover:scale-110 duration-200 cursor-pointer hover:shadow-md hover:shadow-zinc-300/20 w-full mt-auto disabled:opacity-50 disabled:cursor-not-allowed">
+                                        Skip
+                                    </button>
+                                </div>
+                                <div className="flex gap-1 h-full">
                                     <button onClick={setTrumpSelection} disabled={!(selectedTrump.call && selectedTrump.cardName && selectedTrump.suit)} className="bg-gradient-to-br p-2 from-red-600 to-red-400 rounded-lg text-zinc-200 font-bold text-lg hover:scale-110 duration-200 cursor-pointer hover:shadow-md hover:shadow-zinc-300/20 w-full mt-auto disabled:opacity-50 disabled:cursor-not-allowed">
                                         Select
                                     </button>
@@ -577,4 +585,17 @@ export default function Game() {
 
         </main>
     )
+}
+
+function DroppedCardComponent({ card, className, trumpSuit }: { card: Icard | null | undefined | any, className?: string, trumpSuit?: string }) {
+    if (!card) return null;
+    return (
+        <div className={className}>
+            {
+                card.showedBy &&
+                <div className="absolute -bottom-6 -right-4 text-zinc-200 text-md w-8 h-8 rounded-full bg-orange-800 flex justify-center items-center">{card.suit === trumpSuit ? 40 : 20}</div>
+            }
+            <Image className="" draggable={false} src={"/" + new CardsUrls().getFullCardUrl(card.name)} width={150} height={180} alt="card"></Image>
+        </div>
+    );
 }

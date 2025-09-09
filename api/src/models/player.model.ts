@@ -78,8 +78,8 @@ export const userSchema = new Schema(
             readonly: true,
             default: [],
             ref: "achivement",
-            unique: true,
-            nullable: true
+            nullable: true,
+            unique: false
         },
         createdAt: {
             type: Date,
@@ -137,7 +137,8 @@ const validate = (message: object): Joi.ValidationResult => {
         lastName: Joi.string().required(),
         email: Joi.string().required().email(),
         password: Joi.string().min(6).pattern(new RegExp('^[a-zA-Z0-9]{6,30}$')).required(),
-        username: Joi.string().required()
+        username: Joi.string().required(),
+        achievements: Joi.array().items(Joi.string()).optional(),
     });
     return schema.validate(message);
 };

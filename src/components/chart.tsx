@@ -58,7 +58,7 @@ export function LineChart({ labels, wins, losses }: { labels: string[], wins: nu
     function getDateFromString(dateString: string): Date {
         const [month, day] = dateString.split('-').map(Number);
         const year = new Date().getFullYear(); // Use current year
-        return new Date(year, month - 1, day); // Month is 0-indexed in JavaScript
+        return new Date(year, month, day); // Month is 0-indexed in JavaScript
     }
 
     const data = {

@@ -6,11 +6,7 @@ import Link from "next/link";
 
 export default function Home() {
 
-    const route = useRouter();
-
-    if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-        route.replace("/mobile");
-    }
+    
 
     return (
         <main className="gap-2 h-full overflow-y-scroll xl:px-96 px-24">

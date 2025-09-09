@@ -23,6 +23,10 @@ export default function Navbar({ clear }: { clear?: boolean }) {
 
     const gameUrls = ['rummy', 'uno', 'solitaire', 'schnapps'];
 
+    const dontShow = ['/login', '/register', '/verify'];
+
+
+
 
     const [userState, setUserState] = React.useState(false);
 
@@ -33,6 +37,10 @@ export default function Navbar({ clear }: { clear?: boolean }) {
         setUserState(true);
         setU(user);
     }, [user]);
+
+    if (dontShow.find((url) => path.includes(url))) {
+        return null;
+    }
 
     if (!userState) return (
 

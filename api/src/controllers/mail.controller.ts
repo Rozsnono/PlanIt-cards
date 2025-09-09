@@ -54,7 +54,7 @@ export default class MailController implements Controller {
 
         const hex = Buffer.from(text).toString('hex');
 
-        const link = `http://localhost:3000/verify/${hex}/${code}`;
+        const link = `http://188.157.195.126:3000/verify/${hex}/${code}`;
 
         try {
             await this.transporter.sendMail({

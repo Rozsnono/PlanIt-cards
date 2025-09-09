@@ -19,15 +19,15 @@ import Loading from "@/app/loading";
 const gameService = new GameService("rummy");
 
 const Alobby = {
-    "_id": "6835d641b9b5174c8e893edf",
+    "_id": "tutorial-lobby-rummy",
     "users": [
         {
-            "_id": "67e9979b4e5aaf158e357987",
-            "customId": "526f7a734e6f726265727467e997",
-            "firstName": "Rozs",
-            "lastName": "Norbert",
-            "email": "rozsnono@gmail.com",
-            "username": "rozsnono",
+            "_id": "tutorial-player-rummy",
+            "customId": "tutorial-player-rummy",
+            "firstName": "Tutorial",
+            "lastName": "Player",
+            "email": "tutorial.player@example.com",
+            "username": "tutorial.player",
             "rank": 20,
             "settings": {
                 "backgroundColor": "#FF3333",
@@ -50,64 +50,59 @@ const Alobby = {
         "numberOfRobots": 1,
         "robotsDifficulty": "EASY",
         "cardType": "RUMMY",
-        "_id": "6835d641b9b5174c8e893ee0"
+        "_id": "tutorial-lobby-rummy"
     },
     "chat": [],
-    "createdBy": "67e9979b4e5aaf158e357987",
+    "createdBy": "tutorial-player-rummy",
     "createdAt": "2025-05-27T15:12:01.704Z",
-    "game_id": "6835d643b9b5174c8e893ef0"
+    "game_id": "tutorial-game-rummy"
 };
 
 const Agame = {
-    "_id": {
-        "$oid": "6835d643b9b5174c8e893ef0"
-    },
+    "_id": 'tutorial-game-rummy',
     "currentPlayer": {
-        "playerId": "67e9979b4e5aaf158e357987",
-        "time": 1748358723816,
-        "_id": {
-            "$oid": "6835d643b9b5174c8e893ef2"
-        }
+        "playerId": "tutorial-player-rummy",
+        "time": 1748358723816
     },
     "playerCards": {
         "you": [
             {
-                "name": "8C",
+                "name": "R_8C",
                 "rank": 8,
                 "suit": "C",
                 "pack": 2,
                 "value": 8
             },
             {
-                "name": "AH",
+                "name": "R_AH",
                 "rank": 14,
                 "suit": "H",
                 "pack": 1,
                 "value": 10
             },
             {
-                "name": "8H",
+                "name": "R_8H",
                 "rank": 8,
                 "suit": "H",
                 "pack": 2,
                 "value": 8
             },
             {
-                "name": "5D",
+                "name": "R_5D",
                 "rank": 5,
                 "suit": "D",
                 "pack": 1,
                 "value": 5
             },
             {
-                "name": "6D",
+                "name": "R_6D",
                 "rank": 6,
                 "suit": "D",
                 "pack": 2,
                 "value": 6
             },
             {
-                "name": "7D",
+                "name": "R_7D",
                 "rank": 7,
                 "suit": "D",
                 "pack": 2,
@@ -117,14 +112,14 @@ const Agame = {
         ],
         "bot0": [
             {
-                "name": "KC",
+                "name": "R_KC",
                 "rank": 14,
                 "suit": "C",
                 "pack": 1,
                 "value": 10
             },
             {
-                "name": "10C",
+                "name": "R_10C",
                 "rank": 10,
                 "suit": "C",
                 "pack": 2,
@@ -134,14 +129,14 @@ const Agame = {
     },
     "shuffledCards": [
         {
-            "name": "10D",
+            "name": "R_10D",
             "rank": 10,
             "suit": "D",
             "pack": 2,
             "value": 10
         },
         {
-            "name": "4C",
+            "name": "R_4C",
             "rank": 4,
             "suit": "C",
             "pack": 2,
@@ -159,21 +154,21 @@ const Agame = {
             "playedBy": "Cardy",
             "cards": [
                 {
-                    "name": "3D",
+                    "name": "R_3D",
                     "rank": 3,
                     "suit": "D",
                     "pack": 1,
                     "value": 3
                 },
                 {
-                    "name": "3H",
+                    "name": "R_3H",
                     "rank": 3,
                     "suit": "H",
                     "pack": 2,
                     "value": 3
                 },
                 {
-                    "name": "3S",
+                    "name": "R_3S",
                     "rank": 3,
                     "suit": "S",
                     "pack": 1,
@@ -185,28 +180,28 @@ const Agame = {
             "playedBy": "Cardy",
             "cards": [
                 {
-                    "name": "9C",
+                    "name": "R_9C",
                     "rank": 9,
                     "suit": "C",
                     "pack": 1,
                     "value": 9
                 },
                 {
-                    "name": "10C",
+                    "name": "R_10C",
                     "rank": 10,
                     "suit": "C",
                     "pack": 1,
                     "value": 10
                 },
                 {
-                    "name": "JC",
+                    "name": "R_JC",
                     "rank": 11,
                     "suit": "C",
                     "pack": 1,
                     "value": 10
                 },
                 {
-                    "name": "QC",
+                    "name": "R_QC",
                     "rank": 12,
                     "suit": "C",
                     "pack": 1,
@@ -218,28 +213,28 @@ const Agame = {
             "playedBy": "You",
             "cards": [
                 {
-                    "name": "5H",
+                    "name": "R_5H",
                     "rank": 5,
                     "suit": "H",
                     "pack": 1,
                     "value": 5
                 },
                 {
-                    "name": "6H",
+                    "name": "R_6H",
                     "rank": 6,
                     "suit": "H",
                     "pack": 2,
                     "value": 6
                 },
                 {
-                    "name": "7H",
+                    "name": "R_7H",
                     "rank": 7,
                     "suit": "H",
                     "pack": 1,
                     "value": 7
                 },
                 {
-                    "name": "RJ",
+                    "name": "R_RJ",
                     "rank": 50,
                     "suit": "R",
                     "pack": 2,
@@ -247,7 +242,7 @@ const Agame = {
                     "isJoker": true
                 },
                 {
-                    "name": "9H",
+                    "name": "R_9H",
                     "rank": 9,
                     "suit": "H",
                     "pack": 2,
@@ -260,7 +255,7 @@ const Agame = {
         {
             "droppedBy": "67e9979b4e5aaf158e357987",
             "card": {
-                "name": "2C",
+                "name": "R_2C",
                 "rank": 2,
                 "suit": "C",
                 "pack": 1,
@@ -270,7 +265,7 @@ const Agame = {
         {
             "droppedBy": "bot0",
             "card": {
-                "name": "4D",
+                "name": "R_4D",
                 "rank": 4,
                 "suit": "D",
                 "pack": 1,
@@ -511,7 +506,7 @@ export default function Game() {
                 setGame({
                     ...game,
                     playedCards: game.playedCards.map((e: { playedBy: string, cards: Icard[] }) => {
-                        if (e.cards.find(c => c.name === 'JC')) {
+                        if (e.cards.find(c => c.name === 'R_JC')) {
                             return { ...e, cards: [...e.cards, draggedCard!].sort((a, b) => a.rank - b.rank) };
                         }
                         return e;
@@ -524,7 +519,7 @@ export default function Game() {
                 setGame({
                     ...game,
                     playedCards: game.playedCards.map((e: { playedBy: string, cards: Icard[] }) => {
-                        if (e.cards.find(c => c.name === 'JC')) {
+                        if (e.cards.find(c => c.name === 'R_JC')) {
                             return { ...e, cards: [...e.cards, draggedCard!].sort((a, b) => a.rank - b.rank) };
                         }
                         return e;
@@ -537,7 +532,7 @@ export default function Game() {
                 setGame({
                     ...game,
                     playedCards: game.playedCards.map((e: { playedBy: string, cards: Icard[] }) => {
-                        if (e.cards.find(c => c.name === '6H')) {
+                        if (e.cards.find(c => c.name === 'R_6H')) {
                             return { ...e, cards: [...e.cards, draggedCard!].sort((a, b) => a.rank - b.rank).filter((c: Icard) => !c.isJoker) };
                         }
                         return e;
@@ -574,19 +569,19 @@ export default function Game() {
 
     function checkStepsInCards(card: Icard) {
         switch (steps) {
-            case 4: if (card.name === "5D") return ' ring-4 ring-red-500 '; break;
-            case 5: if (card.name === "6D") return ' ring-4 ring-red-500 '; break;
-            case 6: if (card.name === "7D") return ' ring-4 ring-red-500 '; break;
-            case 7: if (card.name === "5D" || card.name === "6D" || card.name === "7D") return ' ring-4 ring-red-500 '; break;
-            case 8: if (card.name === "10D") return ' ring-4 ring-red-500 '; break;
-            case 13: if (card.name === "KC") return ' ring-4 ring-red-500 '; break;
-            case 14: if (card.name === "KC") return ' ring-4 ring-red-500 '; break;
-            case 15: if (card.name === "8C") return ' ring-4 ring-red-500 '; break;
-            case 16: if (card.name === "8C") return ' ring-4 ring-red-500 '; break;
-            case 17: if (card.name === "8H") return ' ring-4 ring-red-500 '; break;
-            case 18: if (card.name === "8H") return ' ring-4 ring-red-500 '; break;
-            case 19: if (card.name === "AH") return ' ring-4 ring-red-500 '; break;
-            case 20: if (card.name === "AH") return ' ring-4 ring-red-500 '; break;
+            case 4: if (card.name === "R_5D") return ' ring-4 ring-red-500 '; break;
+            case 5: if (card.name === "R_6D") return ' ring-4 ring-red-500 '; break;
+            case 6: if (card.name === "R_7D") return ' ring-4 ring-red-500 '; break;
+            case 7: if (card.name === "R_5D" || card.name === "R_6D" || card.name === "R_7D") return ' ring-4 ring-red-500 '; break;
+            case 8: if (card.name === "R_10D") return ' ring-4 ring-red-500 '; break;
+            case 13: if (card.name === "R_KC") return ' ring-4 ring-red-500 '; break;
+            case 14: if (card.name === "R_KC") return ' ring-4 ring-red-500 '; break;
+            case 15: if (card.name === "R_8C") return ' ring-4 ring-red-500 '; break;
+            case 16: if (card.name === "R_8C") return ' ring-4 ring-red-500 '; break;
+            case 17: if (card.name === "R_8H") return ' ring-4 ring-red-500 '; break;
+            case 18: if (card.name === "R_8H") return ' ring-4 ring-red-500 '; break;
+            case 19: if (card.name === "R_AH") return ' ring-4 ring-red-500 '; break;
+            case 20: if (card.name === "R_AH") return ' ring-4 ring-red-500 '; break;
         }
     }
 

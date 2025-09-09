@@ -362,49 +362,51 @@ export class SchnappsService extends GameChecker {
             } else {
                 game.currentPlayer = { playerId: winner, time: new Date().getTime() };
             }
+
+            game.lastAction.points = Object.fromEntries(Object.keys(game.playerCards).map((p) => {
+                return [p, this.calculateSchnappsPoints(p, game.playedCards, game.lastAction.trump?.suit)];
+            }));
+
+            if (game.playedCards.length > 0) {
+                switch (game.lastAction.actions) {
+                    case 6:
+                        if (game.playedCards.find((p: any) => p.playedBy === game.lastAction.playerId)) {
+                            game.secretSettings.isGameOver = true;
+                        }
+                        break;
+                    case 7:
+                        if (game.playedCards.find((p: any) => p.playedBy !== game.lastAction.playerId && p.playedBy !== game.lastAction.trumpWith)) {
+                            game.secretSettings.isGameOver = true;
+                        } else if (game.lastAction.points[game.lastAction.playerId!] + game.lastAction.points[game.lastAction.trumpWith!] >= 66) {
+                            game.secretSettings.isGameOver = true;
+                        }
+                        break;
+                    case 8:
+                        if (game.playedCards.find((p: any) => p.playedBy !== game.lastAction.playerId && p.playedBy === game.lastAction.trumpWith)) {
+                            game.secretSettings.isGameOver = true;
+                        }
+                        break;
+                    default:
+                        const p = Object.keys(game.lastAction.points).map((pl) => { return { playedBy: pl, sum: game.lastAction.points[pl] }}).sort((a, b) => b.sum - a.sum);
+                        if (p[0].sum >= 66) {
+                            game.secretSettings.isGameOver = true;
+                        }
+                        if (game.lastAction.isUno && p.filter((pt: any) => pt.playedBy === game.lastAction.playerId || game.lastAction.trumpWith).reduce((a: any, b: any) => a + b.sum, 0) >= 66) {
+                            game.secretSettings.isGameOver = true;
+                        }
+                        if (game.lastAction.isUno && p.filter((pt: any) => pt.playedBy !== game.lastAction.playerId && game.lastAction.trumpWith).reduce((a: any, b: any) => a + b.sum, 0) >= 66) {
+                            game.secretSettings.isGameOver = true;
+                        }
+                        break;
+                }
+            }
         } else {
             game.currentPlayer = { playerId: this.nextPlayer(Object.keys(game.playerCards), game.currentPlayer.playerId), time: new Date().getTime() };
         }
 
         game.drawedCard.lastDrawedBy = '';
 
-        game.lastAction.points = Object.fromEntries(Object.keys(game.playerCards).map((p) => {
-            return [p, this.calculateSchnappsPoints(p, game.playedCards)];
-        }));
 
-        if (game.playedCards.length > 0) {
-            switch (game.lastAction.actions) {
-                case 6:
-                    if (game.playedCards.find((p: any) => p.playedBy === game.lastAction.playerId)) {
-                        game.secretSettings.isGameOver = true;
-                    }
-                    break;
-                case 7:
-                    if (game.playedCards.find((p: any) => p.playedBy !== game.lastAction.playerId && p.playedBy !== game.lastAction.trumpWith)) {
-                        game.secretSettings.isGameOver = true;
-                    } else if (game.lastAction.points[game.lastAction.playerId!] + game.lastAction.points[game.lastAction.trumpWith!] >= 66) {
-                        game.secretSettings.isGameOver = true;
-                    }
-                    break;
-                case 8:
-                    if (game.playedCards.find((p: any) => p.playedBy !== game.lastAction.playerId && p.playedBy === game.lastAction.trumpWith)) {
-                        game.secretSettings.isGameOver = true;
-                    }
-                    break;
-                default:
-                    const p = game.playedCards.map((p: any) => { return { playedBy: p.playedBy, sum: p.cards.reduce((a: any, b: any) => a + b.value, 0) } }).sort((a: any, b: any) => a.sum - b.sum);
-                    if (p[0].sum >= 66) {
-                        game.secretSettings.isGameOver = true;
-                    }
-                    if (game.lastAction.isUno && p.filter((pt: any) => pt.playedBy === game.lastAction.playerId || game.lastAction.trumpWith).reduce((a: any, b: any) => a + b.sum, 0) >= 66) {
-                        game.secretSettings.isGameOver = true;
-                    }
-                    if (game.lastAction.isUno && p.filter((pt: any) => pt.playedBy !== game.lastAction.playerId && game.lastAction.trumpWith).reduce((a: any, b: any) => a + b.sum, 0) >= 66) {
-                        game.secretSettings.isGameOver = true;
-                    }
-                    break;
-            }
-        }
 
         await this.game.updateOne({ _id: gameId }, game, { runValidators: true });
 
@@ -442,8 +444,12 @@ export class SchnappsService extends GameChecker {
         return true;
     }
 
-    private calculateSchnappsPoints(playerId: string, playedCards: { playedBy: string, cards: Icard[] }[]) {
-        return playedCards.filter((p) => p.playedBy === playerId).map((p) => p.cards).reduce((sum: any, obj: any) => { return sum + obj.reduce((a: any, b: any) => a + b.value, 0) }, 0) || 0;
+    private calculateSchnappsPoints(playerId: string, playedCards: { playedBy: string, cards: Icard[] }[], trumpSuit?: string) {
+        let sum = playedCards.filter((p) => p.playedBy === playerId).map((p) => p.cards).reduce((sum: any, obj: any) => { return sum + obj.reduce((a: any, b: any) => a + b.value, 0) }, 0) || 0;
+        if (playedCards.find((p) => p.cards.find((c) => c.isJoker && c.showedBy === playerId)) && playedCards.find((o) => o.playedBy === playerId)) {
+            sum += playedCards.find((p) => p.cards.find((c) => c.isJoker && c.showedBy === playerId))!.cards.find((c) => c.isJoker && c.showedBy === playerId)!.suit === trumpSuit ? 40 : 20
+        }
+        return sum;
     }
 
     public async robotSelecting(game: Igame, lobby: Ilobby, currentPlayer: string) {
@@ -474,7 +480,7 @@ export class SchnappsService extends GameChecker {
 
         if (!overrideThinkingTime) {
             const waitingTime = bot.thinkingTime;
-            await this.wait(waitingTime - 3000);
+            await this.wait(waitingTime / 10 + 1000);
         } else {
         }
 

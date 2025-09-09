@@ -19,39 +19,6 @@ import ProfilePicture, { ProfileIcon } from "@/assets/profile-pics";
 import { Iplayer } from "@/interfaces/interface";
 
 
-function Achievements({ imageSrc, name, description }: { imageSrc: string, name: string, description?: string }) {
-
-    const [show, setShow] = React.useState(false);
-    return (
-        <main className="flex">
-            {show &&
-                <main className="flex justify-center items-center w-screen h-screen fixed top-0 left-0 bg-[#00000050] z-[10000]">
-                    <div className="bg-zinc-700 rounded-lg flex p-4 w-[30rem] h-64 relative">
-                        <Image className="z-[100]" src={imageSrc} width={200} height={200} alt={name}></Image>
-
-                        <div className="flex flex-col gap-3 px-8 justify-center">
-                            <div className="font-bold text-3xl">{name}</div>
-                            <div>{description}</div>
-                        </div>
-
-                        <div className="absolute top-3 right-3 cursor-pointer" onClick={() => { setShow(!show) }}>
-                            <Icon name="close" size={24}></Icon>
-                        </div>
-                    </div>
-                </main>
-            }
-            <Image onClick={() => { setShow(!show) }} className="z-[100] cursor-pointer" src={imageSrc} width={64} height={64} alt={name}></Image>
-        </main>
-    )
-}
-
-function Friends({ settings }: { settings: any }) {
-
-    return (
-        <ProfileIcon settings={settings} size={3} className='p-0' />
-    )
-}
-
 export default function ProfilePage() {
 
     const player_id = useParams().id;
@@ -144,12 +111,14 @@ export default function ProfilePage() {
                         </div>
                     }
 
-                    <div className="w-full h-64">
-                        <LineChart labels={formatDates(Object.keys(player.data.gamesStats.gamesPerDate))}
-                            wins={Object.values(player.data.gamesStats.gamesPerDate).map((e: any) => e.wins)}
-                            losses={Object.values(player.data.gamesStats.gamesPerDate).map((e: any) => e.losses)}
-                        />
-                    </div>
+                    {player.data.gamesStats && player.data.gamesStats.gamesPerDate &&
+                        <div className="w-full h-64">
+                            <LineChart labels={formatDates(Object.keys(player.data.gamesStats.gamesPerDate))}
+                                wins={Object.values(player.data.gamesStats.gamesPerDate).map((e: any) => e.wins)}
+                                losses={Object.values(player.data.gamesStats.gamesPerDate).map((e: any) => e.losses)}
+                            />
+                        </div>
+                    }
 
 
                 </Card>
@@ -281,13 +250,13 @@ export default function ProfilePage() {
 
                     <div className="flex flex-col items-center justify-center">
                         <div className="text-lg text-zinc-400 font-bold">Friends</div>
-                        <div className="flex flex-col gap-2 gap-2 max-h-[40vh] overflow-y-auto p-4">
+                        <div className="flex gap-2 gap-2 max-h-[40vh] overflow-y-auto p-4">
                             {
                                 player.data.friends &&
                                 player.data.friends.map((friend: any, i: number) => {
                                     return (
                                         <Link key={i} href={`/profile/${friend.customId}`}>
-                                            <Friends settings={friend.settings}></Friends>
+                                            <Friends settings={friend.settings} initials={getUserInitials(friend.firstName, friend.lastName)}></Friends>
                                         </Link>
                                     )
                                 })
@@ -635,5 +604,39 @@ function PlayerSettings({ user, onClose }: { user?: Iplayer, onClose: () => void
                 </div>
             </div>
         </main>
+    )
+}
+
+
+function Achievements({ imageSrc, name, description }: { imageSrc: string, name: string, description?: string }) {
+
+    const [show, setShow] = React.useState(false);
+    return (
+        <main className="flex">
+            {show &&
+                <main className="flex justify-center items-center w-screen h-screen fixed top-0 left-0 bg-[#00000050] z-[10000]">
+                    <div className="bg-zinc-700 rounded-lg flex p-4 w-[30rem] h-64 relative">
+                        <Image className="z-[100]" src={imageSrc} width={200} height={200} alt={name}></Image>
+
+                        <div className="flex flex-col gap-3 px-8 justify-center">
+                            <div className="font-bold text-3xl">{name}</div>
+                            <div>{description}</div>
+                        </div>
+
+                        <div className="absolute top-3 right-3 cursor-pointer" onClick={() => { setShow(!show) }}>
+                            <Icon name="close" size={24}></Icon>
+                        </div>
+                    </div>
+                </main>
+            }
+            <Image onClick={() => { setShow(!show) }} className="z-[100] cursor-pointer" src={imageSrc} width={64} height={64} alt={name}></Image>
+        </main>
+    )
+}
+
+function Friends({ settings, initials }: { settings: any, initials: string }) {
+
+    return (
+        <ProfileIcon settings={settings} size={3} className='p-0' initials={initials} />
     )
 }

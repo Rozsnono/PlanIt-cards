@@ -356,10 +356,13 @@ export class SchnappsDealer extends CardDealer {
                 if (droppedCard.suit === lastDroppedCard.suit && droppedCard.rank < lastDroppedCard.rank && playerCards.find(card => card.rank > lastDroppedCard.rank && card.suit === droppedCard.suit)) {
                     return false;
                 }
-                if (droppedCard.suit !== lastDroppedCard.suit && droppedCard.suit !== trumpSuit && playerCards.find(card => card.suit === lastDroppedCard.suit)) {
+                if (droppedCard.suit !== lastDroppedCard.suit && playerCards.find(card => card.suit === lastDroppedCard.suit)) {
                     return false;
                 }
-                if (droppedCard.suit !== lastDroppedCard.suit && droppedCard.suit === trumpSuit && hasTrump && trumpCard && trumpCard.rank > lastDroppedCard.rank && playerCards.find(card => card.suit === trumpCard!.suit && card.rank > trumpCard!.rank)) {
+                if (droppedCard.suit !== lastDroppedCard.suit && droppedCard.suit !== trumpSuit && playerCards.find(card => card.suit === trumpSuit)) {
+                    return false;
+                }
+                if (droppedCard.suit !== lastDroppedCard.suit && droppedCard.suit === trumpSuit && hasTrump && trumpCard && trumpCard.rank > droppedCard.rank && playerCards.find(card => card.suit === trumpCard!.suit && card.rank > trumpCard!.rank)) {
                     return false;
                 }
                 break;

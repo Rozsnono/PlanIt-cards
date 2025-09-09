@@ -13,3 +13,14 @@ Friends:
     - accept/decline friend request
     - friends list
     - invite friends
+
+Bugs: 
+    - Registration page check
+    - Schnapps call bug
+    - Schnapps skip selection ✅
+    - Schnapps visualization
+    - Profile error handling ✅
+    - Schnapps game over too soon 
+    - Schnapps 20/40 bug ✅
+    - Rummy when not enough cards to play dropped doesn't removed 
+    - Player Icon bugs

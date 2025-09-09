@@ -24,7 +24,7 @@ export default function End() {
 
     const gameSerivce = new GameService('');
     const data = useQuery({
-        queryKey: ['game-history', user!.customId, game_id!.toString()],
+        queryKey: ['game-history', game_id!.toString()],
         queryFn: async () => {
             return await gameSerivce.getGameHistory(user!.customId, game_id!.toString());
         }
@@ -262,7 +262,7 @@ function Players({ player, place, rankGained, isPlayer, isBot }: { player: any, 
                 <PlaceBadge place={place} />
             </div>
             <div className="flex items-center gap-2 col-span-2">
-                <ProfileIcon settings={player.settings} size={2} className="" />
+                <ProfileIcon settings={player.settings} size={2} className="" initials={getUserInitials(player.firstName, player.lastName)} />
 
                 <div className="text-lg font-bold text-zinc-300">{player!.firstName} {player!.lastName}</div>
                 {isPlayer &&

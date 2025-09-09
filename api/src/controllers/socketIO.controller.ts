@@ -602,6 +602,7 @@ export default class SocketIO {
                         case 'SOLITAIRE':
                             break;
                         case 'SCHNAPPS':
+                            return;
                             if (time > 1000 * ((game.secretSettings?.timeLimit) || 60)) {
                                 this.logService.consoleLog(`Game ${game._id} is still active, forcing next turn. Time limit: ${game.secretSettings?.timeLimit || 60}. Time: ${time / 1000}`, 'SocketIOService');
                                 const force = await this.services.schnapps.forcedNextTurn(game._id.toString(), game.currentPlayer.playerId.toString());
