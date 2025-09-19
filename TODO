@@ -15,12 +15,14 @@ Friends:
     - invite friends
 
 Bugs: 
-    - Registration page check
-    - Schnapps call bug
+    - Registration page check ✅
+    - Schnapps call bug ✅
     - Schnapps skip selection ✅
-    - Schnapps visualization
+    - Schnapps visualization ✅
     - Profile error handling ✅
-    - Schnapps game over too soon 
+    - Schnapps game over too soon ✅
     - Schnapps 20/40 bug ✅
     - Rummy when not enough cards to play dropped doesn't removed 
-    - Player Icon bugs
+    - Player Icon bugs ✅
+    - Schnapps call bug (Bettli, Gangli) ✅
+    - Replay / Result bug 

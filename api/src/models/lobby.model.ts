@@ -1,6 +1,6 @@
 
 import { Schema, model } from "mongoose";
-import Joi, { custom } from "joi";
+import Joi from "joi";
 
 const lobbySchema = new Schema(
     {
@@ -42,8 +42,15 @@ const lobbySchema = new Schema(
                 privateLobby: {
                     type: Boolean,
                 },
-                lobbyCode: {
+                isMobileMode: {
+                    type: Boolean,
+                    default: false,
+                },
+                roomCode: {
                     type: String,
+                },
+                lobbyCode: {
+                    type: Number,
                     default: null,
                 },
                 unranked: {

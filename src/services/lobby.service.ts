@@ -4,7 +4,6 @@ import { Ilobby } from "@/interfaces/interface";
 import { error } from "console";
 
 export default class LobbyService {
-
     public async getLobbyData(payload: any) {
         const token = getCookie("token");
         const response = await fetch(`/api/get?` + this.convertPayloadFromObject(payload), {
@@ -86,6 +85,22 @@ export default class LobbyService {
 
         if (!response.ok) {
             throw new Error("Failed to kick player from lobby");
+        }
+
+        return response.json();
+    }
+
+    public async JoinByRoomCode(roomCode: number) {
+        const response = await fetch(`/api/join/mobile/${roomCode}`, {
+            method: "PUT",
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${getCookie("token")}`
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error("Failed to join lobby by room code");
         }
 
         return response.json();

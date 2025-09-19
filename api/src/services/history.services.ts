@@ -143,10 +143,17 @@ export default class GameHistoryService {
                     1: {
                         playerCards: game.playerCards,
                         playedCards: game.playedCards,
-                        droppedCards: game.droppedCards
+                        droppedCards: game.droppedCards,
+                        points: game.lastAction.points
                     }
                 },
                 type: lobby.settings?.cardType,
+                gameSettings: {
+                    action: game.lastAction.actions,
+                    trump: game.lastAction.trump,
+                    trumpWith: game.lastAction.trumpWith,
+                    playerId: game.lastAction.playerId
+                },
                 users: users,
                 date: new Date(),
                 createdAt: new Date(game.createdAt),
@@ -163,11 +170,18 @@ export default class GameHistoryService {
                 [Object.keys(history.turns).length + 1]: {
                     playerCards: game.playerCards,
                     playedCards: game.playedCards,
-                    droppedCards: game.droppedCards
+                    droppedCards: game.droppedCards,
+                    points: game.lastAction.points
                 }
             };
+            history.gameSettings = {
+                action: game.lastAction.actions,
+                trump: game.lastAction.trump,
+                trumpWith: game.lastAction.trumpWith,
+                playerId: game.lastAction.playerId
+            };  
 
-            await this.gameHistory.updateOne({ gameId: game_id }, history, { runValidators: true });
+                await this.gameHistory.updateOne({ gameId: game_id }, history, { runValidators: true });
             return { message: "History updated!", code: 201 };
         }
     }
@@ -192,7 +206,8 @@ export default class GameHistoryService {
                 [Object.keys(data.turns).length + 1]: {
                     playerCards: game.playerCards,
                     playedCards: game.playedCards,
-                    droppedCards: game.droppedCards
+                    droppedCards: game.droppedCards,
+                    points: game.lastAction.points
                 }
             }
             data.endedAt = new Date();
@@ -215,6 +230,7 @@ export default class GameHistoryService {
                 }
                 if (!lobby.settings?.unranked) {
                     player.rank += rank.find((r: any) => r.player === position.player)?.rank || 0;
+                    if (player.rank < 0) player.rank = 0;
                 }
                 player.gamesStats.numberOfGames += 1;
                 if (position.pos === 1) {
@@ -417,6 +433,7 @@ export class GameHistorySolitaire extends GameHistoryService {
             if (player) {
                 if (!lobby.settings?.unranked) {
                     player.rank += rank.find((r: any) => r.player === position.player)?.rank || 0;
+                    if (player.rank < 0) player.rank = 0;
                 }
                 player.gamesStats.numberOfGames += 1;
                 if (position.pos === 1) {
@@ -457,7 +474,7 @@ export class GameHistorySchnapps extends GameHistoryService {
 
         const gc = new SchnappsService();
         const pairs = { pairOne: [game.lastAction.playerId!, game.lastAction.trumpWith!]!.filter((p, i) => [game.lastAction.playerId!, game.lastAction.trumpWith!].indexOf(p) === i), pairTwo: Object.keys(game.playerCards).filter((p) => p !== game.lastAction.playerId && p !== game.lastAction.trumpWith) };
-        const positions = gc.getPositionsSchnapps(game.playedCards, pairs);
+        const positions = gc.getPositionsSchnapps(game.playedCards, pairs, game.lastAction.actions);
         const rank = gc.calculatePoints(positions, maxPoints);
         await Promise.all(histories.map(async (history: any) => {
             const data = history.toObject();
@@ -491,6 +508,7 @@ export class GameHistorySchnapps extends GameHistoryService {
                 }
                 if (!lobby.settings?.unranked) {
                     player.rank += rank.find((r: any) => r.player === position.player)?.rank || 0;
+                    if (player.rank < 0) player.rank = 0;
                 }
                 player.gamesStats.numberOfGames += 1;
                 if (position.pos === 1) {
@@ -525,8 +543,10 @@ export class GameHistorySchnapps extends GameHistoryService {
     public async reCalibrateStatsForHistory(game_id: string, maxPoints: number, game: any) {
         const histories = await this.gameHistory.find({ gameId: game_id }).populate("users", "customId username settings firstName lastName");
         if (!histories) return { error: ERROR.GAME_HISTORY_NOT_FOUND };
-        const gc = new GameChecker();
-        const positions = gc.getPositions(game.playerCards);
+        const ss = new SchnappsService();
+        // const pairs = {};
+        const pairs = { pairOne: [histories[0].gameSettings.playerId!, histories[0].gameSettings.trumpWith!]!.filter((p, i) => [histories[0].gameSettings.playerId!, histories[0].gameSettings.trumpWith!].indexOf(p) === i), pairTwo: Object.keys(histories[0].users).filter((p: any) => p._id !== histories[0].gameSettings.playerId && p._id !== histories[0].gameSettings.trumpWith) };
+        const positions = ss.getPositionsSchnapps(histories[0].turns[Object.keys(histories[0].turns).length - 1].playedCards, pairs, histories[0].gameSettings.action);
         // const rank = gc.calculatePoints(positions, maxPoints);
         await Promise.all(histories.map(async (history: any) => {
             const data = history.toObject();

@@ -7,6 +7,8 @@ export default function Help() {
     const [helperOpen, setHelperOpen] = useState(false);
     const path = usePathname();
 
+    if(path.includes('mobile')){return null;}
+
     function getHelperComponent() {
         if (path.includes('rummy')) {
             return <RummyHelper opened={helperOpen} setOpened={setHelperOpen} />;

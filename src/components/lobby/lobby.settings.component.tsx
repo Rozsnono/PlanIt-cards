@@ -67,6 +67,8 @@ export default function LobbySettings({ getForm, save, canEdit, title, cancel, o
         { label: "Private lobby", id: "privateLobby", value: form['privateLobby'], checkbox: true, disabled: onlyNew || !edit },
         { label: "Lobby password", id: "lobbyCode", value: form['lobbyCode'] || 12345, input: true, inputType: "text", show: form['privateLobby'] === true, disabled: onlyNew || !edit },
         { label: "Unranked", id: "unranked", value: form['unranked'], checkbox: true, disabled: onlyNew || !edit, show: form['cardType'] !== 'SOLITAIRE' },
+        { label: "Mobile mode", id: "isMobileMode", value: form['isMobileMode'], checkbox: true, disabled: onlyNew || !edit, show: form['cardType'] !== 'SOLITAIRE' && form['cardType'] !== 'RUMMY' },
+        { label: "Room code", id: "roomCode", value: form['roomCode'], input: true, inputType: "text", disabled: true, show: form['isMobileMode'] === true },
         { label: "Fill with Robots", id: "fillWithRobots", value: form['fillWithRobots'], checkbox: true, disabled: onlyNew || !edit || form['cardType'] === 'SOLITAIRE', show: form['cardType'] !== 'SOLITAIRE' },
         { label: "Number of Robots", id: "numberOfRobots", value: form['numberOfRobots'] || 1, interval: true, min: 1, max: parseInt(form['numberOfPlayers']) - 1, show: form['fillWithRobots'] === true, disabled: onlyNew || !edit },
         { label: "Difficulty", id: "robotsDifficulty", value: form['robotsDifficulty'] || 'EASY', buttons: true, buttonLabels: ["EASY", "MEDIUM", "HARD"], show: form['fillWithRobots'] === true && form['cardType'] !== "SOLITAIRE", disabled: onlyNew || !edit  },
@@ -108,7 +110,7 @@ export default function LobbySettings({ getForm, save, canEdit, title, cancel, o
                 <div className="relative text-zinc-200 px-4 py-4 flex flex-col gap-14 h-full select-none">
 
 
-                    <div className="flex flex-col gap-6 ">
+                    <div className="flex flex-col gap-6 h-fit">
                         {
                             inputsNew.map((input, index) => (
                                 <LobbyInputs key={index}

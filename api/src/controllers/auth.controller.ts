@@ -69,7 +69,7 @@ export default class AuthController implements Controller {
                     textColor: userS.getColorByInitials(body.firstName + body.lastName).text,
                 }
                 body["achievements"] = [];
-                body['gamesStats']['gamesPerDate'] = {};
+                body['gamesStats'].gamesPerDate = {};
 
                 await this.user.updateOne({ _id: user._id }, user, { runValidators: true });
                 user = await this.user.findOne({ username: body.username });

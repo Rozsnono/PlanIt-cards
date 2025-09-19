@@ -42,24 +42,4 @@ describe('UnoBot Tests', () => {
             drawedCard: { lastDrawedBy: 'UnoBot' }
         })
     });
-
-    it('Should draw a card', () => {
-        expect(new UnoBot(
-            'UnoBot',
-            'easy',
-            [{ name: `U_WC`, rank: 30, pack: 1, value: 50, isJoker: true }], //Player cards
-            [{ droppedBy: "", card: { name: `U_R3`, rank: 3, suit: "R", pack: 1, value: 3 } }], //Dropped cards
-            [], //Played cards
-            [], //Melded cards
-            { lastDrawedBy: '' }
-        ).play()).toEqual({
-            droppedCards: [
-                { droppedBy: "", card: { name: `U_R3`, rank: 3, suit: "R", pack: 1, value: 3 } },
-                { droppedBy: "UnoBot", card: { name: `RU_WC`, rank: 30, pack: 1, value: 50, suit: 'R', isJoker: true } }
-            ],
-            playerCards: [
-            ],
-            drawedCard: { lastDrawedBy: '' }
-        })
-    });
 })

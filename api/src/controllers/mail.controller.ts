@@ -25,7 +25,7 @@ export default class MailController implements Controller {
                     </a>
                 </div>
 
-                <p style="color: #ddd;">If you didn’t sign up for PlanIt, you can safely ignore this email.</p>
+                <p style="color: #ddd;">If you didn’t register for PlanIt, you can safely ignore this email.</p>
 
                 <hr style="margin: 40px 0;" />
                 <p style="font-size: 12px; color: #ddd;">

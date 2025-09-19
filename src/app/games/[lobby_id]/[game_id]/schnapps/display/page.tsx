@@ -1,15 +1,13 @@
 "use client";
 import Icon from "@/assets/icons";
 import ErrorModal from "@/components/error.modal";
-import { SettingsContext } from "@/contexts/settings.context";
 import { UserContext } from "@/contexts/user.context";
-import { placeCardToIndex, sortSchnapsenCards } from "@/functions/card.function";
 import { Icard, Igame, Ilobby, Iplayer } from "@/interfaces/interface";
 import { SchnappsService } from "@/services/game.service";
 import { Timer } from "@/services/timer.service";
 import Image from "next/image"
 import { useParams, useRouter } from "next/navigation";
-import React, { useRef } from "react";
+import React from "react";
 import { useContext, useEffect, useState } from "react";
 import CardsUrls from "@/contexts/cards.context";
 import GameUser, { GameBot } from "@/components/user/game.user.component";
@@ -34,25 +32,6 @@ export default function Game() {
         call: { 1: 'Call', 6: 'Bettli', 7: 'Schnapps', 8: 'Gangli' }
     }
 
-    function getCallableTrumps(): { suits: string[], cards: string[][], call: { [key: string]: string } } {
-        if (!gameState) return { suits: [], cards: [], call: {} };
-
-        const calledTrumps = { trump: gameState.lastAction.trump, action: gameState.lastAction.actions };
-        return {
-            suits: trumps.suits,
-            cards: trumps.cards,
-            call: Object.fromEntries(Object.entries(trumps.call).filter(([key]) => {
-                return parseInt(key) >= calledTrumps.action!;
-            }))
-        }
-
-    }
-
-    const [playerCards, setPlayerCards] = useState<Icard[]>([]);
-
-    const [drawedCard, setDrawedCard] = useState<Icard | null>(null);
-    const playerCardsRef = useRef<Icard[]>([]);
-
     useEffect(() => {
         const socket = new WebSocket(IP.WEBSOCKET);
 
@@ -63,7 +42,7 @@ export default function Game() {
 
         socket.addEventListener('message', async (event) => {
             try {
-                const { playerCards, lobby, game, game_over, refresh } = gameService.getDataFromWebsocket(JSON.parse(event.data), socket, { _id: lobby_id, player_id: user!._id }) ?? {};
+                const { lobby, game, game_over, refresh } = gameService.getDataFromWebsocket(JSON.parse(event.data), socket, { _id: lobby_id, player_id: user!._id }) ?? {};
                 console.log(JSON.parse(event.data));
                 if (refresh) {
                     return;
@@ -96,14 +75,6 @@ export default function Game() {
                         timerClass.start();
                     }
                 }
-                if (playerCards) {
-                    const tmpDrawedCard = game.playerCards.find((e: Icard) => playerCardsRef.current.filter((pc: Icard) => { return JSON.stringify(pc) === JSON.stringify(e) }).length == 0) || null;
-                    if (game.currentPlayer.playerId === user?._id && game.drawedCard.lastDrawedBy === user?._id) {
-                        setDrawedCard(tmpDrawedCard);
-                    }
-                    setPlayerCards(playerCards);
-                    playerCardsRef.current = playerCards;
-                }
             } catch {
                 router.push(`/games`);
                 socket.close();
@@ -120,77 +91,17 @@ export default function Game() {
     const [gameState, setGame] = useState<Igame | null>(null);
     const [lobbyState, setLobby] = useState<Ilobby | null>(null);
 
-    const [selectedCards, setSelectedCards] = useState<Icard[]>([]);
-    const [draggedCard, setDraggedCard] = useState<Icard | null>(null);
-    const [choosedCard, setChoosedCard] = useState<Icard | null>(null);
-    const [dragEnter, setDragEnter] = useState<number | null>(null);
-
-    const [selectedTrump, setSelectedTrump] = useState<{ suit: string, cardName?: string, call?: string }>({ suit: 'H', cardName: 'S_AH', call: 'Call' });
-
-    function checkIfCardIsSelected(card: Icard) {
-        return selectedCards.find((e: Icard) => { return JSON.stringify(e) === JSON.stringify(card) });
-    }
-
-    function startDrag(e: Icard) {
-        setTimeout(() => { setDraggedCard(e); }, 0);
-    }
-
-    function overDrag(e: unknown | any) {
-        e.preventDefault();
-    }
-
-    function onDragEnter(e: unknown | any, i: number) {
-        e.preventDefault();
-        setDragEnter(i);
-    }
-
-    function dropDrag(index: number) {
-        setDragEnter(null);
-        if (!draggedCard) return;
-        if (!user) return;
-        setPlayerCards(placeCardToIndex(playerCards, index, draggedCard));
-        setDraggedCard(null);
-    }
-
-    async function cardDropped() {
-        const card = draggedCard || choosedCard;
-        if (!card) return;
-        if (!user) return;
-        const res = await gameService.dropCard(lobbyState!._id, { droppedCard: card });
-        setError(res.error);
-        setDraggedCard(null);
-    }
-
-    async function checkCard() {
-        if (!draggedCard) return;
-        if (!user) return;
-        setChoosedCard(draggedCard);
-        cardDropped();
-    }
-
-    async function callTwenty(card?: Icard) {
-        if (!card) return;
-        if (!lobbyState) return;
-        const res = await gameService.callTwenty(lobbyState._id, { droppedCard: card });
-        setError(res.error);
-        setDraggedCard(null);
-    }
-
-    const [timer, setTimer] = useState(60);
 
     const [displayTrump, setDisplayTrump] = useState(false);
     const [endOfTurn, setEndOfTurn] = useState(false);
     const [winner, setWinner] = useState<string | null>(null);
 
-    const [gameSettings, setGameSettings] = useState(gameState?.secretSettings || { timeLimit: 60 });
 
     useEffect(() => {
         if (!gameState) return;
         if (gameState.currentPlayer.playerId !== user?._id) return;
-        setGameSettings(gameState.secretSettings);
         const interval = setInterval(() => {
             try {
-                setTimer(parseInt(((new Date().getTime() - gameState.currentPlayer.time) / 1000).toFixed(0)));
             } catch { }
         }, 1000);
         return () => clearInterval(interval);
@@ -230,39 +141,6 @@ export default function Game() {
     }, [gameState && gameState.secretSettings.currentTurn && gameState.playedCards.length]);
 
     const [error, setError] = useState<string | null>(null);
-
-    function GetTrumpIcon({ suit }: { suit: string }) {
-        switch (suit) {
-            case 'H':
-                return <Icon name="heart" size={64} className="text-red-600"></Icon>;
-            case 'A':
-                return <Icon name="acorn" size={64} className="text-zinc-200" stroke></Icon>;
-            case 'B':
-                return <Icon name="bell" size={64} className="text-yellow-700" stroke></Icon>;
-            case 'L':
-                return <Icon name="leaf" size={64} className="text-green-600"></Icon>;
-            default:
-                return null;
-        }
-    }
-
-    function setTrumpSelection() {
-        if (!selectedTrump.call || !selectedTrump.cardName || !selectedTrump.suit) return;
-        if (!lobbyState) return;
-        gameService.selectTrump(lobbyState._id, { selectedTrump: selectedTrump }).then((res) => {
-            setError(res.error);
-            setSelectedCards([]);
-            setSelectedTrump({ suit: 'H', cardName: 'S_AH', call: 'Call' });
-        });
-    }
-
-    function skipTrumpSelection() {
-        if (!lobbyState) return;
-        gameService.skipTrump(lobbyState._id).then((res) => {
-            setError(res.error);
-            setSelectedCards([]);
-        });
-    }
 
     function getPlayerBySpace(space: number, needCard?: boolean, isBot?: boolean): Icard | Iplayer | { _id: string, name: string, customId: string } | null | any {
         if (!lobbyState) return null;
@@ -309,12 +187,11 @@ export default function Game() {
                     error && <ErrorModal errorCode={error} closeError={() => { setError(null) }}></ErrorModal>
                 }
 
-                <PingDisplayComponent />
                 <div className="flex justify-center items-center w-full h-full absolute gap-7">
 
                     {
                         !endOfTurn &&
-                        <div className="flex relative z-50 w-[20rem] h-[20rem]" onDragOver={overDrag} onDrop={checkCard} >
+                        <div className="flex relative z-50 w-[20rem] h-[20rem]">
                             <DroppedCardComponent card={getPlayerBySpace(2, true)} className="absolute w-[8rem] -top-16 left-[50%] translate-x-[-50%]" trumpSuit={gameState.lastAction.trump?.suit}></DroppedCardComponent>
 
                             <DroppedCardComponent card={getPlayerBySpace(0, true)} className="absolute w-[8rem] -bottom-16 left-[50%] translate-x-[-50%]" trumpSuit={gameState.lastAction.trump?.suit}></DroppedCardComponent>
@@ -387,44 +264,21 @@ export default function Game() {
                     <div></div>
                 </div>
 
-
-                <div className={`flex gap-1 w-full absolute bottom-0 p-2 justify-center ${gameState.currentPlayer.playerId !== user?._id || gameState.secretSettings.currentTurn == 1 ? 'pointer-events-none' : ''}`}>
+                <div className="absolute bottom-12 right-2 w-full flex flex-col justify-between items-center">
+                    <div></div>
                     {
-                        sortSchnapsenCards(playerCards, true, 'abc').map((card, i) => {
-                            return (
-                                <React.Fragment key={i}>
-                                    <div draggable className={`cursor-pointer w-16 overflow-visible hover:cursor-grab group rounded-lg duration-200 relative
-                                         ${checkIfCardIsSelected(card) ? 'border-green-400 translate-y-[-1rem]' : ''}
-                                         ${draggedCard && JSON.stringify(draggedCard) === JSON.stringify(card) ? 'opacity-10' : ''}
-                                         
-                                         `}>
-                                        <Image onDragEnter={(e) => { onDragEnter(e, i) }} className={`${drawedCard?.name === card.name && drawedCard?.pack === card.pack ? 'ring ring-sky-600' : ''} border-2 border-transparent group-hover:border-green-400 rounded-lg`} style={{ width: "8rem", maxWidth: "8rem" }} loading="eager" onDragEnd={() => { setDraggedCard(null) }} onDragStart={() => { startDrag(card) }} onDrop={() => { dropDrag(i) }} onDragOver={overDrag} src={"/" + new CardsUrls().getFullCardUrl(card.name)} width={100} height={100} alt={card.name}></Image>
-                                        {
-                                            card.isJoker && card.rank == 4 && gameState.droppedCards.length === 0 && gameState.currentPlayer.playerId === user?._id &&
-                                            <button onClick={() => { callTwenty(card) }} className="absolute -top-14 rounded-full bg-gradient-to-br from-orange-600/60 to-yellow-600/40 w-12 h-12 flex justify-center items-center text-zinc-100 text-xl cursor-pointer hover:scale-105 hover:shadow-lg hover:shadow-white/30">
-                                                {gameState.lastAction.trump!.suit === card.suit ? 40 : 20}
-                                            </button>
-                                        }
-                                    </div>
-                                    <div onDragOver={overDrag} className={`${draggedCard && JSON.stringify(draggedCard) !== JSON.stringify(card) && dragEnter === i ? "w-[5.8rem]" : "w-0"} bg-[#00000040] rounded-lg duration-100`}>
-                                        {draggedCard &&
-                                            <Image className="opacity-75" loading="eager" onDrop={() => { dropDrag(i) }} onDragOver={overDrag} src={"/" + new CardsUrls().getFullCardUrl(draggedCard.name)} width={100} height={100} alt={new CardsUrls().getUnoCardUrl(draggedCard.name)}></Image>
-                                        }
-                                    </div>
-                                </React.Fragment>
-                            )
-                        })
+                        getPlayerBySpace(0, false, false) &&
+                        <GameUser isCaller={gameState.lastAction.playerId === getPlayerBySpace(0, false, false)._id} user={getPlayerBySpace(0, false, false)} currentPlayer={gameState.currentPlayer.playerId} cardNumber={gameState.allCards[getPlayerBySpace(0, false, false)._id]}></GameUser>
                     }
-
                     {
-                        gameState.currentPlayer.playerId == user?._id && !isGameOver &&
-                        <div style={{ width: `${Math.floor(75 - (timer / gameSettings.timeLimit) * 75)}%`, backgroundColor: `${timer > (gameSettings.timeLimit - (gameSettings.timeLimit / 6)) ? '#ec003f' : '#9ae600'}` }} className="absolute -top-20 h-4 bg-emerald-500 rounded-xl duration-500">
-                            <div className="absolute -top-6 w-full flex justify-center items-center text-sm text-zinc-200">
-                                {gameSettings.timeLimit - timer < 0 ? 0 : gameSettings.timeLimit - timer}s
-                            </div>
-                        </div>
+                        getPlayerBySpace(0, false, true) &&
+                        <GameBot isCaller={gameState.lastAction.playerId === getPlayerBySpace(0, false, true)._id} bot={getPlayerBySpace(0, false, true)} currentPlayer={gameState.currentPlayer.playerId} cardNumber={gameState.allCards[getPlayerBySpace(0, false, true)._id]}></GameBot>
                     }
+                    <div></div>
                 </div>
+
+
+
                 {
                     displayTrump && !endOfTurn && gameState.secretSettings.currentTurn < 3 &&
                     <div className="fixed top-0 left-0 w-full h-full bg-black/30 flex justify-center items-center z-[100]">
@@ -508,83 +362,13 @@ export default function Game() {
                     </main>
                 }
 
-
-                {
-                    gameState && gameState.secretSettings.currentTurn == 1 && gameState.currentPlayer.playerId === user?._id &&
-                    <main className="fixed bottom-4 right-4 z-[100] bg-zinc-900/50 backdrop-blur-md p-4 rounded-lg flex flex-col gap-2 items-center">
-                        <div className="text-zinc-200 font-bold text-lg uppercase">
-                            Set trump and call
-                        </div>
-                        <hr className="w-full my-2" />
-                        <div className="flex gap-4">
-                            <div className="flex flex-col gap-2">
-
-                                {
-                                    getCallableTrumps().suits.map((suit, i) => {
-                                        return (
-                                            <div key={i} onClick={() => { setSelectedTrump({ suit: suit }) }} className={`w-fit h-fit rounded-lg p-2 bg-zinc-800/50 flex justify-center items-center gap-2 hover:bg-zinc-600/50 hover:scale-110 duration-200 cursor-pointer hover:shadow-md hover:shadow-zinc-300/20 ${selectedTrump.suit === suit ? 'ring-2 ring-green-400' : ''}`}>
-                                                <GetTrumpIcon suit={suit} />
-                                            </div>
-                                        )
-                                    })
-                                }
-                            </div>
-
-                            <div className="flex flex-col gap-2">
-
-                                {
-                                    getCallableTrumps().cards.map((cards, i) => {
-                                        return (
-                                            <div key={i} className="flex gap-1">
-                                                {
-                                                    cards.map((card, j) => {
-                                                        return (
-                                                            <div key={j} onClick={() => { setSelectedTrump({ suit: selectedTrump.suit, cardName: `S_${card}${selectedTrump.suit}` }) }} className={`w-fit h-fit rounded-lg p-2 bg-zinc-800/50 flex justify-center items-center gap-2 hover:bg-zinc-600/50 hover:scale-110 duration-200 cursor-pointer hover:shadow-md hover:shadow-zinc-300/20 ${selectedTrump.cardName === `S_${card}${selectedTrump.suit}` ? 'ring-2 ring-green-400' : ''}`}>
-                                                                <Image className="w-fit h-fit" src={`/${new CardsUrls().getFullCardUrl('S_' + card + selectedTrump.suit)}`} width={40} height={40} alt={`${selectedTrump.suit} ${card}`}></Image>
-                                                            </div>
-                                                        )
-                                                    })
-                                                }
-                                            </div>
-                                        )
-                                    })
-                                }
-
-                            </div>
-
-                            <div className="flex flex-col gap-2 justify-between">
-                                <div className="flex flex-col gap-2">
-                                    {
-                                        Object.values(getCallableTrumps().call).map((call, i) => {
-                                            return (
-                                                <div key={i} onClick={() => { setSelectedTrump({ ...selectedTrump, call: call }) }} className={`w-36 text-zinc-100 h-fit rounded-lg p-2 bg-zinc-800/50 flex justify-center items-center gap-2 hover:scale-110 duration-200 cursor-pointer hover:shadow-md hover:shadow-zinc-300/20 ${selectedTrump.call === call ? 'ring-2 ring-green-400' : ''}`}>
-                                                    {call}
-                                                </div>
-                                            )
-                                        })
-                                    }
-                                </div>
-
-
-                                <div className="flex gap-1 h-full">
-                                    <button onClick={skipTrumpSelection} className="bg-gradient-to-br p-2 from-emerald-600/80 to-green-400/60 rounded-lg text-zinc-200 font-bold text-lg hover:scale-110 duration-200 cursor-pointer hover:shadow-md hover:shadow-zinc-300/20 w-full mt-auto disabled:opacity-50 disabled:cursor-not-allowed">
-                                        Skip
-                                    </button>
-                                </div>
-                                <div className="flex gap-1 h-full">
-                                    <button onClick={setTrumpSelection} disabled={!(selectedTrump.call && selectedTrump.cardName && selectedTrump.suit)} className="bg-gradient-to-br p-2 from-red-600 to-red-400 rounded-lg text-zinc-200 font-bold text-lg hover:scale-110 duration-200 cursor-pointer hover:shadow-md hover:shadow-zinc-300/20 w-full mt-auto disabled:opacity-50 disabled:cursor-not-allowed">
-                                        Select
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-
-                    </main>
-                }
-
-                <div className="fixed bottom-4 left-4 text-rose-200/40">
-                    GameId: {gameState._id}
+                <div className="fixed bottom-4 left-4 text-rose-200/40 flex flex-col">
+                    <span>
+                        GameId: {gameState._id}
+                    </span>
+                    <span>
+                        Room Code: {lobbyState?.settings.roomCode || 'N/A'}
+                    </span>
                 </div>
             </main>
 

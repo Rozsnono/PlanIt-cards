@@ -23,7 +23,7 @@ export default function Navbar({ clear }: { clear?: boolean }) {
 
     const gameUrls = ['rummy', 'uno', 'solitaire', 'schnapps'];
 
-    const dontShow = ['/login', '/register', '/verify'];
+    const dontShow = ['/login', '/register', '/verify', '/mobile'];
 
 
 
@@ -186,8 +186,8 @@ function UserHeader({ isLogged }: { isLogged: boolean }) {
     if (!isLogged && !u) {
         return (
             <div className="flex items-center gap-4 mr-4">
-                <Link href={"/login"}><div className="text-zinc-300 text-lg cursor-pointer hover:text-white hover:font-bold duration-100">Sign in</div></Link>
-                <Link href={"/register"}><div className="text-zinc-300 text-lg cursor-pointer hover:text-white hover:font-bold duration-100">Sign up</div></Link>
+                <Link href={"/login"}><div className="text-zinc-300 text-lg cursor-pointer hover:text-white hover:font-bold duration-100">Log in</div></Link>
+                <Link href={"/register"}><div className="text-zinc-300 text-lg cursor-pointer hover:text-white hover:font-bold duration-100">Register</div></Link>
             </div>
         )
     }

@@ -29,7 +29,7 @@ export default function LobbyId() {
 
     const [isLoading, setIsLoading] = useState(false);
 
-    useEffect(()=>{
+    useEffect(() => {
         setFriendInviteSent(false);
     }, [friendInvite])
 
@@ -63,7 +63,11 @@ export default function LobbyId() {
             if (!data.lobby) return;
 
             if (data.lobby.game_id) {
-                router.push(`/games/${lobby_id}/${data.lobby.game_id}/${data.lobby.settings.cardType.toLocaleLowerCase()}`);
+                if (data.lobby.settings.isMobileMode) {
+                    router.push(`/games/${lobby_id}/${data.lobby.game_id}/${data.lobby.settings.cardType.toLocaleLowerCase()}/display`);
+                } else {
+                    router.push(`/games/${lobby_id}/${data.lobby.game_id}/${data.lobby.settings.cardType.toLocaleLowerCase()}`);
+                }
             } else {
                 setLobby(data.lobby);
                 setForm(data.lobby.settings);
@@ -90,14 +94,19 @@ export default function LobbyId() {
 
     async function startLobbyGame() {
         setIsLoading(true);
-        const type: 'rummy' | 'uno' = lobby!.settings.cardType.toLowerCase() as 'rummy' | 'uno';
+        const type: 'rummy' | 'uno' | 'solitaire' | 'schnapps' = lobby!.settings.cardType.toLowerCase() as 'rummy' | 'uno' | 'solitaire' | 'schnapps';
+        const isMobileMode: boolean = lobby!.settings.isMobileMode;
         const res = await new GameService(type).startGame(lobby_id as string, form.timeLimit);
         if (res.error) {
             console.error(res.error);
             setIsLoading(false);
             return;
         }
-        router.push(`/games/${lobby_id}/${res.game_id}/${lobby!.settings.cardType.toLocaleLowerCase()}`);
+        if (isMobileMode) {
+            router.push(`/games/${lobby_id}/${res.game_id}/${type}/display`);
+        } else {
+            router.push(`/games/${lobby_id}/${res.game_id}/${type}`);
+        }
     }
 
     function saveEdit() {
@@ -349,7 +358,7 @@ export default function LobbyId() {
 
                     <div className="border-b-[0.1rem] border-purple-800/50"></div>
 
-                    <div className="flex flex-col gap-2 h-full">
+                    <div className="flex flex-col gap-2 h-fit 3xl:h-full">
                         <LobbySettings changing={(form) => { checkIfChanged(form) }} justForm cancel={cancelEdit} getForm={form} save={saveEdit} canEdit={lobby.createdBy === user!._id} title="Lobby settings"></LobbySettings>
                     </div>
 

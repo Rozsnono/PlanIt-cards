@@ -32,6 +32,11 @@ const gameHistorySchema = new Schema(
             default: null,
             nullable: true
         },
+        gameSettings: {
+            type: Object,
+            default: {},
+            readonly: true
+        },
         rank: {
             type: Array,
             default: null,

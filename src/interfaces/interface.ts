@@ -61,6 +61,8 @@ export interface Ilobby {
         unranked: boolean;
         fillWithRobots: boolean;
         numberOfRobots?: number | null;
+        isMobileMode: boolean;
+        roomCode?: string | null;
         robotsDifficulty?: "EASY" | "MEDIUM" | "HARD";
         cardType: "UNO" | "RUMMY" | "SOLITAIRE" | "SCHNAPPS";
     }

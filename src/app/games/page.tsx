@@ -185,50 +185,17 @@ export default function Games() {
             </div>
 
 
-
-            <RightSideBar className="border-sky-600" open={open} onClose={() => setOpen(!open)}>
-                <SideBarContent onClose={() => setOpen(!open)} onLoading={setLoading} />
-            </RightSideBar>
-
-            <RightSideBar className="border-green-600" open={openPrivate} onClose={() => setOpenPrivate(!openPrivate)}>
+            <RightSideBar className="" open={openPrivate} onClose={() => setOpenPrivate(!openPrivate)}>
                 <PrivateSideBarContent onClose={() => setOpenPrivate(!openPrivate)} />
             </RightSideBar>
 
-            <RightSideBar className="border-zinc-300" open={openFilter} onClose={() => setOpenFilter(!openFilter)}>
+            <RightSideBar className="" open={openFilter} onClose={() => setOpenFilter(!openFilter)}>
                 <FilterSideBarContent onClose={() => { setOpenFilter(!openFilter); refreshLobbyList(); }} />
             </RightSideBar>
         </main>
     );
 }
 
-
-
-function SideBarContent({ onClose, onLoading }: Readonly<{ onClose?: () => void, onLoading: (loading: boolean) => void }>) {
-
-    const router = useRouter();
-
-    async function creatingLobby(form: any) {
-        onLoading(true);
-        try {
-            const result = await lobbyService.createLobby(form);
-            router.push(`/games/${result._id}`);
-        } catch (error) {
-            console.error("Error creating lobby:", error);
-        }
-
-    }
-
-    return (
-        <main className="flex flex-col w-full h-full text-zinc-200 select-none">
-
-            <LobbySettings getForm={{ robotsDifficulty: 'EASY', numberOfPlayers: 4, cardType: 'RUMMY', numberOfRobots: 1 }} save={creatingLobby} onlyNew title="Create a lobby">
-
-                <RightSideBarHeader onClose={() => { onClose!() }}></RightSideBarHeader>
-            </LobbySettings>
-
-        </main>
-    )
-}
 
 function PrivateSideBarContent({ onClose }: Readonly<{ onClose?: () => void }>) {
     const [lc, setLc] = useState<string | null>(""); // Lobby code
@@ -248,7 +215,7 @@ function PrivateSideBarContent({ onClose }: Readonly<{ onClose?: () => void }>) 
 
             </div>
 
-            <hr className="border-zinc-600 my-5" />
+            <hr className="border-purple-800/50 my-5" />
 
             <div className="relative text-zinc-200 px-4 py-4 flex flex-col gap-14 h-full">
 
@@ -260,7 +227,7 @@ function PrivateSideBarContent({ onClose }: Readonly<{ onClose?: () => void }>) 
 
                         <div className="w-full flex items-center">
 
-                            <input onChange={(e) => { setLc(e.target.value) }} value={lc as string} type="text" id="lobby_code" className="bg-zinc-700 border border-zinc-900 text-gray-200 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" placeholder="12345" />
+                            <input onChange={(e) => { setLc(e.target.value) }} value={lc as string} type="text" id="lobby_code" className="bg-purple-700/20 border border-purple-900/50 text-gray-200 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" placeholder="12345" />
 
                         </div>
                     </div>
@@ -270,10 +237,10 @@ function PrivateSideBarContent({ onClose }: Readonly<{ onClose?: () => void }>) 
             </div>
 
 
-            <hr className="border-zinc-600" />
+            <hr className="border-purple-800/50" />
 
 
-            <hr className="border-zinc-600 mb-6" />
+            <hr className="border-purple-800/50 mb-6" />
 
             <div className="flex gap-2 px-4 mb-3 justify-center" >
                 <button className="bg-green-700 text-white p-2 px-5 rounded-md hover:bg-green-600 flex items-center gap-1">
@@ -338,12 +305,12 @@ function FilterSideBarContent({ onClose }: Readonly<{ onClose?: () => void }>) {
 
     function getFilterCSS(filterType: 'cardType' | 'unranked' | 'noPrivateLobby' | 'noBots' | 'numberOfPlayers' | 'robotsDifficulty', condition: any, numberOf?: boolean) {
         if (numberOf && filter[filterType]! > condition) {
-            return "bg-green-700 hover:bg-green-600 text-zinc-400"
+            return "bg-gradient-to-br from-purple-700 to-indigo-600 text-zinc-400"
         }
         if (filter[filterType] === condition) {
-            return "bg-green-700 hover:bg-green-600 text-zinc-400"
+            return "bg-gradient-to-br from-purple-700 to-indigo-600 text-zinc-400"
         } else {
-            return "bg-zinc-700  hover:bg-zinc-600 text-zinc-400"
+            return "bg-gradient-to-br from-purple-700/10 to-indigo-600/20 hover:bg-gradient-to-br hover:from-purple-700/20 hover:to-indigo-600/30 text-zinc-400"
         }
     }
 
@@ -380,19 +347,20 @@ function FilterSideBarContent({ onClose }: Readonly<{ onClose?: () => void }>) {
 
             </div>
 
-            <hr className="border-zinc-600 my-5" />
+            <hr className="border-purple-800/50 my-5" />
 
             <div className="relative text-zinc-200 px-4 py-4 flex flex-col gap-6 h-full">
                 <div className="flex items-center justify-between gap-2">
-                    <button onClick={() => { setFilterByParam('cardType', 'RUMMY') }} className={getFilterCSS('cardType', 'RUMMY') + " w-full rounded-lg p-2 more-modal-input text-left flex gap-1 items-center"}> <Icon name="card" size={16} stroke></Icon> Rummy</button>
-                    <button onClick={() => { setFilterByParam('cardType', 'UNO') }} className={getFilterCSS('cardType', 'UNO') + " w-full rounded-lg p-2 more-modal-input text-left flex gap-1 items-center"}> <Icon name="card" size={16} stroke></Icon> Uno</button>
-                    <button onClick={() => { setFilterByParam('cardType', 'SOLITAIRE') }} className={getFilterCSS('cardType', 'SOLITAIRE') + " w-full rounded-lg p-2 more-modal-input text-left flex gap-1 items-center"}> <Icon name="card" size={16} stroke></Icon> Solitaire</button>
+                    <button onClick={() => { setFilterByParam('cardType', 'RUMMY') }} className={getFilterCSS('cardType', 'RUMMY') + " w-full rounded-lg p-2 more-modal-input text-left flex gap-1 items-center"}> <Icon name="card-c" size={16}></Icon> Rummy</button>
+                    <button onClick={() => { setFilterByParam('cardType', 'UNO') }} className={getFilterCSS('cardType', 'UNO') + " w-full rounded-lg p-2 more-modal-input text-left flex gap-1 items-center"}> <Icon name="card-d" size={16}></Icon> Uno</button>
+                    <button onClick={() => { setFilterByParam('cardType', 'SCHNAPPS') }} className={getFilterCSS('cardType', 'SCHNAPPS') + " w-full rounded-lg p-2 more-modal-input text-left flex gap-1 items-center"}> <Icon name="card-h" size={16}></Icon> Schnaps</button>
+                    <button onClick={() => { setFilterByParam('cardType', 'SOLITAIRE') }} className={getFilterCSS('cardType', 'SOLITAIRE') + " w-full rounded-lg p-2 more-modal-input text-left flex gap-1 items-center"}> <Icon name="card-s" size={16}></Icon> Solitaire</button>
                 </div>
 
                 <div className="flex items-center justify-between gap-2">
                     <div className="flex gap-1 w-full">
                         {
-                            filter.cardType !== 'SOLITAIRE' &&
+                            filter.cardType !== 'SOLITAIRE' && filter.cardType !== "SCHNAPPS" &&
                             new Array(filter.cardType === 'RUMMY' ? 5 : 7).fill(0).map((_, index) => (
                                 <button onClick={() => { setFilterByParam('numberOfPlayers', index + 2) }} key={index} className={getFilterCSS('numberOfPlayers', index + 2, true) + " w-full h-8 rounded-lg flex items-center justify-center"}>{index + 2}</button>
                             ))
@@ -425,10 +393,10 @@ function FilterSideBarContent({ onClose }: Readonly<{ onClose?: () => void }>) {
             </div>
 
 
-            <hr className="border-zinc-600" />
+            <hr className="border-purple-800/50" />
 
 
-            <hr className="border-zinc-600 mb-6" />
+            <hr className="border-purple-800/50 mb-6" />
 
             <div className="flex gap-2 px-4 mb-3 justify-center" >
                 <button onClick={setFiltering} className="bg-zinc-300 text-zinc-900 p-2 px-5 rounded-md hover:bg-zinc-200 flex items-center gap-1">

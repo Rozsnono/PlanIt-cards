@@ -349,7 +349,7 @@ export class SchnappsService extends GameChecker {
         } else if (game.droppedCards.length === 4 && game.playedCards.length === 6) {
             //TODO The game is over
         } else if (game.droppedCards.length === 4) {
-            const { winner, cards } = dealer.validateNextTurn(game.droppedCards, game.lastAction.trump.suit);
+            const { winner, cards } = dealer.validateNextTurn(game.droppedCards, game.lastAction.trump.suit, game.lastAction.actions as 1 | 6 | 7 | 8, game.playedCards.length === 0);
             game.playedCards = [...game.playedCards, { playedBy: winner, cards: cards }];
             game.droppedCards = [];
 
@@ -382,12 +382,12 @@ export class SchnappsService extends GameChecker {
                         }
                         break;
                     case 8:
-                        if (game.playedCards.find((p: any) => p.playedBy !== game.lastAction.playerId && p.playedBy === game.lastAction.trumpWith)) {
+                        if (game.playedCards.find((p: any) => p.playedBy !== game.lastAction.playerId && p.playedBy !== game.lastAction.trumpWith)) {
                             game.secretSettings.isGameOver = true;
                         }
                         break;
                     default:
-                        const p = Object.keys(game.lastAction.points).map((pl) => { return { playedBy: pl, sum: game.lastAction.points[pl] }}).sort((a, b) => b.sum - a.sum);
+                        const p = Object.keys(game.lastAction.points).map((pl) => { return { playedBy: pl, sum: game.lastAction.points[pl] } }).sort((a, b) => b.sum - a.sum);
                         if (p[0].sum >= 66) {
                             game.secretSettings.isGameOver = true;
                         }
@@ -488,17 +488,42 @@ export class SchnappsService extends GameChecker {
         return await this.nextTurn(game._id.toString(), nextPlayer);
     }
 
-    public getPositionsSchnapps(playedCards: { playedBy: string, cards: any[] }[], pairs: { pairOne: string[], pairTwo: string[] }) {
+    public getPositionsSchnapps(playedCards: { playedBy: string, cards: any[] }[], pairs: { pairOne: string[], pairTwo: string[] }, actions: 1 | 6 | 7 | 8 | number = 1) {
         let { pairOnePoints, pairTwoPoints, lastPlayed } = { pairOnePoints: 0, pairTwoPoints: 0, lastPlayed: "" };
 
+        switch (actions) {
+            case 6: //Bettli
+                if (playedCards.find((c) => pairs.pairOne.includes(c.playedBy))) {
+                    pairOnePoints = 0;
+                    pairTwoPoints = 120;
+                    lastPlayed = playedCards[playedCards.length - 1]!.playedBy;
+                }
+                break;
+            case 7: //Schnapps
+                if (playedCards.find((c) => pairs.pairTwo.includes(c.playedBy))) {
+                    pairOnePoints = 0;
+                    pairTwoPoints = 120;
+                    lastPlayed = playedCards[playedCards.length - 1]!.playedBy;
+                }
+                break;
+            case 8: //Gangli
+                if (playedCards.find((c) => pairs.pairTwo.includes(c.playedBy))) {
+                    pairOnePoints = 0;
+                    pairTwoPoints = 120;
+                    lastPlayed = playedCards[playedCards.length - 1]!.playedBy;
+                }
+                break;
+            default:
+                if (playedCards.filter((c) => pairs.pairOne.includes(c.playedBy)).length > 0) {
+                    pairOnePoints = playedCards.filter((c) => pairs.pairOne.includes(c.playedBy)).map((c) => c.cards).reduce((sum: any, obj: any) => { return sum + obj.reduce((a: any, b: any) => a + b.value, 0) }, 0) || 0;
+                }
+                if (playedCards.filter((c) => pairs.pairTwo.includes(c.playedBy)).length > 0) {
+                    pairTwoPoints = playedCards.filter((c) => pairs.pairTwo.includes(c.playedBy)).map((c) => c.cards).reduce((sum: any, obj: any) => { return sum + obj.reduce((a: any, b: any) => a + b.value, 0) }, 0) || 0;
+                }
+                lastPlayed = playedCards[playedCards.length - 1]!.playedBy;
+                break;
 
-        if (playedCards.filter((c) => pairs.pairOne.includes(c.playedBy)).length > 0) {
-            pairOnePoints = playedCards.filter((c) => pairs.pairOne.includes(c.playedBy)).map((c) => c.cards).reduce((sum: any, obj: any) => { return sum + obj.reduce((a: any, b: any) => a + b.value, 0) }, 0) || 0;
         }
-        if (playedCards.filter((c) => pairs.pairTwo.includes(c.playedBy)).length > 0) {
-            pairTwoPoints = playedCards.filter((c) => pairs.pairTwo.includes(c.playedBy)).map((c) => c.cards).reduce((sum: any, obj: any) => { return sum + obj.reduce((a: any, b: any) => a + b.value, 0) }, 0) || 0;
-        }
-        lastPlayed = playedCards[playedCards.length - 1]!.playedBy;
 
         if (pairOnePoints > pairTwoPoints) {
             return pairs.pairOne.concat(pairs.pairTwo).map((p) => {

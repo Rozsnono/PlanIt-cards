@@ -46,7 +46,7 @@ export function LineChart({ labels, wins, losses }: { labels: string[], wins: nu
             gradient.addColorStop(1, 'rgba(0, 201, 81, 0)'); // Transparent green
 
             const gradientLoss = ctx.createLinearGradient(0, 0, 0, chartInstance.height);
-            gradientLoss.addColorStop(0, 'rgba(251, 44, 54, 0.7)'); // Light red
+            gradientLoss.addColorStop(0, 'rgba(251, 44, 54, 0.2)'); // Light red
             gradientLoss.addColorStop(1, 'rgba(251, 44, 54, 0)'); // Transparent red
 
             setGradient({ wins: gradient, losses: gradientLoss });
@@ -54,12 +54,6 @@ export function LineChart({ labels, wins, losses }: { labels: string[], wins: nu
     }, [labels, wins, losses]);
 
     ChartJS.register(CategoryScale, LinearScale, Title, Tooltip, Legend, PointElement, LineElement, Filler, TimeScale);
-
-    function getDateFromString(dateString: string): Date {
-        const [month, day] = dateString.split('-').map(Number);
-        const year = new Date().getFullYear(); // Use current year
-        return new Date(year, month, day); // Month is 0-indexed in JavaScript
-    }
 
     const data = {
         labels: labels,

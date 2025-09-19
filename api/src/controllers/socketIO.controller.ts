@@ -626,6 +626,14 @@ export default class SocketIO {
                     }
                 })
             }
+            if(lobbies.length > 0) {
+                lobbies.forEach(async (lobby) => {
+                    if (!lobby.game_id && lobby.createdAt.getTime() < Date.now() - 1000 * 60 * 60) {
+                        this.logService.consoleLog(`Lobby ${lobby._id} deleted due to inactivity`, 'SocketIOService');
+                        await this.lobby.deleteOne({ _id: lobby._id });
+                    }
+                });
+            }
         }, 1000)
     }
 

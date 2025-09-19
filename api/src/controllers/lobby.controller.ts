@@ -33,6 +33,10 @@ export default class LobbyController implements Controller {
             this.joinLobby(req, res).catch(next);
         });
 
+        this.router.put("/join/mobile/:code", hasAuth([Auth["JOIN.LOBBY"]]), (req, res, next) => {
+            this.joinLobbyByCode(req, res).catch(next);
+        });
+
         this.router.put("/leave/:id", hasAuth([Auth["JOIN.LOBBY"]]), (req, res, next) => {
             this.leaveLobby(req, res).catch(next);
         });
@@ -93,6 +97,7 @@ export default class LobbyController implements Controller {
         body["_id"] = new mongoose.Types.ObjectId();
         body["users"] = [new mongoose.Types.ObjectId(userid)];
         body["createdBy"] = new mongoose.Types.ObjectId(userid);
+        body["settings"]["roomCode"] = parseInt(((userid.toString()).slice(21) + (body["_id"].toString()).slice(21)), 16);
         body["bots"] = (body.settings.fillWithRobots ? Array.from({ length: body.settings.numberOfRobots }, (_, i) => { return { name: new Bot().getRobotName(body.settings.robotsDifficulty, i), _id: 'bot' + i, customId: 'bot-' + i } }) : []);
         const newLobby = new this.lobby(body);
         await newLobby.save();
@@ -211,6 +216,33 @@ export default class LobbyController implements Controller {
             lobby.users.push(new mongoose.Types.ObjectId(userid));
             await this.lobby.updateOne({ _id: id }, lobby, { runValidators: true });
             const newLobby = await this.lobby.findOne({ _id: id }).populate("users", "customId username rank settings");
+            res.send({ lobby: newLobby });
+        } else {
+            res.status(400).send({ error: ERROR.AN_ERROR_OCCURRED });
+        }
+    };
+
+    private joinLobbyByCode = async (req: Request, res: Response) => {
+        const code = req.params.code;
+        const body = req.body;
+        const lobby = await this.lobby.findOne({ "settings.roomCode": code.toString() });
+        if (lobby) {
+            if (body.password && lobby.settings?.lobbyCode !== body.password) {
+                res.status(400).send({ error: ERROR.INVALID_PASSWORD });
+                return;
+            }
+            if (lobby.users.length >= lobby.settings!.numberOfPlayers!) {
+                res.status(400).send({ error: ERROR.LOBBY_FULL });
+                return;
+            }
+            const userid = await getIDfromToken(req);
+            if(lobby.users.includes(userid)){
+            }else{
+                await this.leftLobby(req);
+                lobby.users.push(new mongoose.Types.ObjectId(userid));
+            }
+            await this.lobby.updateOne({ _id: lobby.id }, lobby, { runValidators: true });
+            const newLobby = await this.lobby.findOne({ _id: lobby.id }).populate("users", "customId username rank settings");
             res.send({ lobby: newLobby });
         } else {
             res.status(400).send({ error: ERROR.AN_ERROR_OCCURRED });

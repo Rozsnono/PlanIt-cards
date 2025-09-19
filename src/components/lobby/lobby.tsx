@@ -102,7 +102,7 @@ export default function LobbyCard({ lobbyDatas, lobbyNumber, isAdmin }: { lobbyD
     }
 
     return (
-        <main className="flex flex-col rounded-xl bg-zinc-800/70 overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 3xl:max-h-[35rem] max-h-fit">
+        <main className="flex flex-col rounded-xl bg-zinc-800/70 overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 2xl:max-h-[35rem] max-h-fit">
             <div className={`w-full bg-gradient-to-l flex items-center justify-between p-4 ${getCardStyleByType()}`}>
                 <div className="text-white font-bold text-lg flex flex-col ">
                     <span>Lobby {lobbyNumber}</span>
@@ -114,8 +114,8 @@ export default function LobbyCard({ lobbyDatas, lobbyNumber, isAdmin }: { lobbyD
                     {(lobbyDatas.users.length || 0) + (lobbyDatas.bots.length || 0)}/{lobbyDatas.settings.numberOfPlayers}
                 </div>
             </div>
-            <div className="p-4 3xl:hidden flex"></div>
-            <div className="h-full w-full p-2 flex-col gap-2 3xl:flex hidden">
+            <div className="p-4 2xl:hidden flex"></div>
+            <div className="h-full w-full p-2 flex-col gap-2 2xl:flex hidden">
                 {
                     lobbyDatas.users?.filter((p) => p._id == user?._id).map(player => (
                         <div key={player.username} className={`flex justify-between gap-1 p-2 text-zinc-200 items-center w-full mx-auto border border-purple-500 rounded-md`}>

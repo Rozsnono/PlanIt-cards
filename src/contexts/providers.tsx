@@ -18,7 +18,7 @@ export function Providers({ children, className }: { children: React.ReactNode, 
     const route = useRouter();
     const [user, setUser] = useState<Iplayer | null>(getUser());
 
-    const notAllowedURLs = ['rummy', 'uno', 'solitaire', 'observatory', 'login', 'register', 'verify'];
+    const notAllowedURLs = ['rummy', 'uno', 'solitaire', 'observatory', 'login', 'register', 'verify', 'mobile'];
 
     const gameUrls = ['rummy', 'uno', 'solitaire', 'schnapps'];
 
@@ -33,7 +33,7 @@ export function Providers({ children, className }: { children: React.ReactNode, 
     const queryClient = new QueryClient();
 
     function getStyle(): CSSProperties | undefined {
-        if (path.includes('observatory') || path.includes('login') || path.includes('register') || path.includes('verify')) {
+        if (path.includes('observatory') || path.includes('login') || path.includes('register') || path.includes('verify') || path.includes('mobile')) {
             return {}
         }
         if (path.includes('end')) {

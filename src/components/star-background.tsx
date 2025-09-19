@@ -10,14 +10,24 @@ export default function StarBackground() {
 
     const { isLowModeOn } = useContext(MenuContext);
 
+
+
     useEffect(() => {
         setIsClient(true);
     }, []);
 
+    if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+        return (
+            <main className="fixed top-0 left-0 w-[100%] h-screen overflow-hidden z-[-1]">
+                <div style={{ backgroundImage: 'linear-gradient(50deg, rgba(226, 99, 255, 0.18) 0%, #5b1d8c40 50%, rgba(206, 53, 255, 0.12) 100%)' }} className="w-screen h-screen absolute top-0 left-0"></div>
+            </main>
+        )
+    }
+
     if (!isClient) return null; // vagy valami skeleton
     if (isLowModeOn) return (
         <main className="fixed top-0 left-0 w-[100%] h-screen overflow-hidden z-[-1]">
-            
+
             <div style={{ backgroundImage: 'linear-gradient(50deg,rgba(255, 255, 255, 0) 0%, rgba(226, 99, 255, 0.18) 20%, rgba(255, 255, 255, 0) 50%, rgba(206, 53, 255, 0.12) 85%, rgba(255, 255, 255, 0) 100%)' }} className="w-screen h-screen absolute top-0 left-0"></div>
         </main>
     );
