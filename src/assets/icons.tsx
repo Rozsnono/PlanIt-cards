@@ -664,6 +664,22 @@ function getIcon(name: string) {
                 </>
             )
         }
+
+        case "fullScreen": {
+            return (
+                <>
+                    <path fillRule="evenodd" d="M7 10H5V5h5v2H7v3Zm-2 4h2v3h3v2H5v-5Zm12 3h-3v2h5v-5h-2v3ZM14 7V5h5v5h-2V7h-3Z" clipRule="evenodd"></path>
+                </>
+            )
+        }
+
+        case "exitFullScreen": {
+            return (
+                <>
+                    <path fillRule="evenodd" d="M5 8h3V5h2v5H5V8Zm3 8H5v-2h5v5H8v-3Zm6 3h2v-3h3v-2h-5v5Zm2-14v3h3v2h-5V5h2Z" clipRule="evenodd"></path>
+                </>
+            )
+        }
     }
 }
 

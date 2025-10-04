@@ -49,7 +49,7 @@ export default function Mobile() {
     return (
         <main className="top-0 left-0 w-screen h-screen fixed flex lg:items-center md:items-center justify-center">
 
-            <div className="border-purple-800/50 bg-gradient-to-br from-black/50 via-zinc-950/50 to-purple-950/50 border-2 rounded-lg py-10 flex flex-col gap-6 justify-center w-[30rem] relative">
+            <div className="border-purple-800/50 bg-gradient-to-br from-black/50 via-zinc-950/50 to-purple-950/50 border-2 rounded-lg py-10 flex flex-col gap-6 justify-center w-full h-full relative">
 
                 <div className="absolute right-8 top-8 opacity-60">
                     <Image src="/assets/icon.png" width={80} height={80} alt="Icon"></Image>

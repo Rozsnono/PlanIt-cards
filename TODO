@@ -25,4 +25,13 @@ Bugs:
     - Rummy when not enough cards to play dropped doesn't removed 
     - Player Icon bugs ✅
     - Schnapps call bug (Bettli, Gangli) ✅
-    - Replay / Result bug 
+    - Replay / Result bug ✅
+
+TODOs:
+    - Mobile rotation check ✅
+    - All replay/result check on backend
+    - Rummy replay/result check
+    - Solitaire replay/result check
+    - Schnapps / All watch
+    - Player display fix
+    - Restart the game from Result screen ✅

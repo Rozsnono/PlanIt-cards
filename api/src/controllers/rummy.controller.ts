@@ -9,6 +9,7 @@ import { Cards } from "../cards/cards";
 import mongoose from "mongoose";
 import { ERROR } from "../enums/error.enum";
 import GameHistoryService from "../services/history.services";
+import { RummyService } from "../services/game.service";
 
 
 export default class RummyController implements Controller {
@@ -16,6 +17,7 @@ export default class RummyController implements Controller {
     public validate = gameModel.validate;
     public game = gameModel.gameModel;
     public lobby = lobbyModel.lobbyModel;
+    private rummyService = new RummyService();
     private gameHistoryService = new GameHistoryService();
 
 
@@ -51,9 +53,6 @@ export default class RummyController implements Controller {
         // API route to put a card
         this.router.put("/put/:lobbyId/rummy", hasAuth([Auth["GAME.PLAY"]]), (req, res, next) => {
             this.putCard(req, res).catch(next);
-        });
-        this.router.put("/force-next/:lobbyId/rummy", hasAuth([Auth["GAME.PLAY"]]), (req, res, next) => {
-            this.forcedNextTurn(req, res).catch(next);
         });
 
 
@@ -99,107 +98,23 @@ export default class RummyController implements Controller {
         await newGame.save();
         lobby.game_id = newGame._id;
         await lobby.save();
-        await this.gameHistoryService.savingHistory(playerId, lobby.game_id)
+        await this.gameHistoryService.postHistory(lobby.game_id);
         res.send({ message: "Game started!", game_id: newGame._id });
     };
 
     private nextTurn = async (req: Request, res: Response) => {
+
         const lobbyId = req.params.lobbyId;
         const playerId = await getIDfromToken(req);
-        const lobby = await this.lobby.findOne({ _id: lobbyId });
-        if (!lobby) {
-            res.status(404).send({ error: ERROR.LOBBY_NOT_FOUND });
-            return;
-        }
-        const gameId = lobby.game_id;
-        const game = await this.game.findOne({ _id: gameId });
-        if (!game) {
-            res.status(404).send({ error: ERROR.GAME_NOT_FOUND });
-            return;
-        }
-        // check if the player is the current player
-        if (playerId.toString() !== game.currentPlayer.playerId.toString()) {
-            res.status(403).send({ error: ERROR.NOT_YOUR_TURN });
-            return;
-        }
 
-        if (game.drawedCard.lastDrawedBy !== playerId.toString()) {
-            res.status(403).send({ error: ERROR.NEED_TO_DRAW });
-            return;
-        }
+        const result = await this.rummyService.nextTurn(lobbyId, playerId);
 
-        if (game.droppedCards.length === 0 || game.droppedCards[game.droppedCards.length - 1].droppedBy !== playerId.toString()) {
-            res.status(403).send({ error: ERROR.NO_CARDS_DROPPED });
-            return;
+        if (result.error) {
+            res.status(403).send({ error: result.error });
+        } else {
+            res.send({ message: "Next turn!" });
         }
-        const dealer = new RummyDealer(game.shuffledCards);
-        if (!dealer.isValidToNext(game.playedCards, playerId)) {
-            const { cardsToReturn, playedCardsToReturn } = dealer.cardsToReturn(game.playedCards, playerId);
-            game.playerCards[playerId] = game.playerCards[playerId].concat(cardsToReturn);
-            game.playerCards[playerId].push(game.droppedCards[game.droppedCards.length - 1].card);
-            game.playedCards = playedCardsToReturn;
-            game.droppedCards = game.droppedCards.slice(0, game.droppedCards.length - 1);
-            await this.game.updateOne({ _id: gameId }, game, { runValidators: true });
-            res.status(403).send({ error: ERROR.MIN_51_VALUE });
-            return;
-        }
-
-        const nextPlayer = this.nextPlayer(Object.keys(game.playerCards), game.currentPlayer.playerId.toString());
-
-        game.currentPlayer = { playerId: nextPlayer, time: new Date().getTime() };
-        await this.game.updateOne({ _id: gameId }, game, { runValidators: true });
-        res.send({ message: "Next turn!" });
     };
-
-    private forcedNextTurn = async (req: Request, res: Response) => {
-        const lobbyId = req.params.lobbyId;
-        const lobby = await this.lobby.findOne({ _id: lobbyId });
-        if (!lobby) {
-            res.status(404).send({ error: ERROR.LOBBY_NOT_FOUND });
-            return;
-        }
-        const gameId = lobby.game_id;
-        const game = await this.game.findOne({ _id: gameId });
-        if (!game) {
-            res.status(404).send({ error: ERROR.GAME_NOT_FOUND });
-            return;
-        }
-        const playerId = game.currentPlayer.playerId;
-        // check if the player is the current player
-        if (playerId.toString() !== game.currentPlayer.playerId.toString()) {
-            res.status(403).send({ error: ERROR.NOT_YOUR_TURN });
-            return;
-        }
-
-        const dealer = new RummyDealer(game.shuffledCards);
-        if (game.drawedCard.lastDrawedBy !== playerId) {
-            game.playerCards[playerId].push(dealer.drawCard(1));
-            game.drawedCard.lastDrawedBy = playerId;
-        }
-
-        if (game.droppedCards.length === 0 || game.droppedCards[game.droppedCards.length - 1].droppedBy !== playerId.toString()) {
-            game.droppedCards.push({ droppedBy: playerId, card: game.playerCards[playerId].pop() });
-        }
-
-        if (!dealer.isValidToNext(game.playedCards, playerId)) {
-            const { cardsToReturn, playedCardsToReturn } = dealer.cardsToReturn(game.playedCards, playerId);
-            game.playerCards[playerId] = game.playerCards[playerId].concat(cardsToReturn);
-            game.playerCards[playerId].push(game.droppedCards[game.droppedCards.length - 1]);
-            game.playedCards = playedCardsToReturn;
-            game.droppedCards.shift();
-            await this.game.updateOne({ _id: gameId }, game, { runValidators: true });
-            res.status(403).send({ error: ERROR.MIN_51_VALUE });
-            return;
-        }
-        const nextPlayer = this.nextPlayer(Object.keys(game.playerCards), game.currentPlayer.playerId.toString());
-
-        game.currentPlayer = { playerId: nextPlayer, time: new Date().getTime() };
-
-        await this.game.updateOne({ _id: gameId }, game, { runValidators: true });
-        await this.gameHistoryService.savingHistory(playerId, gameId);
-        res.send({ message: "Next turn!" });
-
-    }
 
     private drawCard = async (req: Request, res: Response) => {
         const lobbyId = req.params.lobbyId;

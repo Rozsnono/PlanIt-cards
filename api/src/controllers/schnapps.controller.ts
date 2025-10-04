@@ -9,7 +9,7 @@ import { Cards } from "../cards/cards";
 import mongoose from "mongoose";
 import { ERROR } from "../enums/error.enum";
 import GameHistoryService from "../services/history.services";
-import { GameChecker, SchnappsService } from "../services/game.service";
+import { GameService, SchnappsService } from "../services/game.service";
 
 
 export default class SchnappsController implements Controller {
@@ -30,10 +30,6 @@ export default class SchnappsController implements Controller {
         // API route to draw a card
         this.router.put("/select/:lobbyId/schnapps", hasAuth([Auth["GAME.PLAY"]]), (req, res, next) => {
             this.selectTrump(req, res).catch(next);
-        });
-        // API route to get the next turn
-        this.router.put("/next/:lobbyId/schnapps", hasAuth([Auth["GAME.PLAY"]]), (req, res, next) => {
-            this.nextTurn(req, res).catch(next);
         });
         // API route to drop a card
         this.router.put("/drop/:lobbyId/schnapps", hasAuth([Auth["GAME.PLAY"]]), (req, res, next) => {
@@ -108,44 +104,9 @@ export default class SchnappsController implements Controller {
         await newGame.save();
         lobby.game_id = newGame._id;
         await lobby.save();
-        await this.gameHistoryService.savingHistory(playerId, lobby.game_id)
+        await this.gameHistoryService.postHistory(lobby.game_id);
         res.send({ message: "Game started!", game_id: newGame._id });
     };
-
-    private nextTurn = async (req: Request, res: Response) => {
-        const lobbyId = req.params.lobbyId;
-        const lobby = await this.lobby.findOne({ _id: lobbyId });
-        if (!lobby) {
-            res.status(404).send({ error: ERROR.LOBBY_NOT_FOUND });
-            return;
-        }
-        const gameId = lobby.game_id;
-        const playerId = await getIDfromToken(req);
-        const game = await this.game.findOne({ _id: gameId });
-        if (!game) {
-            res.status(404).send({ error: ERROR.GAME_NOT_FOUND });
-            return;
-        }
-        // check if the player is the current player
-        if (playerId.toString() !== game.currentPlayer.playerId.toString()) {
-            res.status(403).send({ error: ERROR.NOT_YOUR_TURN });
-            return;
-        }
-
-        const { winner, cards } = new SchnappsDealer(game.shuffledCards).validateNextTurn(game.droppedCards as any, game.lastAction.trump.suit);
-        game.playedCards.push({ playedBy: winner, cards: cards });
-
-        if (game.droppedCards.find((c) => c.card.suit === game.lastAction.trump.suit && c.card.rank === game.lastAction.trump.card.rank)) {
-            game.lastAction.isUno = true;
-            game.lastAction.trumpWith = game.droppedCards.find((c) => c.card.suit === game.lastAction.trump.suit && c.card.rank === game.lastAction.trump.card.rank)?.droppedBy || "";
-        }
-
-        game.currentPlayer.playerId = this.nextPlayer(Object.keys(game.playerCards), game.currentPlayer.playerId);
-
-        await this.game.updateOne({ _id: gameId }, game, { runValidators: true });
-
-        res.send({ message: "Next turn!" });
-    }
 
     private selectTrump = async (req: Request, res: Response) => {
         const lobbyId = req.params.lobbyId;

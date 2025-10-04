@@ -14,6 +14,7 @@ import GameUser, { GameBot } from "@/components/user/game.user.component";
 import { IP } from "@/enums/ip.enum";
 import PingDisplayComponent from "@/components/game/ping.display.component";
 import Loading from "@/app/loading";
+import GameOver from "@/components/game/over.componet";
 
 const gameService = new SchnappsService();
 const timerClass = new Timer();
@@ -164,23 +165,8 @@ export default function Game() {
 
     return (
         <main className="flex w-full h-full rounded-md p-3 relative select-none">
-            {
-                isGameOver &&
-                <div className="w-full h-full absolute z-[1000] bg-zinc-900/70 top-0 left-0 flex flex-col justify-center items-center">
-                    <div className="text-5xl text-zinc-200 font-bold p-4 rounded-md animate-pulse">
-                        Game Over
-                    </div>
-                    <div className="flex flex-col justify-center items-center gap-2">
-                        <div className="text-sm text-zinc-400 font-bold p-4 rounded-md">
-                            Checkout the game history and statistics.
-                        </div>
-                        <div onClick={() => { router.push(`/games/${lobby_id}/${game_id}/result`) }} className="text-zinc-200 p-2 px-4 rounded-md border border-zinc-300 hover:bg-zinc-300 focus:bg-zinc-300 hover:text-zinc-800 flex items-center gap-1 cursor-pointer">
-                            <Icon name="game" stroke></Icon>
-                            Statistics
-                        </div>
-                    </div>
-                </div>
-            }
+            <GameOver type="SCHNAPPS" isGameOver={isGameOver} lobbyId={lobby_id!} gameId={game_id!}></GameOver>
+
 
             <main className="bg-orange-900 rounded-md w-full relative flex justify-center items-center">
                 {
@@ -339,24 +325,7 @@ export default function Game() {
                         }
 
 
-                        <div className="text-zinc-200 font-bold text-3xl absolute right-[105%] bottom-2 right-2">
-
-
-                            {
-                                (gameState.lastAction.points![user!._id] || 0) + (
-                                    gameState.lastAction.isUno ?
-                                        (
-                                            gameState.lastAction.trumpWith === user!._id && gameState.lastAction.playerId === user!._id ?
-                                                0 :
-                                                gameState.lastAction.trumpWith !== user!._id && gameState.lastAction.playerId === user!._id ?
-                                                    (gameState.lastAction.points![gameState.lastAction.trumpWith!] || 0) :
-                                                    gameState.lastAction.trumpWith === user!._id && gameState.lastAction.playerId !== user!._id ?
-                                                        (gameState.lastAction.points![gameState.lastAction.playerId!] || 0) :
-                                                        0
-                                        ) : 0
-                                )
-                            }
-                        </div>
+                        
 
 
                     </main>

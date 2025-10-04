@@ -14,6 +14,7 @@ import CardsUrls from "@/contexts/cards.context";
 import { IP } from "@/enums/ip.enum";
 import GameUser, { GameBot } from "@/components/user/game.user.component";
 import Loading from "@/app/loading";
+import PlayerDisplay from "@/components/game/player.display.component";
 
 const gameService = new GameService("rummy");
 const timerClass = new Timer();
@@ -82,7 +83,7 @@ export default function Game() {
                                             e.cards.map((card: Icard, j: number) => {
                                                 return (
                                                     <div key={j} className="w-8 h-16 relative group cursor-pointer overflow-visible">
-                                                        <Image className={`card-animation w-16 max-w-16 rounded-md border border-transparent ${e.playedBy === user?._id ? ' group-hover:border-green-500' : ""} `} key={j} src={"/" + new CardsUrls().getFullCardUrl(card.name)} width={70} height={60} alt={new CardsUrls().getFullCardUrl(card.name)||''}></Image>
+                                                        <Image className={`card-animation w-16 max-w-16 rounded-md border border-transparent ${e.playedBy === user?._id ? ' group-hover:border-green-500' : ""} `} key={j} src={"/" + new CardsUrls().getFullCardUrl(card.name)} width={70} height={60} alt={new CardsUrls().getFullCardUrl(card.name) || ''}></Image>
                                                         {j === 0 && <div className="opacity-0 group-hover:opacity-100 absolute group-hover:bottom-[-3.6rem] bottom-0 text-zinc-300 left-0 w-16 z-[-1] duration-200 ">{lobby?.users.find(user => user._id === e.playedBy)?.firstName || e.playedBy}</div>}
                                                     </div>
                                                 )
@@ -116,49 +117,8 @@ export default function Game() {
                     </div>
                 </div>
 
-                <div className="absolute top-0 left-2 h-full flex flex-col justify-between items-center">
-                    <div></div>
-                    {
-                        lobby?.users.filter((u, i) => { return i % 2 === 0 && u._id !== user?._id }).map((user, j) => {
-                            return (
-                                <GameUser key={j} user={user} currentPlayer={game.currentPlayer.playerId}></GameUser>
+                <PlayerDisplay lobby={lobby!} game={game} user={user} isDisplay></PlayerDisplay>
 
-                            )
-                        })
-                    }
-
-                    {
-                        lobby?.bots.filter((u, i) => { return i % 2 === 1 }).map((bot, j) => {
-                            return (
-                                <GameBot key={j} bot={bot} currentPlayer={game.currentPlayer.playerId}></GameBot>
-
-                            )
-                        })
-                    }
-                    <div></div>
-                </div>
-
-                <div className="absolute top-0 right-2 h-full flex flex-col justify-between items-center">
-                    <div></div>
-                    {
-                        lobby?.users.filter((u, i) => { return i % 2 === 1 && u._id !== user?._id }).map((user, j) => {
-                            return (
-                                <GameUser key={j} user={user} currentPlayer={game.currentPlayer.playerId}></GameUser>
-
-                            )
-                        })
-                    }
-
-                    {
-                        lobby?.bots.filter((u, i) => { return i % 2 === 0 }).map((bot, j) => {
-                            return (
-                                <GameBot key={j} bot={bot} currentPlayer={game.currentPlayer.playerId}></GameBot>
-
-                            )
-                        })
-                    }
-                    <div></div>
-                </div>
 
                 <div className="w-full h-full flex justify-center items-center">
                     <div className="p-10 border-[2rem] border-[#ffffff10] rounded-full h-[30rem] w-[30rem] flex justify-center items-center">

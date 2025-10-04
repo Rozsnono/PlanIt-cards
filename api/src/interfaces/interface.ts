@@ -81,5 +81,6 @@ export interface Igame {
         isUno?: boolean;
         trump?: { suit: string, card: string } | null;
         trumpWith?: string | null;
+        points?: { [player_id: string]: number };
     }
 }

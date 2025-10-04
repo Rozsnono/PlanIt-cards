@@ -42,7 +42,7 @@ export default class GameController implements Controller {
         });
 
         // API route to delete game
-        this.router.delete("/delete/game/:id", hasAuth([Auth["ADMIN"]]), (req, res, next) => {
+        this.router.delete("/delete/game/:id", hasAuth([Auth["GAME.PLAY"]]), (req, res, next) => {
             this.deleteGame(req, res).catch(next);
         });
 
@@ -84,6 +84,15 @@ export default class GameController implements Controller {
         const lobbies = await this.lobby.findOne({ _id: id });
         if (!lobbies) {
             res.status(404).send({ error: ERROR.GAME_NOT_FOUND });
+            return;
+        }
+        const playerId = await getIDfromToken(req);
+        if (!lobbies.users.find((player) => player.toString() == playerId)) {
+            res.status(403).send({ error: ERROR.NOT_IN_LOBBY });
+            return;
+        }
+        if (lobbies.createdBy!.toString() !== playerId) {
+            res.status(403).send({ error: ERROR.NOT_LOBBY_OWNER });
             return;
         }
         delete lobbies.game_id;

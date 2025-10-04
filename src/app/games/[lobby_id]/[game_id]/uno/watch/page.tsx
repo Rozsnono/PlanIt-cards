@@ -17,6 +17,7 @@ import CardsUrls from "@/contexts/cards.context";
 import ColorPicker from "@/components/color.picker";
 import GameUser, { GameBot } from "@/components/user/game.user.component";
 import Loading from "@/app/loading";
+import PlayerDisplay from "@/components/game/player.display.component";
 
 const gameService = new UnoService();
 const timerClass = new Timer();
@@ -101,45 +102,8 @@ export default function Game() {
 
                 </div>
 
-                <div className="absolute top-0 left-2 h-full flex flex-col justify-between items-center">
-                    <div></div>
-                    {
-                        lobby?.users.filter((u) => { return u._id !== user?._id }).slice(0, lobby?.users.length / 2).map((user, j) => {
-                            return (
-                                <GameUser key={j} user={user} currentPlayer={game.currentPlayer.playerId}></GameUser>
-                            )
-                        })
-                    }
+                <PlayerDisplay lobby={lobby!} game={game} user={user}></PlayerDisplay>
 
-                    {
-                        lobby?.bots.slice(0, lobby?.bots.length / 2).map((bot, j) => {
-                            return (
-                                <GameBot key={j} bot={bot} currentPlayer={game.currentPlayer.playerId}></GameBot>
-                            )
-                        })
-                    }
-                    <div></div>
-                </div>
-
-                <div className="absolute top-0 right-2 h-full flex flex-col justify-between items-center">
-                    <div></div>
-                    {
-                        lobby?.users.filter((u) => { return u._id !== user?._id }).slice(lobby?.users.length / 2).map((user, j) => {
-                            return (
-                                <GameUser key={j} user={user} currentPlayer={game.currentPlayer.playerId}></GameUser>
-                            )
-                        })
-                    }
-
-                    {
-                        lobby?.bots.slice(lobby?.bots.length / 2).map((bot, j) => {
-                            return (
-                                <GameBot key={j} bot={bot} currentPlayer={game.currentPlayer.playerId}></GameBot>
-                            )
-                        })
-                    }
-                    <div></div>
-                </div>
 
                 <div className="w-full h-full flex justify-center items-center">
                     <div className="p-10 border-[2rem] border-[#ffffff10] rounded-full h-[30rem] w-[30rem] flex justify-center items-center">

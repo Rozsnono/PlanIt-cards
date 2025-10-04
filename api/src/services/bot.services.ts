@@ -310,7 +310,7 @@ export class UnoBot {
     playedCards: { playedBy: string, cards: Icard[] }[] = [];
     drawedCard: { lastDrawedBy: string };
 
-    constructor(name: string, difficulty: string, playerCards: Icard[]|any, droppedCards: { droppedBy: string, card: Icard }[], playedCards: any, cards: Icard[], drawedCard: { lastDrawedBy: string }) {
+    constructor(name: string, difficulty: string, playerCards: Icard[] | any, droppedCards: { droppedBy: string, card: Icard }[], playedCards: any, cards: Icard[], drawedCard: { lastDrawedBy: string }) {
         this.name = name;
         this.difficulty = difficulty as any;
         this.validator = new UnoDealer(cards as any);
@@ -407,11 +407,14 @@ export class SchnappsBot {
         if (this.droppedCards.length === 0) {
             selectedCard = this.playerCards[Math.floor(Math.random() * this.playerCards.length)];
         } else {
+            const firstDroppedCardSuit = this.droppedCards[0].card.suit;
             const lastDroppedCard = this.droppedCards.filter((card: Icard) => card.suit === this.droppedCards[0].suit && (this.droppedCards[0].suit == this.game?.lastAction.trump?.suit ? true : card.suit !== this.game?.lastAction.trump?.suit)).sort((a: any, b: any) => b.card.rank - a.card.rank)[0].card || this.droppedCards[0].card;
             const hasTrumpCard = this.droppedCards.filter((card: Icard) => card.suit === this.game!.lastAction.trump!.suit && this.game?.lastAction.trump?.suit !== this.droppedCards[0].card.suit).sort((a: any, b: any) => b.card.rank - a.card.rank)[0] || null;
 
             if (hasTrumpCard) {
-                if (this.checkPlayerCards(lastDroppedCard.suit).length > 0) {
+                if (this.checkPlayerCards(firstDroppedCardSuit).length > 0) {
+                    selectedCard = this.checkPlayerCards(firstDroppedCardSuit)[Math.floor(Math.random() * this.checkPlayerCards(firstDroppedCardSuit).length)];
+                } else if (this.checkPlayerCards(lastDroppedCard.suit).length > 0) {
                     selectedCard = this.checkPlayerCards(lastDroppedCard.suit)[Math.floor(Math.random() * this.checkPlayerCards(lastDroppedCard.suit).length)];
                 } else if (this.checkPlayerCards(this.game!.lastAction.trump!.suit, hasTrumpCard.card.rank).length > 0) {
                     selectedCard = this.checkPlayerCards(this.game!.lastAction.trump!.suit, hasTrumpCard.card.rank)[Math.floor(Math.random() * this.checkPlayerCards(this.game!.lastAction.trump!.suit, hasTrumpCard.rank).length)];
@@ -444,11 +447,14 @@ export class SchnappsBot {
         if (this.droppedCards.length === 0) {
             selectedCard = this.playerCards.sort((a, b) => b.rank - a.rank)[0];
         } else {
+            const firstDroppedCardSuit = this.droppedCards[0].card.suit;
             const lastDroppedCard = this.droppedCards.filter((card: Icard) => card.suit === this.droppedCards[0].suit && (this.droppedCards[0].suit == this.game?.lastAction.trump?.suit ? true : card.suit !== this.game?.lastAction.trump?.suit)).sort((a: any, b: any) => b.card.rank - a.card.rank)[0].card || this.droppedCards[0].card;
             const hasTrumpCard = this.droppedCards.filter((card: Icard) => card.suit === this.game!.lastAction.trump!.suit && this.game?.lastAction.trump?.suit !== this.droppedCards[0].card.suit).sort((a: any, b: any) => b.card.rank - a.card.rank)[0] || null;
 
             if (hasTrumpCard) {
-                if (this.checkPlayerCards(lastDroppedCard.suit).length > 0) {
+                if (this.checkPlayerCards(firstDroppedCardSuit).length > 0) {
+                    selectedCard = this.checkPlayerCards(firstDroppedCardSuit)[Math.floor(Math.random() * this.checkPlayerCards(firstDroppedCardSuit).length)];
+                } else if (this.checkPlayerCards(lastDroppedCard.suit).length > 0) {
                     selectedCard = this.checkPlayerCards(lastDroppedCard.suit)[Math.floor(Math.random() * this.checkPlayerCards(lastDroppedCard.suit).length)];
                 } else if (this.checkPlayerCards(this.game!.lastAction.trump!.suit, hasTrumpCard.card.rank).length > 0) {
                     selectedCard = this.checkPlayerCards(this.game!.lastAction.trump!.suit, hasTrumpCard.card.rank)[Math.floor(Math.random() * this.checkPlayerCards(this.game!.lastAction.trump!.suit, hasTrumpCard.rank).length)];

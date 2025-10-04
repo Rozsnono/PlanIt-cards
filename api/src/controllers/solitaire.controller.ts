@@ -3,13 +3,12 @@ import Controller from "../interfaces/controller_interface";
 import { getIDfromToken, hasAuth } from "../middleware/middleware";
 import { Auth } from "../enums/auth.enum";
 import gameModel from "../models/game.model";
-import { SolitaireDealer, UnoDealer } from "../services/dealer.services";
+import { SolitaireDealer } from "../services/dealer.services";
 import lobbyModel from "../models/lobby.model";
 import { Cards } from "../cards/cards";
 import mongoose from "mongoose";
 import { ERROR } from "../enums/error.enum";
-import { Icard, Igame, Ilobby } from "../interfaces/interface";
-import { GameChecker } from "../services/game.service";
+import { Icard } from "../interfaces/interface";
 import { GameHistorySolitaire } from "../services/history.services";
 import gameHistoryModel from "../models/game.history.model";
 
@@ -20,7 +19,7 @@ export default class SolitaireController implements Controller {
     public game = gameModel.gameModel;
     public lobby = lobbyModel.lobbyModel;
     public gameHistory = gameHistoryModel.gameHistoryModel;
-    private GameHistorySolitaire = new GameHistorySolitaire();
+    private historyService = new GameHistorySolitaire();
 
 
     private wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
@@ -99,13 +98,12 @@ export default class SolitaireController implements Controller {
         await newGame.save();
         lobby.game_id = newGame._id;
         await lobby.save();
-        await this.GameHistorySolitaire.saveHistory(playerId, lobby.game_id)
+        await this.historyService.postHistory(lobby.game_id);
 
         res.send({ message: "Game started!", game_id: newGame._id });
     };
 
     private reStartGame = async (req: Request, res: Response) => {
-        const body = req.body;
         const lobbyId = req.params.lobbyId;
         const gameId = req.params.gameId;
 
@@ -140,7 +138,7 @@ export default class SolitaireController implements Controller {
         game["droppedCards"] = [];
         game["currentPlayer"] = { playerId: lobby?.users[0].toString(), time: 0 };
         await this.game.updateOne({ _id: gameId }, game, { runValidators: true });
-        await this.GameHistorySolitaire.saveHistory(playerId, lobby.game_id, true);
+        await this.historyService.postHistory(lobby.game_id);
         res.send({ message: "Game started!", game_id: game._id });
     };
 
@@ -179,7 +177,7 @@ export default class SolitaireController implements Controller {
         game.droppedCards.push({ droppedBy: playerId, card: card });
         game.shuffledCards = dealer!.deck;
         await this.game.updateOne({ _id: gameId }, game, { runValidators: true });
-        await this.GameHistorySolitaire.saveHistory(playerId, lobby.game_id);
+        await this.historyService.putHistory(lobby.game_id);
         res.send({ message: "Card drawn successfully!" });
     };
 
@@ -248,7 +246,7 @@ export default class SolitaireController implements Controller {
 
 
         await this.game.updateOne({ _id: gameId }, game, { runValidators: true });
-        await this.GameHistorySolitaire.saveHistory(playerId, lobby.game_id);
+        await this.historyService.putHistory(lobby.game_id);
         res.send({ message: "Card placed successfully!" });
     };
 
@@ -320,10 +318,11 @@ export default class SolitaireController implements Controller {
 
 
         await this.game.updateOne({ _id: gameId }, game, { runValidators: true });
-        await this.GameHistorySolitaire.saveHistory(playerId, lobby.game_id);
+        await this.historyService.putHistory(lobby.game_id);
+
 
         if (!game.playedCards.map(c => c.cards).find(c => c.length != 0) && game.droppedCards.length === 0 && game.shuffledCards.length === 0) {
-            await this.GameHistorySolitaire.savePosition(lobbyId, gameId, 10);
+            await this.historyService.savePosition(lobbyId, gameId, 10);
             res.send({ info: "Game Over!" });
             return;
         }
@@ -441,7 +440,7 @@ export default class SolitaireController implements Controller {
         }
 
         const turns = Object.values(gameHistory.turns).length;
-        const turn = gameHistory.turns[turns - 1];
+        const turn = gameHistory.turns[turns - 2];
 
         if (!turn) {
             res.status(404).send({ error: ERROR.GAME_HISTORY_NOT_FOUND });
@@ -456,9 +455,9 @@ export default class SolitaireController implements Controller {
         game.currentPlayer = { playerId: game.currentPlayer.playerId, time: 0 };
         await this.game.updateOne({ _id: gameId }, game, { runValidators: true });
 
-        gameHistory.turns = Object.values(gameHistory.turns).filter((t, index: number) => index + 1 !== turns).map((turn: any, index: number) => { return { [index + 1]: turn } });
+        gameHistory.turns = Object.fromEntries(Object.entries(gameHistory.turns).filter(([key]) => parseInt(key) !== turns - 1));
         await this.gameHistory.updateOne({ gameId: gameId }, gameHistory, { runValidators: true });
 
-        res.send({ message: "Card played successfully!" });
+        res.send({ message: "Move undone successfully!" });
     }
 }

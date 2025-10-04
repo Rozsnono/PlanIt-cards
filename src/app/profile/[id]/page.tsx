@@ -155,7 +155,7 @@ export default function ProfilePage() {
                                             index={i + 1}
                                             pos={(game.position.find((p: any) => p.player = user!._id) || { pos: 0 }).pos}
                                             type={game.type}
-                                            date={game.date}
+                                            date={game.createdAt}
                                             link={`/games/${game.lobbyId}/${game.gameId}/${game.type ? game.type.toLowerCase() : ''}/replay`}
                                             resultLink={`/games/${game.lobbyId}/${game.gameId}/result`}
                                             isFinished={game.endedAt}

@@ -15,6 +15,7 @@ import ColorPicker from "../../../../components/colorpicker";
 import { IP } from "@/enums/ip.enum";
 import TurnDisplayComponent from "@/components/game/turn.display.component";
 import Loading from "@/app/loading";
+import FullscreenMode from "@/app/mobile/components/fullscreen.component";
 
 const gameService = new UnoService();
 const timerClass = new Timer();
@@ -202,13 +203,15 @@ export default function Game() {
                         <div className="text-sm text-zinc-400 font-bold p-4 rounded-md">
                             Checkout the game history and statistics.
                         </div>
-                        <div onClick={() => { router.push(`/games/${lobby_id}/${game_id}/result`) }} className="text-zinc-200 p-2 px-4 rounded-md border border-zinc-300 hover:bg-zinc-300 focus:bg-zinc-300 hover:text-zinc-800 flex items-center gap-1 cursor-pointer">
+                        <div onClick={() => { router.push(`/games/${lobby_id}`) }} className="text-zinc-200 p-2 px-4 rounded-md border border-zinc-300 hover:bg-zinc-300 focus:bg-zinc-300 hover:text-zinc-800 flex items-center gap-1 cursor-pointer">
                             <Icon name="game" stroke></Icon>
-                            Statistics
+                            Back to lobby
                         </div>
                     </div>
                 </div>
             }
+
+            <FullscreenMode />
 
             <main className="bg-rose-900 rounded-md w-full relative flex justify-center items-center">
                 {

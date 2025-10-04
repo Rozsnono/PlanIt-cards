@@ -72,24 +72,20 @@ export default function LobbyCard({ lobbyDatas, lobbyNumber, isAdmin }: { lobbyD
         }
         if (lobbyDatas.users.find((u: any) => u._id === user?._id)) {
             return (
-
                 <Link href={"games/" + lobbyDatas._id} className="bg-green-700 text-white p-2 px-5 rounded-md hover:bg-green-600 flex items-center gap-1 hover:scale-105 transition-transform duration-200">
                     <Icon name="join"></Icon>
                     Join
                 </Link>
             )
-        } else if ((lobbyDatas.users?.length && lobbyDatas.users?.length + (lobbyDatas.bots?.length ? lobbyDatas.bots?.length : 0) >= lobbyDatas.settings.numberOfPlayers)) {
-            return (
-                null
-            )
-        }
-        else if (lobbyDatas.game_id && lobbyDatas.type !== "SOLITAIRE" && lobbyDatas.type !== "SCHNAPPS") {
+        } else if (lobbyDatas.game_id && lobbyDatas.settings.cardType !== "SOLITAIRE" && lobbyDatas.settings.cardType !== "SCHNAPPS") {
             return (
                 <Link href={"games/" + lobbyDatas._id + "/" + lobbyDatas.game_id + "/" + lobbyDatas.settings.cardType.toLowerCase() + "/watch"} className="bg-zinc-500 text-white p-2 px-2 rounded-md hover:bg-zinc-400 flex items-center gap-1 hover:scale-105 transition-transform duration-200">
                     <Icon name="watch"></Icon>
                     Watch
                 </Link>
             )
+        } else if (lobbyDatas.game_id) {
+            return <div></div>;
         } else {
             return (
 
@@ -100,6 +96,7 @@ export default function LobbyCard({ lobbyDatas, lobbyNumber, isAdmin }: { lobbyD
             )
         }
     }
+
 
     return (
         <main className="flex flex-col rounded-xl bg-zinc-800/70 overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 2xl:max-h-[35rem] max-h-fit">
@@ -146,7 +143,7 @@ export default function LobbyCard({ lobbyDatas, lobbyNumber, isAdmin }: { lobbyD
 
                 {
                     lobbyDatas.settings.numberOfPlayers - (lobbyDatas.users?.length + (lobbyDatas.bots?.length || 0) || 0) > 0 &&
-                    !lobbyDatas.game_id || !(lobbyDatas.users?.length && lobbyDatas.users?.length + (lobbyDatas.bots?.length || 0) >= lobbyDatas.settings.numberOfPlayers) ?
+                        !lobbyDatas.game_id || !(lobbyDatas.users?.length && lobbyDatas.users?.length + (lobbyDatas.bots?.length || 0) >= lobbyDatas.settings.numberOfPlayers) ?
                         new Array(lobbyDatas.settings.numberOfPlayers - (lobbyDatas.users?.length + (lobbyDatas.bots?.length || 0) || 0) || 0).fill(0).map((_, i) => (
                             <div key={i} className="flex gap-1 w-full justify-center items-center bg-zinc-700 p-2 rounded-lg animate-pulse mx-auto">
                             </div>

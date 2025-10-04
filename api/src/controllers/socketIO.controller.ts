@@ -4,9 +4,9 @@ import gameModel from '../models/game.model';
 import jwt from 'jsonwebtoken';
 import mongoose from 'mongoose';
 import { ERROR } from '../enums/error.enum';
-import { GameChecker, RummyService, SchnappsService, SolitaireService, UnoService } from '../services/game.service';
+import { GameService, RummyService, SchnappsService, SolitaireService, UnoService } from '../services/game.service';
 import GameHistoryService, { GameHistorySchnapps, GameHistorySolitaire } from '../services/history.services';
-import { Igame, Ilobby } from '../interfaces/interface';
+import { Igame } from '../interfaces/interface';
 import userModel from '../models/player.model';
 import { LogService } from '../services/log.service';
 import gameHistoryModel from '../models/game.history.model';
@@ -338,7 +338,7 @@ export default class SocketIO {
         return { total: parseInt(((lobbyCount / paging.limit)).toFixed(0)), data: lobbies }
     }
 
-    private gameChecker = new GameChecker();
+    private gameChecker = new GameService();
     private services = {
         rummy: new RummyService(),
         uno: new UnoService(),
@@ -347,6 +347,7 @@ export default class SocketIO {
     }
     private gameHistory = new GameHistoryService();
     private gameHistoryS = new GameHistorySolitaire();
+    private gameHistorySchnapps = new GameHistorySchnapps();
 
     public async monitorCollectionChanges() {
         this.logService.consoleLog('Starting to monitor collection changes', 'SocketIOService');
@@ -394,11 +395,11 @@ export default class SocketIO {
                 if (lobby) {
                     switch (lobby.settings?.cardType) {
                         case "RUMMY":
-                            this.gameHistory.getStatsForHistory(change.fullDocument._id, lobby.users.length * 20 + lobby.bots.length * 10 + 10);
+                            this.gameHistory.makingStatsForHistory(change.fullDocument._id, lobby.users.length * 20 + lobby.bots.length * 10 + 10);
                             break;
 
                         case "UNO":
-                            this.gameHistory.getStatsForHistory(change.fullDocument._id, lobby.users.length * 20 + lobby.bots.length * 10 + 10);
+                            this.gameHistory.makingStatsForHistory(change.fullDocument._id, lobby.users.length * 20 + lobby.bots.length * 10 + 10);
                             break;
 
                         case "SOLITAIRE":
@@ -406,7 +407,7 @@ export default class SocketIO {
                             break;
 
                         case "SCHNAPPS":
-                            new GameHistorySchnapps().getStatsForHistory(change.fullDocument._id, lobby.users.length * 20 + lobby.bots.length * 10 + 10);
+                            this.gameHistorySchnapps.makingStatsForHistory(change.fullDocument._id, lobby.users.length * 20 + lobby.bots.length * 10 + 10);
                             break;
                         default:
                             break;
@@ -456,8 +457,7 @@ export default class SocketIO {
                         this.services.uno.nextTurn(game._id.toString(), game.currentPlayer.playerId.toString());
                     }
                 } else if (game && game.secretSettings?.gameType == 'RUMMY') {
-                    await new GameHistoryService().savingHistory(game.currentPlayer.playerId, game._id.toString());
-
+                    await new GameHistoryService().putHistory(game._id.toString(), game as any);
                 }
             }
         });
@@ -578,7 +578,7 @@ export default class SocketIO {
                                 this.logService.consoleLog(`Game ${game._id} is still active, forcing next turn. Time limit: ${game.secretSettings?.timeLimit || 180}. Time: ${time / 1000}`, 'SocketIOService');
                                 if (!game.currentPlayer.playerId.includes('bot') && game.playerCards[game.currentPlayer.playerId].length > 25) {
                                     this.logService.consoleLog(`Player ${game.currentPlayer.playerId} has too many cards, forcing next turn.`, 'SocketIOService');
-                                    await new GameChecker().playerRemove(game._id.toString(), game.currentPlayer.playerId.toString());
+                                    await new GameService().playerRemove(game._id.toString(), game.currentPlayer.playerId.toString());
                                     return;
                                 }
                                 const force = await this.services.uno.forcedNextTurn(game._id.toString(), game.currentPlayer.playerId.toString());

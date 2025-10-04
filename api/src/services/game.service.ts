@@ -3,13 +3,13 @@ import gameModel from "../models/game.model";
 import lobbyModel from "../models/lobby.model";
 import { RummyDealer, SchnappsDealer, UnoDealer } from "./dealer.services";
 import userModel from "../models/player.model";
-import { achievements } from "../cards/achievements";
 import { UnoBot, RummyBot, SchnappsBot } from "./bot.services";
 import mongoose from "mongoose";
 import { LogService } from "./log.service";
 import GameHistoryService from "./history.services";
+import { ERROR } from "../enums/error.enum";
 
-export class GameChecker {
+export class GameService {
 
     protected lobby = lobbyModel.lobbyModel;
     protected game = gameModel.gameModel;
@@ -51,7 +51,7 @@ export class GameChecker {
 
     public calculatePoints(position: any, maxPoints: number) {
         const step = maxPoints / ((position.length - 1) == 0 ? 1 : position.length - 1);
-        return position.map((p: any, i: number) => { return { player: p.player, rank: Math.max(0, Math.round(maxPoints - (p.pos - 1) * step)) - (maxPoints / 2) } });
+        return position.map((p: any) => { return { player: p.player, rank: Math.max(0, Math.round(maxPoints - (p.pos - 1) * step)) - (maxPoints / 2) } });
     }
 
     public getPositions(playerCards: any) {
@@ -121,7 +121,7 @@ export class GameChecker {
     }
 }
 
-export class UnoService extends GameChecker {
+export class UnoService extends GameService {
     constructor() {
         super();
     }
@@ -180,11 +180,9 @@ export class UnoService extends GameChecker {
 
         game.currentPlayer = { playerId: nextPlayer, time: new Date().getTime() };
         game.droppedCards[game.droppedCards.length - 1].droppedBy = '';
+        await this.gameHistoryService.putHistory(gameId, game as any);
 
         await this.game.updateOne({ _id: gameId }, game, { runValidators: true });
-        if (!playerId.includes('bot') && !Object.values(game.playerCards).find((p: any) => p.length === 0)) {
-            await this.gameHistoryService.savingHistory(playerId, gameId);
-        }
         return true;
     }
 
@@ -242,28 +240,63 @@ export class UnoService extends GameChecker {
     }
 }
 
-export class RummyService extends GameChecker {
+export class RummyService extends GameService {
     constructor() {
         super();
+    }
+
+    public async nextTurn(LobbygameId: string, playerId: string) {
+        const lobby = await this.lobby.findOne({ game_id: new mongoose.Types.ObjectId(LobbygameId) });
+        if (!lobby) {
+            return { error: ERROR.LOBBY_NOT_FOUND };
+        }
+        const gameId = lobby.game_id;
+        const game = await this.game.findOne({ _id: gameId });
+        if (!game) {
+            return { error: ERROR.GAME_NOT_FOUND };
+        }
+        if (game.currentPlayer.playerId.toString() !== playerId.toString()) {
+            return { error: ERROR.NOT_YOUR_TURN };
+        }
+        if (game.drawedCard.lastDrawedBy !== playerId.toString()) {
+            return { error: ERROR.NEED_TO_DRAW };
+        }
+        if (game.droppedCards.length === 0 || game.droppedCards[game.droppedCards.length - 1].droppedBy !== playerId.toString()) {
+            return { error: ERROR.NO_CARDS_DROPPED };
+        }
+
+        const dealer = new RummyDealer(game.shuffledCards);
+        if (!dealer.isValidToNext(game.playedCards, playerId)) {
+            const { cardsToReturn, playedCardsToReturn } = dealer.cardsToReturn(game.playedCards, playerId);
+            game.playerCards[playerId] = game.playerCards[playerId].concat(cardsToReturn);
+            game.playerCards[playerId].push(game.droppedCards[game.droppedCards.length - 1].card);
+            game.playedCards = playedCardsToReturn;
+            game.droppedCards = game.droppedCards.slice(0, game.droppedCards.length - 1);
+            await this.game.updateOne({ _id: gameId }, game, { runValidators: true });
+            return { error: ERROR.MIN_51_VALUE };
+        }
+
+        const nextPlayer = this.nextPlayer(Object.keys(game.playerCards), game.currentPlayer.playerId.toString());
+        game.currentPlayer = { playerId: nextPlayer, time: new Date().getTime() };
+        await this.gameHistoryService.putHistory(gameId, game as any);
+        await this.game.updateOne({ _id: gameId }, game, { runValidators: true });
+        return { success: true };
     }
 
     public async forcedNextTurn(LobbygameId: string) {
         const lobby = await this.lobby.findOne({ game_id: new mongoose.Types.ObjectId(LobbygameId) });
         if (!lobby) {
-            console.error("Lobby not found");
-            return;
+            return { error: ERROR.LOBBY_NOT_FOUND };
         }
         const gameId = lobby.game_id;
         const game = await this.game.findOne({ _id: gameId });
         if (!game) {
-            console.error("Game not found");
-            return;
+            return { error: ERROR.GAME_NOT_FOUND };
         }
         const playerId = game.currentPlayer.playerId;
         // check if the player is the current player
         if (playerId.toString() !== game.currentPlayer.playerId.toString()) {
-            console.error("Not the current player");
-            return;
+            return { error: ERROR.NOT_YOUR_TURN };
         }
         const dealer = new RummyDealer(game.shuffledCards);
         if (game.drawedCard.lastDrawedBy !== playerId) {
@@ -281,8 +314,7 @@ export class RummyService extends GameChecker {
             game.playedCards = playedCardsToReturn;
             game.droppedCards.shift();
             await this.game.updateOne({ _id: gameId }, game, { runValidators: true });
-            console.error("Invalid to next");
-            return;
+            return { error: ERROR.MIN_51_VALUE };
         }
 
         const nextPlayer = this.nextPlayer(lobby.users.map(id => { return id.toString() }), game.currentPlayer.playerId.toString(), lobby.bots && lobby.bots.map((bot: any) => { return bot._id }));
@@ -292,11 +324,9 @@ export class RummyService extends GameChecker {
         if (game.secretSettings.gameTurn > game.secretSettings.maxGameTurns) {
             return false;
         }
-
+        await this.gameHistoryService.putHistory(gameId, game as any);
         await this.game.updateOne({ _id: gameId }, game, { runValidators: true });
         return true;
-        // this.gameHistoryService.saveHistory(playerId, gameId);
-
     }
 
     public robotPlaying = async (game: any, lobby: Ilobby, currentPlayer: string) => {
@@ -316,7 +346,7 @@ export class RummyService extends GameChecker {
     }
 }
 
-export class SchnappsService extends GameChecker {
+export class SchnappsService extends GameService {
     constructor() {
         super();
     }
@@ -406,13 +436,9 @@ export class SchnappsService extends GameChecker {
 
         game.drawedCard.lastDrawedBy = '';
 
-
+        await this.gameHistoryService.putHistory(gameId, game as any);
 
         await this.game.updateOne({ _id: gameId }, game, { runValidators: true });
-
-        if (!playerId.includes('bot') && !Object.values(game.playerCards).find((p: any) => p.length === 0)) {
-            await this.gameHistoryService.savingHistory(playerId, gameId)
-        }
 
         return true;
 
@@ -488,7 +514,7 @@ export class SchnappsService extends GameChecker {
         return await this.nextTurn(game._id.toString(), nextPlayer);
     }
 
-    public getPositionsSchnapps(playedCards: { playedBy: string, cards: any[] }[], pairs: { pairOne: string[], pairTwo: string[] }, actions: 1 | 6 | 7 | 8 | number = 1) {
+    public getPositionsSchnapps(playedCards: { playedBy: string, cards: any[] }[], points: { [player_id: string]: number }, pairs: { pairOne: string[], pairTwo: string[] }, actions: 1 | 6 | 7 | 8 | number = 1) {
         let { pairOnePoints, pairTwoPoints, lastPlayed } = { pairOnePoints: 0, pairTwoPoints: 0, lastPlayed: "" };
 
         switch (actions) {
@@ -514,12 +540,8 @@ export class SchnappsService extends GameChecker {
                 }
                 break;
             default:
-                if (playedCards.filter((c) => pairs.pairOne.includes(c.playedBy)).length > 0) {
-                    pairOnePoints = playedCards.filter((c) => pairs.pairOne.includes(c.playedBy)).map((c) => c.cards).reduce((sum: any, obj: any) => { return sum + obj.reduce((a: any, b: any) => a + b.value, 0) }, 0) || 0;
-                }
-                if (playedCards.filter((c) => pairs.pairTwo.includes(c.playedBy)).length > 0) {
-                    pairTwoPoints = playedCards.filter((c) => pairs.pairTwo.includes(c.playedBy)).map((c) => c.cards).reduce((sum: any, obj: any) => { return sum + obj.reduce((a: any, b: any) => a + b.value, 0) }, 0) || 0;
-                }
+                pairOnePoints = Object.entries(points).filter((p) => pairs.pairOne.includes(p[0])).reduce((a, b) => a + b[1], 0);
+                pairTwoPoints = Object.entries(points).filter((p) => pairs.pairTwo.includes(p[0])).reduce((a, b) => a + b[1], 0);
                 lastPlayed = playedCards[playedCards.length - 1]!.playedBy;
                 break;
 
@@ -542,7 +564,7 @@ export class SchnappsService extends GameChecker {
 
 }
 
-export class SolitaireService extends GameChecker {
+export class SolitaireService extends GameService {
     constructor() {
         super();
     }

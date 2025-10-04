@@ -19,6 +19,8 @@ import GameUser, { GameBot } from "@/components/user/game.user.component";
 import { IP } from "@/enums/ip.enum";
 import TurnDisplayComponent from "@/components/game/turn.display.component";
 import Loading from "@/app/loading";
+import PlayerDisplay from "@/components/game/player.display.component";
+import GameOver from "@/components/game/over.componet";
 
 const gameService = new UnoService();
 const timerClass = new Timer();
@@ -208,23 +210,7 @@ export default function Game() {
 
     return (
         <main className="flex w-full h-full rounded-md p-3 relative select-none">
-            {
-                isGameOver &&
-                <div className="w-full h-full absolute z-[100] bg-zinc-900/70 top-0 left-0 flex flex-col justify-center items-center">
-                    <div className="text-5xl text-zinc-200 font-bold p-4 rounded-md animate-pulse">
-                        Game Over
-                    </div>
-                    <div className="flex flex-col justify-center items-center gap-2">
-                        <div className="text-sm text-zinc-400 font-bold p-4 rounded-md">
-                            Checkout the game history and statistics.
-                        </div>
-                        <div onClick={() => { router.push(`/games/${lobby_id}/${game_id}/result`) }} className="text-zinc-200 p-2 px-4 rounded-md border border-zinc-300 hover:bg-zinc-300 focus:bg-zinc-300 hover:text-zinc-800 flex items-center gap-1 cursor-pointer">
-                            <Icon name="game" stroke></Icon>
-                            Statistics
-                        </div>
-                    </div>
-                </div>
-            }
+            <GameOver type="UNO" isGameOver={isGameOver} lobbyId={lobby_id!} gameId={game_id!}></GameOver>
 
             <main className="bg-rose-900 rounded-md w-full relative flex justify-center items-center">
                 {
@@ -255,44 +241,8 @@ export default function Game() {
 
                 </div>
 
-                <div className="absolute top-0 left-2 h-full flex flex-col justify-between items-center">
-                    <div></div>
-                    {
-                        lobby?.users.filter((u) => { return u._id !== user?._id }).slice(0, lobby?.users.length / 2).reverse().map((user, j) => {
-                            return (
-                                <GameUser key={j} user={user} currentPlayer={game.currentPlayer.playerId} cardNumber={game.allCards[user._id]}></GameUser>
-                            )
-                        })
-                    }
-                    {
-                        lobby?.bots.slice(0, lobby?.bots.length / 2).reverse().map((bot, j) => {
-                            return (
-                                <GameBot key={j} bot={bot} currentPlayer={game.currentPlayer.playerId} cardNumber={game.allCards[bot.customId.replace('-', '')]}></GameBot>
-                            )
-                        })
-                    }
-                    <div></div>
-                </div>
+                <PlayerDisplay lobby={lobby!} game={game} user={user}></PlayerDisplay>
 
-                <div className="absolute top-0 right-2 h-full flex flex-col justify-between items-center">
-                    <div></div>
-                    {
-                        lobby?.users.filter((u) => { return u._id !== user?._id }).slice(lobby?.users.length / 2).map((user, j) => {
-                            return (
-                                <GameUser key={j} user={user} currentPlayer={game.currentPlayer.playerId} cardNumber={game.allCards[user._id]}></GameUser>
-                            )
-                        })
-                    }
-
-                    {
-                        lobby?.bots.slice(lobby?.bots.length / 2).map((bot, j) => {
-                            return (
-                                <GameBot key={j} bot={bot} currentPlayer={game.currentPlayer.playerId} cardNumber={game.allCards[bot.customId.replace('-', '')]}></GameBot>
-                            )
-                        })
-                    }
-                    <div></div>
-                </div>
 
                 <div className="flex gap-1 w-full absolute bottom-0 p-2 justify-center">
                     {
@@ -304,11 +254,11 @@ export default function Game() {
                                          ${draggedCard && JSON.stringify(draggedCard) === JSON.stringify(card) ? 'opacity-10' : ''}
                                          
                                          `}>
-                                        <Image onDragEnter={(e) => { onDragEnter(e, i) }} className={`${drawedCard?.name === card.name && drawedCard?.pack === card.pack ? 'ring ring-sky-600' : ''} border-2 border-transparent group-hover:border-green-400 rounded-lg`} style={{ width: "6rem", maxWidth: "6rem" }} loading="eager" onDragEnd={() => { setDraggedCard(null) }} onDragStart={() => { startDrag(card) }} onDrop={() => { dropDrag(i) }} onDragOver={overDrag} src={"/" + new CardsUrls().getFullCardUrl(card.name)} width={100} height={100} alt={new CardsUrls().getFullCardUrl(card.name)||''}></Image>
+                                        <Image onDragEnter={(e) => { onDragEnter(e, i) }} className={`${drawedCard?.name === card.name && drawedCard?.pack === card.pack ? 'ring ring-sky-600' : ''} border-2 border-transparent group-hover:border-green-400 rounded-lg`} style={{ width: "6rem", maxWidth: "6rem" }} loading="eager" onDragEnd={() => { setDraggedCard(null) }} onDragStart={() => { startDrag(card) }} onDrop={() => { dropDrag(i) }} onDragOver={overDrag} src={"/" + new CardsUrls().getFullCardUrl(card.name)} width={100} height={100} alt={new CardsUrls().getFullCardUrl(card.name) || ''}></Image>
                                     </div>
                                     <div onDragOver={overDrag} className={`${draggedCard && JSON.stringify(draggedCard) !== JSON.stringify(card) && dragEnter === i ? "w-[5.8rem]" : "w-0"} bg-[#00000040] rounded-lg duration-100`}>
                                         {draggedCard &&
-                                            <Image className="opacity-75" loading="eager" onDrop={() => { dropDrag(i) }} onDragOver={overDrag} src={"/" + new CardsUrls().getFullCardUrl(draggedCard.name)} width={100} height={100} alt={new CardsUrls().getFullCardUrl(draggedCard.name)||''}></Image>
+                                            <Image className="opacity-75" loading="eager" onDrop={() => { dropDrag(i) }} onDragOver={overDrag} src={"/" + new CardsUrls().getFullCardUrl(draggedCard.name)} width={100} height={100} alt={new CardsUrls().getFullCardUrl(draggedCard.name) || ''}></Image>
                                         }
                                     </div>
                                 </React.Fragment>

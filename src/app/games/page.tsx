@@ -36,7 +36,6 @@ export default function Games() {
 
     useEffect(() => {
         socket.current = new WebSocket(IP.LOBBYSOCKET);
-        console.log(socket.current);
         setState({ ...state, isLoading: true });
 
 
@@ -66,6 +65,12 @@ export default function Games() {
             socket!.current!.close();
         };
     }, [])
+
+    useEffect(() => {
+        if (!user) {
+            router.replace('/login');
+        }
+    }, [user])
 
     function refreshLobbyList() {
         socket!.current!.send(JSON.stringify({ userId: user?._id, ...getFilterFromURL() }));
@@ -108,7 +113,7 @@ export default function Games() {
         }
     }
 
-    if (loading || state.isLoading) return <Loading />
+    if (loading || state.isLoading || !user) return <Loading />
 
 
     return (

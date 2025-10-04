@@ -279,7 +279,7 @@ export default function LobbyId() {
                 </div>
 
             </main>
-            <main className="w-full border border-purple-800/50 bg-gradient-to-br from-indigo-800/10 via-black/40 to-purple-900/10 h-full rounded-2xl flex flex-col p-6 gap-2 items-center justify-center">
+            <main className="w-full xl:flex hidden border border-purple-800/50 bg-gradient-to-br from-indigo-800/10 via-black/40 to-purple-900/10 h-full rounded-2xl flex flex-col p-6 gap-2 items-center justify-center">
 
                 <div className="flex flex-col gap-5">
                     <div className="rounded-full flex items-center justify-center border-4 border-purple-600/50 w-96 h-96 animate-scale">

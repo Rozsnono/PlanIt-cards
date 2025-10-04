@@ -17,6 +17,8 @@ import { IP } from "@/enums/ip.enum";
 import GameUser, { GameBot } from "@/components/user/game.user.component";
 import gameModel from "../../../../../../api/src/models/game.model";
 import Loading from "@/app/loading";
+import PlayerDisplay from "@/components/game/player.display.component";
+import GameOver from "@/components/game/over.componet";
 
 const gameService = new GameService("rummy");
 const timerClass = new Timer();
@@ -208,23 +210,7 @@ export default function Game() {
     return (
         <main className="flex w-full h-full rounded-md p-3 relative">
 
-            {
-                isGameOver &&
-                <div className="w-full h-full absolute z-[100] bg-zinc-900/70 top-0 left-0 flex flex-col justify-center items-center">
-                    <div className="text-5xl text-zinc-200 font-bold p-4 rounded-md animate-pulse">
-                        Game Over
-                    </div>
-                    <div className="flex flex-col justify-center items-center gap-2">
-                        <div className="text-sm text-zinc-400 font-bold p-4 rounded-md">
-                            Checkout the game history and statistics.
-                        </div>
-                        <div onClick={() => { router.push(`/games/${lobby_id}/${game_id}/result`) }} className="text-zinc-200 p-2 px-4 rounded-md border border-zinc-300 hover:bg-zinc-300 focus:bg-zinc-300 hover:text-zinc-800 flex items-center gap-1 cursor-pointer">
-                            <Icon name="game" stroke></Icon>
-                            Statistics
-                        </div>
-                    </div>
-                </div>
-            }
+            <GameOver type="RUMMY" isGameOver={isGameOver} lobbyId={lobby_id!} gameId={game_id!}></GameOver>
 
             <main className="bg-green-800 rounded-md w-full relative flex justify-center items-center">
                 {
@@ -279,49 +265,8 @@ export default function Game() {
                     </div>
                 </div>
 
-                <div className="absolute top-0 left-2 h-full flex flex-col justify-between items-center">
-                    <div></div>
-                    {
-                        lobby?.users.filter((u, i) => { return i % 2 === 0 && u._id !== user?._id }).map((user, j) => {
-                            return (
-                                <GameUser key={j} user={user} currentPlayer={gameState.currentPlayer.playerId} cardNumber={gameState.allCards[user._id]}></GameUser>
+                <PlayerDisplay lobby={lobby!} game={gameState} user={user}></PlayerDisplay>
 
-                            )
-                        })
-                    }
-
-                    {
-                        lobby?.bots.filter((u, i) => { return i % 2 === 1 }).map((bot, j) => {
-                            return (
-                                <GameBot key={j} bot={bot} currentPlayer={gameState.currentPlayer.playerId} cardNumber={gameState.allCards[bot.customId.replace('-', '')]}></GameBot>
-
-                            )
-                        })
-                    }
-                    <div></div>
-                </div>
-
-                <div className="absolute top-0 right-2 h-full flex flex-col justify-between items-center">
-                    <div></div>
-                    {
-                        lobby?.users.filter((u, i) => { return i % 2 === 1 && u._id !== user?._id }).map((user, j) => {
-                            return (
-                                <GameUser key={j} user={user} currentPlayer={gameState.currentPlayer.playerId} cardNumber={gameState.allCards[user._id]}></GameUser>
-
-                            )
-                        })
-                    }
-
-                    {
-                        lobby?.bots.filter((u, i) => { return i % 2 === 0 }).map((bot, j) => {
-                            return (
-                                <GameBot key={j} bot={bot} currentPlayer={gameState.currentPlayer.playerId} cardNumber={gameState.allCards[bot.customId.replace('-', '')]}></GameBot>
-
-                            )
-                        })
-                    }
-                    <div></div>
-                </div>
 
                 <div className="flex gap-1 w-full absolute bottom-0 p-2 justify-center">
                     {

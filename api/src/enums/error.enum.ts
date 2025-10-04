@@ -18,6 +18,7 @@ export enum ERROR {
     "INVALID_PASSWORD" = "Invalid password!",
     "LOBBY_FULL" = "Lobby is full!",
     "ALREADY_IN_LOBBY" = "You are already in a lobby!",
+    "NOT_LOBBY_OWNER" = "You are not the lobby owner!",
 
     "USER_NOT_FOUND" = "User not found!",
 

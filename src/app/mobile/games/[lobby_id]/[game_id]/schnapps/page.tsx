@@ -14,6 +14,7 @@ import CardsUrls from "@/contexts/cards.context";
 import { IP } from "@/enums/ip.enum";
 import PingDisplayComponent from "@/components/game/ping.display.component";
 import Loading from "@/app/loading";
+import FullscreenMode from "@/app/mobile/components/fullscreen.component";
 
 const gameService = new SchnappsService();
 const timerClass = new Timer();
@@ -257,6 +258,10 @@ export default function Game() {
                         <div className="text-sm text-zinc-400 font-bold p-4 rounded-md">
                             Checkout the game history and statistics.
                         </div>
+                        <div onClick={() => { router.push(`/games/${lobby_id}`) }} className="text-zinc-200 p-2 px-4 rounded-md border border-zinc-300 hover:bg-zinc-300 focus:bg-zinc-300 hover:text-zinc-800 flex items-center gap-1 cursor-pointer">
+                            <Icon name="game" stroke></Icon>
+                            Back to lobby
+                        </div>
                     </div>
                 </div>
             }
@@ -265,6 +270,7 @@ export default function Game() {
                 {
                     error && <ErrorModal errorCode={error} closeError={() => { setError(null) }}></ErrorModal>
                 }
+                <FullscreenMode />
 
                 <PingDisplayComponent />
 
@@ -330,37 +336,6 @@ export default function Game() {
                 {
                     gameState.playedCards.length > 0 && gameState.lastAction.points &&
                     <main className="fixed bottom-4 right-4 z-[10] ">
-
-                        {
-                            gameState.lastAction.points![user!._id] > 0 &&
-                            <React.Fragment>
-                                <main className="bg-zinc-900/50 backdrop-blur-md p-2 rounded-lg flex flex-col gap-2 items-center group cursor-zoom-in">
-                                    <Image loading="eager" src={"/assets/cards/schnapps/back.png"} width={100} height={100} alt={"Back"}></Image>
-                                    <div className="absolute bottom-[105%] -left-44 flex flex-col bg-black/30 rounded-lg group-hover:opacity-100 opacity-0 duration-200 pointer-events-none p-2 gap-2">
-
-                                        {
-                                            gameState.playedCards.filter((f) => f.playedBy === user?._id).map((cards, i) => {
-                                                return (
-                                                    <div key={i} className="w-full flex gap-2">
-
-                                                        {
-                                                            cards.cards.map((card, j) => {
-                                                                return (
-                                                                    <Image key={j} loading="eager" className="w-16 h-fit" src={"/" + new CardsUrls().getFullCardUrl(card.name)} width={50} height={50} alt={card.name}></Image>
-                                                                )
-                                                            })
-                                                        }
-                                                    </div>
-                                                )
-                                            })
-                                        }
-                                    </div>
-                                </main>
-
-                            </React.Fragment>
-                        }
-
-
                         <div className="text-zinc-200 font-bold text-3xl absolute right-[105%] bottom-2 right-2">
 
 

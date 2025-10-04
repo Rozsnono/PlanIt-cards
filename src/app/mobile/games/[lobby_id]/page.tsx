@@ -5,6 +5,7 @@ import lobbyService from "@/services/lobby.service";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { useContext, useEffect } from "react";
+import FullscreenMode from "../../components/fullscreen.component";
 
 export default function LobbyPage() {
     const lobby_id = useParams().lobby_id;
@@ -45,7 +46,9 @@ export default function LobbyPage() {
 
     return (
         <main className="w-[100vw] h-[100vh] fixed z-[1000] flex justify-center items-center">
-            <div className="text-white text-center flex flex-col gap-6 p-3 h-full">
+
+            <FullscreenMode />
+            <div className="text-white text-center flex flex-col gap-6 p-3 h-full ">
                 <div className="flex justify-center fixed top-8 w-full left-0">
                     <Image src={"/assets/logo.png"} width={200} height={100} alt="Logo"></Image>
                 </div>

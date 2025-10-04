@@ -4,10 +4,10 @@ import gameModel from "../models/game.model";
 import mongoose from "mongoose";
 import { ERROR } from "../enums/error.enum";
 import lobbyModel from "../models/lobby.model";
-import achievementsModel from "../models/achievements.model";
-import { GameChecker, SchnappsService } from "./game.service";
+import { GameService, SchnappsService } from "./game.service";
 import { checkAchievements } from "./achievements.service";
 import { LogService } from "./log.service";
+import { Igame } from "../interfaces/interface";
 
 
 export default class GameHistoryService {
@@ -98,11 +98,11 @@ export default class GameHistoryService {
         const gameHistory = await this.gameHistory.find({ gameId: game_id });
         if (!gameHistory) return { error: ERROR.GAME_HISTORY_NOT_FOUND };
 
-        const positions = new GameChecker().getPositions(game.playerCards);
+        const positions = new GameService().getPositions(game.playerCards);
         gameHistory.forEach(async (history) => {
             history.position = positions;
             if (!lobby.settings?.unranked) {
-                history.rank = new GameChecker().calculatePoints(positions, maxPoints);
+                history.rank = new GameService().calculatePoints(positions, maxPoints);
             }
             await this.gameHistory.updateOne({ _id: history._id }, history, { runValidators: true });
         });
@@ -179,9 +179,9 @@ export default class GameHistoryService {
                 trump: game.lastAction.trump,
                 trumpWith: game.lastAction.trumpWith,
                 playerId: game.lastAction.playerId
-            };  
+            };
 
-                await this.gameHistory.updateOne({ gameId: game_id }, history, { runValidators: true });
+            await this.gameHistory.updateOne({ gameId: game_id }, history, { runValidators: true });
             return { message: "History updated!", code: 201 };
         }
     }
@@ -194,7 +194,7 @@ export default class GameHistoryService {
         const lobby = await this.lobby.findOne({ game_id });
         if (!lobby) return { error: ERROR.LOBBY_NOT_FOUND };
 
-        const gc = new GameChecker();
+        const gc = new GameService();
         const positions = gc.getPositions(game.playerCards);
         const rank = gc.calculatePoints(positions, maxPoints);
         await Promise.all(histories.map(async (history: any) => {
@@ -266,7 +266,7 @@ export default class GameHistoryService {
         const histories = await this.gameHistory.find({ gameId: game_id }).populate("users", "customId username settings firstName lastName");
         if (!histories) return { error: ERROR.GAME_HISTORY_NOT_FOUND };
 
-        const gc = new GameChecker();
+        const gc = new GameService();
         const positions = gc.getPositions(game.playerCards);
         // const rank = gc.calculatePoints(positions, maxPoints);
         await Promise.all(histories.map(async (history: any) => {
@@ -321,6 +321,174 @@ export default class GameHistoryService {
         })
 
         return { message: "Stats updated!", code: 200 };
+
+    }
+
+    public async postHistory(game_id: string) {
+        const game = await this.game.findById(game_id);
+        if (!game) return { error: ERROR.GAME_NOT_FOUND };
+        const lobby = await this.lobby.findOne({ game_id });
+        if (!lobby) return { error: ERROR.LOBBY_NOT_FOUND };
+        if (await this.gameHistory.findOne({ gameId: game_id })) { await this.game.deleteOne({ gameId: game_id }) }
+
+        this.gameHistory.deleteMany({ createdAt: { $lt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000) } }); //1 day
+
+        await Promise.all(Object.keys(game.playerCards).map(async (player_id) => {
+            if (player_id.includes("bot")) return;
+            const player = await this.user.findOne({ _id: player_id });
+            if (!player) return;
+            await this.user.updateOne({ _id: player_id }, { $push: { gameHistory: { $each: [game_id], $slice: -5 } } });
+        }));
+
+        const newHistory = {
+            gameId: game_id,
+            turns: {
+                0: {
+                    playerCards: game.playerCards,
+                    playedCards: game.playedCards,
+                    droppedCards: game.droppedCards,
+                    points: Object.fromEntries(Object.keys(game.playerCards).map((p) => [p, 0]))
+                }
+            },
+            type: game.secretSettings?.gameType || "UNKNOWN",
+            gameActions: {
+                action: 0,
+                trump: '',
+                trumpWith: '',
+                isUno: false,
+                playerId: ''
+            },
+            gameSettings: {
+                unranked: lobby.settings?.unranked || false,
+            },
+            users: Object.keys(game.playerCards),
+            createdAt: new Date(game.createdAt),
+            updatedAt: new Date(),
+            _id: new mongoose.Types.ObjectId(),
+            position: Object.keys(game.playerCards).map((user: any) => { return { player: user, pos: 0 } }),
+            rank: Object.keys(game.playerCards).map((user: any) => { return { player: user, rank: 0 } }),
+        }
+
+        await this.gameHistory.create(newHistory);
+        return { message: "History created!", code: 200 };
+
+    }
+
+    public async putHistory(game_id: string, got_game?: Igame) {
+        const game = got_game || await this.game.findById(game_id);
+        if (!game) return { error: ERROR.GAME_NOT_FOUND };
+        const history = await this.gameHistory.findOne({ gameId: game_id });
+        if (!history) return { error: ERROR.AN_ERROR_OCCURRED };
+
+        this.gameHistory.deleteMany({ createdAt: { $lt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000) } }); //10 days
+
+        const putHistory = {
+            turn: {
+                playerCards: game.playerCards,
+                playedCards: game.playedCards,
+                droppedCards: game.droppedCards,
+                points: (game.lastAction || { points: {} }).points || {}
+            },
+            gameActions: {
+                action: game.lastAction.actions,
+                trump: game.lastAction.trump,
+                trumpWith: game.lastAction.trumpWith,
+                playerId: game.lastAction.playerId
+            },
+            updatedAt: new Date(),
+        }
+
+        history.turns = {
+            ...history.turns,
+            [Object.keys(history.turns).length]: putHistory.turn
+        };
+        history.gameActions = putHistory.gameActions;
+        history.updatedAt = putHistory.updatedAt;
+
+        await this.gameHistory.updateMany({ gameId: game_id }, history, { runValidators: true });
+        return { message: "History updated!", code: 200 };
+    }
+
+    public async makingStatsForHistory(game_id: string, maxPoints: number) {
+        const history = await this.gameHistory.findOne({ gameId: game_id }).populate("users", "customId username settings firstName lastName");
+        if (!history) return { error: ERROR.GAME_HISTORY_NOT_FOUND };
+        const lobby = await this.lobby.findOne({ game_id }).populate("users", "_id customId username settings firstName lastName rank").lean();
+        if (!lobby) return { error: ERROR.LOBBY_NOT_FOUND };
+        try {
+            const { playedCards } = history.turns[Object.keys(history.turns).length - 1];
+
+            const gameService = new GameService();
+            const positions = gameService.getPositions(playedCards);
+            const rank = gameService.calculatePoints(positions, maxPoints);
+
+            history.position = positions;
+            history.rank = rank;
+            history.endedAt = new Date();
+            history.users = history.users.map((u: string, i: number) => {
+                return { ...(lobby.users as any).concat(lobby.bots as any).find((user: any) => user._id.toString() === u.toString()) || { _id: u } }
+            });
+            await this.gameHistory.updateOne({ _id: new mongoose.Types.ObjectId(history._id) }, history, { runValidators: true });
+
+            await this.saveStatForPlayers(game_id);
+            await this.game.deleteOne({ _id: game_id });
+            if (lobby) {
+                lobby.game_id = null;
+                await this.lobby.updateOne({ _id: lobby._id }, lobby, { runValidators: true });
+            }
+            return { message: "Stats calculated!", code: 200 };
+        } catch {
+            await this.game.deleteOne({ _id: game_id });
+            if (lobby) {
+                lobby.game_id = null;
+                await this.lobby.updateOne({ _id: lobby._id }, lobby, { runValidators: true });
+            }
+        }
+
+    }
+
+    public async saveStatForPlayers(game_id: string) {
+        const history = await this.gameHistory.findOne({ gameId: game_id }).populate("users", "customId username settings firstName lastName");
+        if (!history) return { error: ERROR.GAME_HISTORY_NOT_FOUND };
+        const { position, rank, createdAt } = history;
+
+        position.forEach(async (position: any) => {
+            if (position.player.includes("bot")) return; // Skip bots
+            const player = await this.user.findById(position.player);
+            if (player) {
+                const achs = await checkAchievements(game_id, player._id.toString());
+                if (achs.length > 0) {
+                    achs.forEach(async (ach) => {
+                        if (player.achievements.includes(ach)) return;
+                        player.achievements.push(ach);
+                    })
+                }
+                if (!history.gameSettings?.unranked) {
+                    player.rank += rank.find((r: any) => r.player === position.player)?.rank || 0;
+                    if (player.rank < 0) player.rank = 0;
+                }
+                player.gamesStats.numberOfGames += 1;
+                if (player.gamesStats.gamesPerDate === undefined) {
+                    player.gamesStats.gamesPerDate = {};
+                }
+                if (position.pos === 1) {
+                    player.gamesStats.totalWins += 1;
+                    player.gamesStats.gamesPerDate[`${createdAt.getMonth() + 1}-${createdAt.getDate()}`] = {
+                        wins: player.gamesStats.gamesPerDate[`${createdAt.getMonth() + 1}-${createdAt.getDate()}`]?.wins + 1 || 0,
+                        losses: player.gamesStats.gamesPerDate[`${createdAt.getMonth() + 1}-${createdAt.getDate()}`]?.losses || 0,
+                    };
+                } else {
+                    player.gamesStats.totalLosses += 1;
+                    player.gamesStats.gamesPerDate[`${createdAt.getMonth() + 1}-${createdAt.getDate()}`] = {
+                        wins: player.gamesStats.gamesPerDate[`${createdAt.getMonth() + 1}-${createdAt.getDate()}`]?.wins || 0,
+                        losses: player.gamesStats.gamesPerDate[`${createdAt.getMonth() + 1}-${createdAt.getDate()}`]?.losses + 1 || 0,
+                    };
+                }
+                player.gamesStats.winRate = Math.round((player.gamesStats.totalWins / player.gamesStats.numberOfGames) * 100);
+                player.gamesStats.totalPlayTime = (new Date().getTime() - new Date(player.createdAt).getTime()) / 1000; // Total playtime in seconds
+                player.gamesStats.highestRank = Math.max(player.gamesStats.highestRank || 0, player.rank);
+                await this.user.updateOne({ _id: player._id }, player, { runValidators: true });
+            }
+        })
 
     }
 
@@ -461,84 +629,119 @@ export class GameHistorySolitaire extends GameHistoryService {
         return { message: "Stats updated!", code: 200 };
 
     }
-}
 
-export class GameHistorySchnapps extends GameHistoryService {
-    public async getStatsForHistory(game_id: string, maxPoints: number) {
-        const histories = await this.gameHistory.find({ gameId: game_id }).populate("users", "customId username settings firstName lastName");
-        if (!histories) return { error: ERROR.GAME_HISTORY_NOT_FOUND };
-        const game = await this.game.findOne({ _id: game_id });
+    public override async postHistory(game_id: string) {
+        const game = await this.game.findById(game_id);
         if (!game) return { error: ERROR.GAME_NOT_FOUND };
         const lobby = await this.lobby.findOne({ game_id });
         if (!lobby) return { error: ERROR.LOBBY_NOT_FOUND };
+        if (await this.gameHistory.findOne({ gameId: game_id })) { await this.game.deleteOne({ gameId: game_id }) }
 
-        const gc = new SchnappsService();
-        const pairs = { pairOne: [game.lastAction.playerId!, game.lastAction.trumpWith!]!.filter((p, i) => [game.lastAction.playerId!, game.lastAction.trumpWith!].indexOf(p) === i), pairTwo: Object.keys(game.playerCards).filter((p) => p !== game.lastAction.playerId && p !== game.lastAction.trumpWith) };
-        const positions = gc.getPositionsSchnapps(game.playedCards, pairs, game.lastAction.actions);
-        const rank = gc.calculatePoints(positions, maxPoints);
-        await Promise.all(histories.map(async (history: any) => {
-            const data = history.toObject();
-            data.position = positions;
-            data.rank = rank;
-            data.turns = {
-                ...data.turns,
-                [Object.keys(data.turns).length + 1]: {
-                    playerCards: game.playerCards,
-                    playedCards: game.playedCards,
-                    droppedCards: game.droppedCards
-                }
-            }
-            data.endedAt = new Date();
-            const res = await this.gameHistory.updateOne({ _id: new mongoose.Types.ObjectId(history._id) }, data, { runValidators: true });
-            if (res.modifiedCount > 0) {
-                new LogService().consoleLog(`Game history updated for game ${game_id}`, "History");
-            }
+        this.gameHistory.deleteMany({ createdAt: { $lt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000) } }); //1 day
+
+        await Promise.all(Object.keys(game.playerCards).map(async (player_id) => {
+            if (player_id.includes("bot")) return;
+            const player = await this.user.findOne({ _id: player_id });
+            if (!player) return;
+            await this.user.updateOne({ _id: player_id }, { $pull: { gameHistory: game_id } });
         }));
 
-        positions.forEach(async (position: any) => {
-            if (position.player.includes("bot")) return; // Skip bots
-            const player = await this.user.findById(position.player);
-            if (player) {
-                const achs = await checkAchievements(game_id, player._id.toString());
-                if (achs.length > 0) {
-                    achs.forEach(async (ach) => {
-                        if (player.achievements.includes(ach)) return;
-                        player.achievements.push(ach);
-                    })
+        const newHistory = {
+            gameId: game_id,
+            turns: {
+                0: {
+                    playerCards: game.playerCards,
+                    playedCards: game.playedCards,
+                    droppedCards: game.droppedCards,
+                    shuffledCards: game.shuffledCards
                 }
-                if (!lobby.settings?.unranked) {
-                    player.rank += rank.find((r: any) => r.player === position.player)?.rank || 0;
-                    if (player.rank < 0) player.rank = 0;
-                }
-                player.gamesStats.numberOfGames += 1;
-                if (position.pos === 1) {
-                    player.gamesStats.totalWins += 1;
-                    player.gamesStats.gamesPerDate[`${game.createdAt.getMonth() + 1}-${game.createdAt.getDate()}`] = {
-                        wins: player.gamesStats.gamesPerDate[`${game.createdAt.getMonth() + 1}-${game.createdAt.getDate()}`]?.wins + 1 || 0,
-                        losses: player.gamesStats.gamesPerDate[`${game.createdAt.getMonth() + 1}-${game.createdAt.getDate()}`]?.losses || 0,
-                    };
-                } else {
-                    player.gamesStats.totalLosses += 1;
-                    player.gamesStats.gamesPerDate[`${game.createdAt.getMonth() + 1}-${game.createdAt.getDate()}`] = {
-                        wins: player.gamesStats.gamesPerDate[`${game.createdAt.getMonth() + 1}-${game.createdAt.getDate()}`]?.wins || 0,
-                        losses: player.gamesStats.gamesPerDate[`${game.createdAt.getMonth() + 1}-${game.createdAt.getDate()}`]?.losses + 1 || 0,
-                    };
-                }
-                player.gamesStats.winRate = Math.round((player.gamesStats.totalWins / player.gamesStats.numberOfGames) * 100);
-                player.gamesStats.totalPlayTime = (new Date().getTime() - new Date(player.createdAt).getTime()) / 1000; // Total playtime in seconds
-                player.gamesStats.highestRank = Math.max(player.gamesStats.highestRank || 0, player.rank);
-                await this.user.updateOne({ _id: player._id }, player, { runValidators: true });
-            }
-        })
-        await game.deleteOne({ _id: game_id });
-        if (lobby) {
-            lobby.game_id = null;
-            await lobby.save();
+            },
+            type: game.secretSettings?.gameType || "UNKNOWN",
+            gameActions: {
+                action: 0,
+                trump: '',
+                trumpWith: '',
+                isUno: false,
+                playerId: ''
+            },
+            gameSettings: {
+                unranked: lobby.settings?.unranked || false,
+            },
+            users: Object.keys(game.playerCards),
+            createdAt: new Date(game.createdAt),
+            updatedAt: new Date(),
+            _id: new mongoose.Types.ObjectId(),
+            position: Object.keys(game.playerCards).map((user: any) => { return { player: user, pos: 0 } }),
+            rank: Object.keys(game.playerCards).map((user: any) => { return { player: user, rank: 0 } }),
         }
 
-        return { message: "Stats updated!", code: 200 };
+        await this.gameHistory.create(newHistory);
+        return { message: "History created!", code: 200 };
 
     }
+
+    public override async putHistory(game_id: string, got_game?: Igame) {
+        const game = got_game || await this.game.findById(game_id);
+        if (!game) return { error: ERROR.GAME_NOT_FOUND };
+        const history = await this.gameHistory.findOne({ gameId: game_id });
+        if (!history) return { error: ERROR.AN_ERROR_OCCURRED };
+
+        this.gameHistory.deleteMany({ createdAt: { $lt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000) } }); //10 days
+
+        const putHistory = {
+            turn: {
+                playerCards: game.playerCards,
+                playedCards: game.playedCards,
+                droppedCards: game.droppedCards,
+                shuffledCards: game.shuffledCards
+            },
+            updatedAt: new Date(),
+        }
+
+        history.turns = {
+            ...history.turns,
+            [Object.keys(history.turns).length]: putHistory.turn
+        };
+        history.updatedAt = putHistory.updatedAt;
+
+        await this.gameHistory.updateMany({ gameId: game_id }, history, { runValidators: true });
+        return { message: "History updated!", code: 200 };
+    }
+}
+
+export class GameHistorySchnapps extends GameHistoryService {
+
+    public override async makingStatsForHistory(game_id: string, maxPoints: number) {
+        const history = await this.gameHistory.findOne({ gameId: game_id }).populate("users", "customId username settings firstName lastName");
+        if (!history) return { error: ERROR.GAME_HISTORY_NOT_FOUND };
+        const lobby = await this.lobby.findOne({ game_id }).populate("users", "_id customId username settings firstName lastName rank").lean();
+        if (!lobby) return { error: ERROR.LOBBY_NOT_FOUND };
+        const { playerCards, playedCards, droppedCards, points } = history.turns[Object.keys(history.turns).length - 1];
+        const action = history.gameActions.action;
+
+        const pairs = { pairOne: [history.gameActions.playerId!, history.gameActions.trumpWith!]!.filter((p, i) => [history.gameActions.playerId!, history.gameActions.trumpWith!].indexOf(p) === i), pairTwo: Object.keys(playerCards).filter((p) => p !== history.gameActions.playerId && p !== history.gameActions.trumpWith) };
+        const schnappsService = new SchnappsService();
+        const positions = schnappsService.getPositionsSchnapps(playedCards, points, pairs, action);
+        const rank = schnappsService.calculatePoints(positions, maxPoints);
+
+        history.position = positions;
+        history.rank = rank;
+        history.endedAt = new Date();
+        history.users = history.users.map((u: string, i: number) => {
+            return { ...(lobby.users as any).concat(lobby.bots as any).find((user: any) => user._id.toString() === u.toString()) || { _id: u } }
+        });
+        await this.gameHistory.updateOne({ _id: new mongoose.Types.ObjectId(history._id) }, history, { runValidators: true });
+
+        await this.saveStatForPlayers(game_id);
+        await this.game.deleteOne({ _id: game_id });
+        if (lobby) {
+            lobby.game_id = null;
+            await this.lobby.updateOne({ _id: lobby._id }, lobby, { runValidators: true });
+        }
+        return { message: "Stats calculated!", code: 200 };
+
+    }
+
 
     public async reCalibrateStatsForHistory(game_id: string, maxPoints: number, game: any) {
         const histories = await this.gameHistory.find({ gameId: game_id }).populate("users", "customId username settings firstName lastName");
@@ -546,7 +749,7 @@ export class GameHistorySchnapps extends GameHistoryService {
         const ss = new SchnappsService();
         // const pairs = {};
         const pairs = { pairOne: [histories[0].gameSettings.playerId!, histories[0].gameSettings.trumpWith!]!.filter((p, i) => [histories[0].gameSettings.playerId!, histories[0].gameSettings.trumpWith!].indexOf(p) === i), pairTwo: Object.keys(histories[0].users).filter((p: any) => p._id !== histories[0].gameSettings.playerId && p._id !== histories[0].gameSettings.trumpWith) };
-        const positions = ss.getPositionsSchnapps(histories[0].turns[Object.keys(histories[0].turns).length - 1].playedCards, pairs, histories[0].gameSettings.action);
+        const positions = ss.getPositionsSchnapps(histories[0].turns[Object.keys(histories[0].turns).length - 1].playedCards, {}, pairs, histories[0].gameSettings.action);
         // const rank = gc.calculatePoints(positions, maxPoints);
         await Promise.all(histories.map(async (history: any) => {
             const data = history.toObject();

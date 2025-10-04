@@ -84,7 +84,7 @@ export default class GameHistoryController implements Controller {
             return;
         }
 
-        const gameHistory = await this.gameHistory.findOne({ gameId: game_id });
+        const gameHistory = await this.gameHistory.findOne({ gameId: game_id }).populate("users", "customId username settings firstName lastName").lean();
 
         if (!gameHistory) {
             res.status(404).send({ error: "Game history not found!" });

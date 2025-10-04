@@ -59,6 +59,19 @@ export default function End() {
         data.refetch();
     }
 
+    async function StartRematch() {
+        const gameService = new GameService(data.data.type.toLocaleLowerCase() as any);
+        console.log('HERE 1');
+        const deleteRes = await gameService.deleteGame(game_id as string).catch(() => { return; });
+        if (deleteRes?.error) { return; }
+        console.log('HERE 2');
+        const startRes = await gameService.startGame(lobby_id as string);
+        if (startRes?.error) { return; }
+        console.log('HERE 3');
+        router.push(`/games/${lobby_id}`);
+        router.refresh();
+    }
+
     if (data.isLoading || !player) {
         return <Loading></Loading>;
     }
@@ -153,6 +166,10 @@ export default function End() {
                                 Watch replay
                             </Link>
                         }
+                        <button onClick={StartRematch} className="text-zinc-200 justify-center bg-gradient-to-r from-indigo-400/70 to-purple-500/50 p-2 px-4 rounded-md hover:bg-zinc-400 focus:bg-zinc-800 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-zinc-800">
+                            <Icon name="game" stroke></Icon>
+                            Start rematch
+                        </button>
                         <button disabled={data.data.position[0].pos !== 0} onClick={recalibrateResult} className="text-zinc-200 justify-center bg-gradient-to-r from-rose-400/70 to-red-500/50 p-2 px-4 rounded-md hover:bg-zinc-400 focus:bg-zinc-800 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-zinc-800">
                             <Icon name="refresh" stroke></Icon>
                             Recalibrate result

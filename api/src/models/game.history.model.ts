@@ -1,5 +1,6 @@
 
 import { Schema, model } from "mongoose";
+import { uptime } from "process";
 
 const gameHistorySchema = new Schema(
     {
@@ -11,11 +12,6 @@ const gameHistorySchema = new Schema(
             type: Schema.Types.ObjectId,
             required: true,
             ref: "game"
-        },
-        lobbyId: {
-            type: Schema.Types.ObjectId,
-            required: true,
-            ref: "lobby"
         },
         turns: {
             type: Object,
@@ -32,6 +28,11 @@ const gameHistorySchema = new Schema(
             default: null,
             nullable: true
         },
+        gameActions: {
+            type: Object,
+            default: {},
+            readonly: true
+        },
         gameSettings: {
             type: Object,
             default: {},
@@ -46,12 +47,12 @@ const gameHistorySchema = new Schema(
             type: String,
             required: true,
         },
-        date: {
+        createdAt: {
             type: Date,
             default: Date.now,
             readonly: true
         },
-        createdAt: {
+        updatedAt: {
             type: Date,
             default: Date.now,
             readonly: true
