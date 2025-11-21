@@ -41,22 +41,18 @@ export default class SolitaireController implements Controller {
         this.router.put("/play/:lobbyId/solitaire", hasAuth([Auth["GAME.PLAY"]]), (req, res, next) => {
             this.playCard(req, res).catch(next);
         });
-
+        // API route to restart a game
         this.router.post("/restart/:lobbyId/:gameId/solitaire", hasAuth([Auth["GAME.PLAY"]]), (req, res, next) => {
             this.reStartGame(req, res).catch(next);
         });
-
+        // API route to undo previous step
         this.router.post("/prevSteps/:lobbyId/:gameId/solitaire", hasAuth([Auth["GAME.PLAY"]]), (req, res, next) => {
             this.prevSteps(req, res).catch(next);
         });
-
+        // API route to auto complete the game
         this.router.post("/done/:lobbyId/solitaire", hasAuth([Auth["GAME.PLAY"]]), (req, res, next) => {
             this.doneCards(req, res).catch(next);
         });
-
-
-
-
     }
 
     private startGame = async (req: Request, res: Response) => {

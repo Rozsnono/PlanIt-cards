@@ -54,8 +54,6 @@ export default class RummyController implements Controller {
         this.router.put("/put/:lobbyId/rummy", hasAuth([Auth["GAME.PLAY"]]), (req, res, next) => {
             this.putCard(req, res).catch(next);
         });
-
-
     }
 
     private startGame = async (req: Request, res: Response) => {
