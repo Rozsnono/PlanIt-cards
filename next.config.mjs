@@ -1,4 +1,7 @@
 /** @type {import('next').NextConfig} */
+
+const IP_LOCALHOST = "http://localhost:8000";
+
 const nextConfig = {
     reactStrictMode: false,
     eslint: {
@@ -24,11 +27,11 @@ const nextConfig = {
         return [
           {
             source: '/api/:path*',
-            destination: 'http://188.157.195.126:8000/api/:path*',
+            destination: `${IP_LOCALHOST}/api/:path*`,
           },
           {
             source: '/auth/:path*',
-            destination: 'http://188.157.195.126:8000/auth/:path*',
+            destination: `${IP_LOCALHOST}/auth/:path*`,
           },
         ];
       },

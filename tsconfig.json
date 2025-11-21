@@ -33,7 +33,7 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts"
-  ],
+, "src/enums/ip.enum.ts"  ],
   "exclude": [
     "node_modules",
     ".next",

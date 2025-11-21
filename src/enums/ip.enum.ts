@@ -1,8 +1,8 @@
 export enum IP {
-    LOCALHOST = "http://188.157.195.126:8000",
-    WEBSOCKET = "ws://188.157.195.126:8080",
-    LOBBYSOCKET = "ws://188.157.195.126:8081",
-    ADMINSOCKET = "ws://188.157.195.126:8082",
-    ADMINGAMESOCKET = "ws://188.157.195.126:8085",
-    PLAYERSOCKET = "ws://188.157.195.126:8090",
+    LOCALHOST = "http://localhost:8000",
+    WEBSOCKET = "ws://localhost:8080",
+    LOBBYSOCKET = "ws://localhost:8081",
+    ADMINSOCKET = "ws://localhost:8082",
+    ADMINGAMESOCKET = "ws://localhost:8085",
+    PLAYERSOCKET = "ws://localhost:8090",
 }
