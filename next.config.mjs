@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 
-const IP_LOCALHOST = "http://localhost:8000";
+const IP_LOCALHOST = "http://188.156.46.120:8000";
 
 const nextConfig = {
     reactStrictMode: false,

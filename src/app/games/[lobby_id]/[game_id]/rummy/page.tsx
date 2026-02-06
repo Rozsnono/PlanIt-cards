@@ -19,6 +19,9 @@ import gameModel from "../../../../../../api/src/models/game.model";
 import Loading from "@/app/loading";
 import PlayerDisplay from "@/components/game/player.display.component";
 import GameOver from "@/components/game/over.componet";
+import SortsComponent from "@/components/game/sorts.component";
+import NextTurnComponent from "@/components/game/next.component";
+import DropComponent from "@/components/game/drop.component";
 
 const gameService = new GameService("rummy");
 const timerClass = new Timer();
@@ -139,6 +142,16 @@ export default function Game() {
         setDraggedCard(null);
     }
 
+    async function cardDroppedByClick() {
+        if (selectedCards.length > 1 || selectedCards.length === 0) return;
+        if (!user) return;
+
+        const res = await gameService.dropCard(lobby!._id, { droppedCard: selectedCards[0] });
+        setError(res.error);
+        setDraggedCard(null);
+        setSelectedCards([]);
+    }
+
     async function playCards() {
         if (!user) return;
         if (selectedCards.length < 3) {
@@ -241,7 +254,7 @@ export default function Game() {
 
                 <div className="flex gap-16 w-full absolute top-2 p-2 justify-center items-start">
                     <div className="flex relative cursor-pointer">
-                        <div className="2xl:w-[5rem] lg:w-[4.7rem] md:w-[3.7rem] 2xl:h-[7.6rem] lg:h-[7rem] md:h-[6rem] border border-zinc-400 rounded-md z-10"></div>
+                        <div className="2xl:w-[5rem] lg:w-[4.7rem] md:w-[3.7rem] 2xl:h-[7.6rem] lg:h-[7rem] md:h-[5rem] border border-zinc-400 rounded-md z-10"></div>
                         <Image className="absolute top-1 left-1 z-10" draggable={false} src={"/assets/cards/rummy/gray_back.png"} width={140} height={100} alt="card"></Image>
                         <Image onClick={drawingCard} draggable={false} className="absolute border-2 border-transparent hover:border-green-500 rounded-lg z-10" src={"/assets/cards/rummy/gray_back.png"} width={140} height={110} alt="card"></Image>
                         {
@@ -251,16 +264,24 @@ export default function Game() {
                         }
                     </div>
 
-                    <div className="flex relative" onDragOver={overDrag} onDrop={cardDropped} >
-                        <div className="2xl:w-[5rem] lg:w-[4.7rem] md:w-[4.7rem] 2xl:h-[7.6rem] lg:h-[7rem] md:h-[7rem] border border-zinc-400 rounded-md"></div>
+                    <div className="lg:flex relative hidden" onDragOver={overDrag} onDrop={cardDropped} >
+                        <div className="2xl:w-[5rem] lg:w-[4.7rem] md:w-[4.7rem] 2xl:h-[7.6rem] lg:h-[7rem] md:h-[5rem] h-[5rem] border border-zinc-400 rounded-md"></div>
 
                         {
                             gameState.droppedCards.length > 1 &&
-                            <Image className="absolute left-1 top-1 rotate-1" draggable={false} src={"/" + new CardsUrls().getFullCardUrl(gameState.droppedCards[gameState.droppedCards.length - 2].card.name)} width={140} height={100} alt="card"></Image>
+                            <Image className="absolute left-1 top-1 rotate-1 " draggable={false} src={"/" + new CardsUrls().getFullCardUrl(gameState.droppedCards[gameState.droppedCards.length - 2].card.name)} width={100} height={60} alt="card"></Image>
                         }
                         {
                             gameState.droppedCards.length > 0 &&
                             <Image onClick={drawingFromDropped} className="absolute right-1 bottom-1 rotate-12 border border-transparent hover:border-green-300 rounded-lg cursor-pointer" src={"/" + new CardsUrls().getFullCardUrl(gameState.droppedCards[gameState.droppedCards.length - 1].card.name)} width={140} height={100} alt="card"></Image>
+                        }
+                    </div>
+
+                    <div className="flex relative lg:hidden" onDragOver={overDrag} onDrop={cardDropped} >
+                        <div className="2xl:w-[5rem] lg:w-[4.7rem] md:w-[3.8rem] w-[3rem] 2xl:h-[7.6rem] lg:h-[7rem] md:h-[5.4rem] h-[4rem] border border-zinc-400 rounded-md"></div>
+                        {
+                            gameState.droppedCards.length > 0 &&
+                            <Image onClick={drawingFromDropped} className="absolute right-1 bottom-1 border border-transparent hover:border-green-300 rounded-lg cursor-pointer h-[5rem] w-auto" src={"/" + new CardsUrls().getFullCardUrl(gameState.droppedCards[gameState.droppedCards.length - 1].card.name)} width={80} height={60} alt="card"></Image>
                         }
                     </div>
                 </div>
@@ -274,14 +295,14 @@ export default function Game() {
                             return (
                                 <React.Fragment key={i}>
                                     <div draggable onClick={() => { selectCard(card) }}
-                                        className={`cursor-pointer w-12 overflow-visible hover:cursor-grab group rounded-lg duration-200 
+                                        className={`cursor-pointer w-6 lg:w-12 overflow-visible hover:cursor-grab group rounded-lg duration-200 
                                         ${checkIfCardIsSelected(card) ? 'w-20 ' : ''} 
                                         ${checkIfCardsIsSelected(card) ? 'border-green-400 -translate-y-[0.5rem]' : ''} 
                                         ${draggedCard && JSON.stringify(draggedCard) === JSON.stringify(card) ? 'opacity-10' : ''}
                                         `}>
-                                        <Image onDragEnter={(e) => { onDragEnter(e, i) }} className={`border-2 border-transparent group-hover:border-green-400 rounded-lg
+                                        <Image onDragEnter={(e) => { onDragEnter(e, i) }} className={`border-2 border-transparent group-hover:border-green-400 rounded-lg lg:w-[6rem] lg:max-w-[6rem] w-[3rem] max-w-[3rem] duration-200
                                         ${gameState.currentPlayer.playerId === user?._id && gameState.droppedCards.length > 0 && gameState.droppedCards[gameState.droppedCards.length - 1].droppedBy != user?._id && drawedCard === card && gameState.drawedCard.lastDrawedBy === user?._id ? 'ring ring-sky-600' : ''}
-                                            `} style={{ width: "6rem", maxWidth: "6rem" }} loading="eager" onDragEnd={() => { setDraggedCard(null) }} onDragStart={() => { startDrag(card) }} onDrop={() => { dropDrag(i) }} onDragOver={overDrag} src={"/" + new CardsUrls().getFullCardUrl(card.name)} width={100} height={100} alt={new CardsUrls().getFullCardUrl(card.name) || ''}></Image>
+                                            `} loading="eager" onDragEnd={() => { setDraggedCard(null) }} onDragStart={() => { startDrag(card) }} onDrop={() => { dropDrag(i) }} onDragOver={overDrag} src={"/" + new CardsUrls().getFullCardUrl(card.name)} width={100} height={100} alt={new CardsUrls().getFullCardUrl(card.name) || ''}></Image>
                                     </div>
                                     <div onDragOver={overDrag} className={`${draggedCard && JSON.stringify(draggedCard) !== JSON.stringify(card) && dragEnter === i ? "w-[5.8rem]" : "w-0"} bg-[#00000040] rounded-lg duration-100`}>
                                         {draggedCard &&
@@ -295,44 +316,18 @@ export default function Game() {
 
                     {
                         gameState.currentPlayer.playerId == user?._id && !nextTurnLoader &&
-                        <div style={{ width: `${Math.floor(75 - (timer / 180) * 75)}%`, backgroundColor: `${timer > 150 ? '#ec003f' : '#9ae600'}` }} className="absolute -top-6 h-4 bg-emerald-500 rounded-xl duration-500">
-                            <div className="absolute -top-6 w-full flex justify-center items-center text-sm text-zinc-200">
+                        <div style={{ width: `${Math.floor(75 - (timer / 180) * 75)}%`, backgroundColor: `${timer > 150 ? '#ec003f' : '#9ae600'}` }} className="absolute -top-6 h-2 lg:h-4 bg-emerald-500 rounded-xl duration-500">
+                            <div className="absolute -top-3 lg:-top-6 w-full flex justify-center items-center text-sm text-zinc-200">
                                 {180 - timer}s
                             </div>
                         </div>
                     }
 
-                    <div className="absolute left-10 bottom-8 flex justify-center items-center gap-3">
-                        <div onClick={() => { setSortType('abc') }} className="w-[4rem] h-[4rem] rounded-full border border-blue-300 text-blue-300 hover:border-sky-100 hover:text-sky-100 flex justify-center items-center cursor-pointer duration-100">
-                            <Icon name="sort-abc" size={24}></Icon>
-                        </div>
-                        <div onClick={() => { setSortType('num') }} className="w-[4rem] h-[4rem] rounded-full border border-blue-300 text-blue-300 hover:border-sky-100 hover:text-sky-100 flex justify-center items-center cursor-pointer duration-100">
-                            <Icon name="sort-num" size={24}></Icon>
-                        </div>
-                    </div>
+                    <SortsComponent setSortType={setSortType}></SortsComponent>
 
-                    {
-                        gameState.currentPlayer.playerId == user?._id && !nextTurnLoader && !isGameOver &&
+                    <NextTurnComponent nextTurn={nextTurn} nextTurnLoader={nextTurnLoader} isGameOver={isGameOver} gameState={gameState} timer={timer}></NextTurnComponent>
 
-                        <div onClick={nextTurn} className="absolute right-10 bottom-4">
-                            <div className="w-[4.5rem] h-[4.5rem] bg-green-800 rounded-full border-2 hover:border-4 flex items-center justify-center text-zinc-200 border-lime-300 text-xl cursor-pointer group duration-100">
-                                <span className="group-hover:opacity-100 opacity-100 duration-100"><Icon name="check-empty" size={44}></Icon></span>
-                            </div>
-                        </div>
-                    }
-
-
-
-                    {
-                        nextTurnLoader &&
-                        <div onClick={nextTurn} key={timer} className={`absolute right-10 h-[5rem] w-[5rem] justify-center items-center flex rounded-full border-2 border-lime-300 bottom-4`}
-                            style={{ background: `conic-gradient(#bef264 ${360 - ((0) * 360 / 180)}deg, transparent 0deg)` }}
-                        >
-                            <div className="w-[4.5rem] h-[4.5rem] bg-green-800 rounded-full border-2 flex items-center justify-center text-lime-200 border-lime-300 text-xl cursor-pointer group duration-100">
-                                <span className="opacity-100 group-hover:flex flex duration-100 animate-spin"><Icon name="loader" size={44}></Icon></span>
-                            </div>
-                        </div>
-                    }
+                    <DropComponent isDropable={gameState.currentPlayer.playerId == user?._id && selectedCards.length > 0} onDrop={cardDroppedByClick}></DropComponent>
                 </div>
 
                 <div className="w-full h-full flex justify-center items-center">

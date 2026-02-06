@@ -124,6 +124,7 @@ export default class AuthController implements Controller {
             textColor: userS.getColorByInitials(body.firstName + body.lastName).text,
         }
         body["achievements"] = [];
+        body['gamesStats'] = {};
         const newUser = new this.user(body);
         await newUser.save();
         this.mail.sendMail(body.email, body.username, 'Welcome to PlanIt!', code);

@@ -5,7 +5,7 @@ import { Iplayer } from "@/interfaces/interface";
 
 export default function GameUser({ user, currentPlayer, cardNumber, isOnTop, isCaller }: { user?: Iplayer, currentPlayer: string, cardNumber?: number, isOnTop?: boolean, isCaller?: boolean }) {
     return (
-        <div className="w-16 h-16 relative group cursor-pointer ">
+        <div className="lg:w-16 lg:h-16 h-8 w-8 relative group cursor-pointer ">
 
             {
                 user &&
@@ -40,9 +40,9 @@ export default function GameUser({ user, currentPlayer, cardNumber, isOnTop, isC
 
 export function GameBot({ bot, currentPlayer, cardNumber, isOnTop, isCaller }: { bot: any, currentPlayer: string, cardNumber?: any, isOnTop?: boolean, isCaller?: boolean }) {
     return (
-        <div className="w-16 h-16 relative group cursor-pointer">
+        <div className="lg:w-16 lg:h-16 h-8 w-8 relative group cursor-pointer">
 
-            <div className="w-16 h-16 rounded-full flex text-zinc-300 items-center justify-center bg-gradient-to-br from-zinc-500/80 to-zinc-700/70 border relative">
+            <div className="lg:w-16 lg:h-16 h-8 w-8 rounded-full flex text-zinc-300 items-center justify-center bg-gradient-to-br from-zinc-500/80 to-zinc-700/70 border relative">
                 <Icon name="robot" size={32} stroke></Icon>
                 {currentPlayer === bot._id &&
                     <div className={`absolute ${isOnTop ? 'top-[7.5rem]' : '-top-10'} flex`}>

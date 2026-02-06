@@ -246,7 +246,7 @@ export class RummyService extends GameService {
     }
 
     public async nextTurn(LobbygameId: string, playerId: string) {
-        const lobby = await this.lobby.findOne({ game_id: new mongoose.Types.ObjectId(LobbygameId) });
+        const lobby = await this.lobby.findOne({ _id: new mongoose.Types.ObjectId(LobbygameId) });
         if (!lobby) {
             return { error: ERROR.LOBBY_NOT_FOUND };
         }
@@ -284,7 +284,7 @@ export class RummyService extends GameService {
     }
 
     public async forcedNextTurn(LobbygameId: string) {
-        const lobby = await this.lobby.findOne({ game_id: new mongoose.Types.ObjectId(LobbygameId) });
+        const lobby = await this.lobby.findOne({ _id: new mongoose.Types.ObjectId(LobbygameId) });
         if (!lobby) {
             return { error: ERROR.LOBBY_NOT_FOUND };
         }

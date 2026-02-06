@@ -680,6 +680,12 @@ function getIcon(name: string) {
                 </>
             )
         }
+
+        case "drop": {
+            return (<>
+                <path d="m7 14 5-5 5 5H7Z"></path>
+            </>)
+        }
     }
 }
 
